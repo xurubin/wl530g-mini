@@ -1,0 +1,41 @@
+Binary file avp.o matches
+call.c:struct buffer *new_payload (struct sockaddr_in peer)
+call.c:inline void recycle_payload (struct buffer *buf, struct sockaddr_in peer)
+Binary file call.o matches
+control.c:inline void recycle_outgoing (struct buffer *buf, struct sockaddr_in peer)
+control.h:extern void recycle_outgoing (struct buffer *, struct sockaddr_in);
+Binary file control.o matches
+Binary file l2tpd.gdb matches
+Binary file l2tpd.o matches
+l2tp.h:    struct sockaddr_in peer;    /* Peer's Address */
+l2tp.h:extern struct buffer *new_payload (struct sockaddr_in);
+l2tp.h:extern void recycle_payload (struct buffer *, struct sockaddr_in);
+misc.h:    struct sockaddr_in peer;
+Binary file misc.o matches
+network.c:struct sockaddr_in server, from;        /* Server and transmitter structs */
+network.c:    debug_ret = bind (server_socket, (struct sockaddr *) &server, sizeof (server));
+network.c://    if (bind (server_socket, (struct sockaddr *) &server, sizeof (server)))
+network.c:    if (getsockname (server_socket, (struct sockaddr *) &server, &length))
+network.c:    struct sockaddr_in to;
+network.c:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:                (struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:	log(LOG_DEBUG, "sockaddr=%x\n", sin_addr.s_addr);
+network.c:                          (struct sockaddr *) &from, &fromlen);
+network.c:	//		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:                //	(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c:                //        (struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:struct sockaddr_in server, from;        /* Server and transmitter structs */
+network.c.bk:    if (bind (server_socket, (struct sockaddr *) &server, sizeof (server)))
+network.c.bk:    if (getsockname (server_socket, (struct sockaddr *) &server, &length))
+network.c.bk:    struct sockaddr_in to;
+network.c.bk:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:                (struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:                          (struct sockaddr *) &from, &fromlen);
+network.c.bk:	//		(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:                //	(struct sockaddr *) &buf->peer, sizeof (buf->peer));
+network.c.bk:                //        (struct sockaddr *) &buf->peer, sizeof (buf->peer));
+Binary file pty.o matches

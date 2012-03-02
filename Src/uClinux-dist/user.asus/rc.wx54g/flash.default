@@ -1,0 +1,434 @@
+
+{"http_username", "admin", 0},
+
+{"http_passwd", "admin", 0},
+
+{"wan_proto", "dhcp", 0},
+
+{"wan_mode_x", "2", 0},
+
+{"wan_etherspeed_x", "auto", 0},
+
+{"wan_route_x", "IP_Routed", 0},
+
+{"wan_nat_x", "1", 0},
+
+{"wan_ipaddr", "192.168.100.2", 0},
+
+{"wan_netmask", "255.255.255.0", 0},
+
+{"wan_gateway", "192.168.100.1", 0},
+
+{"wan_dnsenable_x", "1", 0},
+
+{"wan_dns1_x", "", 0},
+
+{"wan_dns2_x", "", 0},
+
+{"wan_nat_x", "1", 0},
+
+{"dmz_ip", "", 0},
+
+{"vts_enable_x", "1", 0},
+
+{"vts_num_x", "0", 0},
+
+{"autofw_enable_x", "0", 0},
+
+{"autofw_num_x", "0", 0},
+
+{"vts_ipaddr_x", "", 0},
+
+{"vts_port_x", "", 0},
+
+{"vts_proto_x", "", 0},
+
+{"vts_desc_x", "", 0},
+
+{"autofw_outport_x", "", 0},
+
+{"autofw_outproto_x", "", 0},
+
+{"autofw_inport_x", "", 0},
+
+{"autofw_inproto_x", "", 0},
+
+{"autofw_desc_x", "", 0},
+
+{"wan_pppoe_username", "", 0},
+
+{"wan_pppoe_passwd", "", 0},
+
+{"wan_pppoe_idletime", "1800", 0},
+
+{"wan_pppoe_txonly_x", "0", 0},
+
+{"wan_pppoe_mtu", "1492", 0},
+
+{"wan_pppoe_mru", "1492", 0},
+
+{"wan_pppoe_service", "", 0},
+
+{"wan_pppoe_ac", "", 0},
+
+{"wan_pppoe_relay_x", "0", 0},
+
+{"wan_hostname", "", 0},
+
+{"wan_hwaddr_x", "", 0},
+
+{"wan_proto_t", "", 0},
+
+{"wan_ipaddr_t", "", 0},
+
+{"wan_netmask_t", "", 0},
+
+{"wan_gateway_t", "", 0},
+
+{"wan_dns_t", "", 0},
+
+{"wan_status_t", "", 0},
+
+{"ddns_status_t", "", 0},
+
+{"fw_enable_x", "1", 0},
+
+{"fw_log_x", "none", 0},
+
+{"misc_natlog_x", "0", 0},
+
+{"misc_http_x", "0", 0},
+
+{"misc_httpport_x", "8080", 0},
+
+{"misc_lpr_x", "0", 0},
+
+{"misc_ping_x", "0", 0},
+
+{"fw_wl_enable_x", "0", 0},
+
+{"filter_wl_date_x", "1111111", 0},
+
+{"filter_wl_time_x", "00002359", 0},
+
+{"filter_wl_default_x", "ACCEPT", 0},
+
+{"filter_wl_icmp_x", "", 0},
+
+{"fw_lw_enable_x", "0", 0},
+
+{"filter_lw_date_x", "1111111", 0},
+
+{"filter_lw_time_x", "00002359", 0},
+
+{"filter_lw_default_x", "ACCEPT", 0},
+
+{"filter_lw_icmp_x", "", 0},
+
+{"url_enable_x", "0", 0},
+
+{"url_date_x", "1111111", 0},
+
+{"url_time_x", "00002359", 0},
+
+{"url_num_x", "0", 0},
+
+{"filter_wl_num_x", "0", 0},
+
+{"filter_lw_num_x", "0", 0},
+
+{"filter_wl_srcip_x", "", 0},
+
+{"filter_wl_srcport_x", "", 0},
+
+{"filter_wl_dstip_x", "", 0},
+
+{"filter_wl_dstport_x", "", 0},
+
+{"filter_wl_proto_x", "", 0},
+
+{"filter_lw_srcip_x", "", 0},
+
+{"filter_lw_dstport_x", "", 0},
+
+{"filter_lw_proto_x", "", 0},
+
+{"filter_lw_desc_x", "", 0},
+
+{"url_keyword_x", "", 0},
+
+{"sr_enable_x", "0", 0},
+
+{"sr_rip_x", "0", 0},
+
+{"sr_num_x", "0", 0},
+
+{"dr_static_rip_x", "0", 0},
+
+{"dr_static_matric_x", "1", 0},
+
+{"dr_default_x", "1", 0},
+
+{"dr_static_rip_x", "0", 0},
+
+{"dr_staticnum_x", "0", 0},
+
+{"sr_ipaddr_x", "", 0},
+
+{"sr_netmask_x", "", 0},
+
+{"sr_gateway_x", "", 0},
+
+{"sr_matric_x", "", 0},
+
+{"sr_if_x", "", 0},
+
+{"dr_staticipaddr_x", "", 0},
+
+{"dr_staticnetmask_x", "0", 0},
+
+{"dr_staticgateway_x", "", 0},
+
+{"lan_proto_x", "0", 0},
+
+{"lan_ipaddr", "192.168.1.1", 0},
+
+{"lan_netmask", "255.255.255.0", 0},
+
+{"lan_ipaddr_t", "", 0},
+
+{"lan_netmask_t", "", 0},
+
+{"lan_gateway_t", "", 0},
+
+{"lan_hostname", "", 0},
+
+{"lan_gateway", "", 0},
+
+{"dhcp_enable_x", "1", 0},
+
+{"lan_domain", "", 0},
+
+{"dhcp_start", "192.168.1.2", 0},
+
+{"dhcp_end", "192.168.1.254", 0},
+
+{"dhcp_lease", "86400", 0},
+
+{"dhcp_gateway_x", "", 0},
+
+{"dhcp_dns1_x", "", 0},
+
+{"dhcp_wins_x", "", 0},
+
+{"dhcp_static_x", "0", 0},
+
+{"dhcp_staticnum_x", "0", 0},
+
+{"upnp_enable", "1", 0},
+
+{"log_ipaddr", "", 0},
+
+{"time_zone", "GMT0", 0},
+
+{"time_interval", "20", 0},
+
+{"ntp_server0", "time.nist.gov", 0},
+
+{"ntp_server1", "", 0},
+
+{"ddns_enable_x", "0", 0},
+
+{"ddns_server_x", "", 0},
+
+{"ddns_username_x", "", 0},
+
+{"ddns_passwd_x", "", 0},
+
+{"ddns_hostname_x", "", 0},
+
+{"ddns_wildcard_x", "0", 0},
+
+{"dhcp_staticmac_x", "", 0},
+
+{"dhcp_staticip_x", "", 0},
+
+{"wl_macmode", "disabled", 0},
+
+{"wl_macapply_x", "Both", 0},
+
+{"wl_macnum_x", "0", 0},
+
+{"wl_maclist_x", "", 0},
+
+{"wl_radius_ipaddr", "", 0},
+
+{"wl_radius_port", "1812", 0},
+
+{"wl_radius_key", "", 0},
+
+{"wl_country_code", "", 0},
+
+{"wl_ssid", "default", 0},
+
+{"wl_mode_x", "0", 0},
+
+{"wl_channel", "0", 0},
+
+{"wl_wdsapply_x", "1", 0},
+
+{"wl_lazywds", "0", 0},
+
+{"wl_wdsnum_x", "0", 0},
+
+{"wl_gmode", "1", 0},
+
+{"wl_gmode_protection_x", "0", 0},
+
+{"wl_auth_mode", "open", 0},
+
+{"wl_crypto", "0", 0},
+
+{"wl_wpa_psk", "", 0},
+
+{"wl_wep_x", "0", 0},
+
+{"wl_phrase_x", "", 0},
+
+{"wl_key1", "", 0},
+
+{"wl_key2", "", 0},
+
+{"wl_key3", "", 0},
+
+{"wl_key4", "", 0},
+
+{"wl_key", "1", 0},
+
+{"wl_wpa_gtk_rekey", "86400", 0},
+
+{"wl_afterburner", "off", 0},
+
+{"wl_closed", "0", 0},
+
+{"wl_ap_isolate", "0", 0},
+
+{"wl_rate", "0", 0},
+
+{"wl_rateset", "default", 0},
+
+{"wl_frag", "2346", 0},
+
+{"wl_rts", "2347", 0},
+
+{"wl_dtim", "1", 0},
+
+{"wl_bcn", "100", 0},
+
+{"wl_exant", "1", 0},
+
+{"wl_frameburst", "0", 0},
+
+{"wl_mode_ex", "ap", 0},
+
+{"wl_radio_x", "1", 0},
+
+{"wl_radio_date_x", "1111111", 0},
+
+{"wl_radio_time_x", "00002359", 0},
+
+{"wl_radio_power_x", "19", 0},
+
+{"wl_wdslist_x", "", 0},
+
+{"wl_macmode", "disabled", 0},
+
+{"wl_macapply_x", "Both", 0},
+
+{"wl_macnum_x", "0", 0},
+
+{"wl_maclist_x", "", 0},
+
+{"wl_radius_ipaddr", "", 0},
+
+{"wl_radius_port", "1812", 0},
+
+{"wl_radius_key", "", 0},
+
+{"usb_webenable_x", "1", 0},
+
+{"usb_webmode_x", "1", 0},
+
+{"usb_webdriver_x", "0", 0},
+
+{"usb_webimage_x", "1", 0},
+
+{"usb_websense_x", "1", 0},
+
+{"usb_webrectime_x", "0", 0},
+
+{"usb_webfresh_x", "1", 0},
+
+{"usb_webcaption_x", "Web Camera Live Demo!!!", 0},
+
+{"usb_webhttpport_x", "7776", 0},
+
+{"usb_webactivex_x", "7777", 0},
+
+{"usb_websecurity_x", "0", 0},
+
+{"usb_websecurity_date_x", "1111111", 0},
+
+{"usb_websecurity_time_x", "00002359", 0},
+
+{"usb_websendto_x", "", 0},
+
+{"usb_webmserver_x", "", 0},
+
+{"usb_websubject_x", "Motion detection alert!!!", 0},
+
+{"usb_webattach_x", "1", 0},
+
+{"usb_webremote_x", "LAN Only", 0},
+
+{"usb_webremote1_x", "", 0},
+
+{"usb_webremote2_x", "", 0},
+
+{"usb_webremote3_x", "", 0},
+
+{"usb_webremote4_x", "", 0},
+
+{"usb_webremote5_x", "", 0},
+
+{"usb_webremote6_x", "", 0},
+
+{"usb_ftpenable_x", "1", 0},
+
+{"usb_ftpanonymous_x", "1", 0},
+
+{"usb_ftpsuper_x", "0", 0},
+
+{"usb_ftpport_x", "21", 0},
+
+{"usb_ftpmax_x", "12", 0},
+
+{"usb_ftptimeout_x", "120", 0},
+
+{"usb_ftpstaytimeout_x", "240", 0},
+
+{"usb_ftpnum_x", "0", 0},
+
+{"usb_bannum_x", "0", 0},
+
+{"usb_ftpusername_x", "", 0},
+
+{"usb_ftppasswd_x", "", 0},
+
+{"usb_ftpmaxuser_x", "", 0},
+
+{"usb_ftprights_x", "", 0},
+
+{"usb_ftpbanip_x", "", 0},
+
+{"telnet_enabled", "0", 0},

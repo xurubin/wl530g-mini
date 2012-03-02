@@ -1,0 +1,189 @@
+#!/bin/sh
+
+# General Interface Setting
+
+insmod /lib/modules/2.4.5/pci/ar5k_mod.o
+
+. /etc/linuxigd/WLANConfig11a
+. /etc/linuxigd/DeviceSecurity11a
+
+wlanutil regshow 11a $x_RegulatoryDomain > /etc/linuxigd/Channel11a
+wlanutil regshow 11b $x_RegulatoryDomain > /etc/linuxigd/Channel11b
+
+startcmd="ssid $SSID"
+
+if [ "$Channel" = "Auto" ]; then
+   startcmd="$startcmd,autochanselect Enable"	
+else
+ if [ "$x_TurboMode" = "1" ]; then
+   if [ "$x_OutdoorChannel" = "1" ]; then
+	  	chan=`wlanutil regshow 11ato $x_RegulatoryDomain $Channel`	
+		wlanutil regshow 11ato $x_RegulatoryDomain > /etc/linuxigd/Channel11a
+   else
+    	chan=`wlanutil regshow 11at $x_RegulatoryDomain $Channel`
+		wlanutil regshow 11at $x_RegulatoryDomain > /etc/linuxigd/Channel11a
+   fi
+ else
+   if [ "$x_OutdoorChannel" = "1" ]; then
+		chan=`wlanutil regshow 11ao $x_RegulatoryDomain $Channel`
+		wlanutil regshow 11ao $x_RegulatoryDomain > /etc/linuxigd/Channel11a
+   else
+		chan=`wlanutil regshow 11a $x_RegulatoryDomain $Channel`
+		wlanutil regshow 11a $x_RegulatoryDomain > /etc/linuxigd/Channel11a
+   fi   
+ fi
+ startcmd="$startcmd,autochanselect Disable"   
+fi
+
+if [ "$x_OutdoorChannel" = "1" ]; then
+   startcmd="$startcmd,outdoorchannel Enable"
+fi
+
+if [ "$x_TurboMode" = "1" ]; then
+   startcmd="$startcmd,wirelessmode turbo,radioChannel $chan"
+   ratelist="Best 12 18 24 36 48 72 96 108"
+else
+   startcmd="$startcmd,wirelessmode 11a,radioChannel $chan"
+   ratelist="Best 6 9 12 18 24 36 48 54"	
+fi
+
+j=0
+rate="Best"
+for i in $ratelist ; do
+   if [ "$j" = "$DataRate" ]; then
+       rate="$i"
+   fi
+   j=$(($j+1))
+done
+
+startcmd="$startcmd,dataRate $rate"
+
+if [ "$WEPType" = "None" ]; then
+	echo "WEPType = None"
+elif [ "$WEPType" = "FromServer" ]; then
+	echo "WEPType = FromServer"
+else
+   if [ "$WEPType" = "64bits" ]; then
+       wep="40"
+   elif [ "$WEPType" = "128bits" ]; then
+	   wep="104"
+   elif [ "$WEPType" = "156bits" ]; then
+  	   wep="128"
+   fi
+	
+   if [ "$AESListCount" != "" ]; then
+       tableCount=$(($AESListCount+4))
+   else
+       tableCount="4"
+   fi	        
+
+   startcmd="$startcmd,KeyTable $tableCount"
+   startcmd="$startcmd,Key 1 $wep $WEPKey1"
+   startcmd="$startcmd,Key 2 $wep $WEPKey2"
+   startcmd="$startcmd,Key 3 $wep $WEPKey3"
+   startcmd="$startcmd,Key 4 $wep $WEPKey4"   
+
+   if [ $WEPDefaultKey = "Key1" ]; then
+      startcmd="$startcmd,DefaultKey 1"
+   elif [ $WEPDefaultKey = "Key2" ]; then
+      startcmd="$startcmd,DefaultKey 2"
+   elif [ $WEPDefaultKey = "Key3" ]; then
+      startcmd="$startcmd,DefaultKey 3"
+   else
+      startcmd="$startcmd,DefaultKey 4"
+   fi     
+   startcmd="$startcmd,encryption Enable"
+fi
+
+if [ "$AuthenticationMethod" = "Open System" ]; then
+   startcmd="$startcmd,AuthenticationType open-system,cipher auto"
+elif [ "$AuthenticationMethod" = "Shared Key" ]; then
+   startcmd="$startcmd,AuthenticationType shared-key,cipher wep"
+elif [ "$AuthenticationMethod" = "802.1x" ]; then
+   echo "AuthenticationMethod=802.1x"
+elif [ "$AuthenticationMethod" = "AES Key" ]; then
+   startcmd="$startcmd,AuthenticationType open-system,encryption Enable,cipher auto"
+fi
+
+echo $startcmd
+
+wlanutil drvset eth2 "$startcmd"
+
+# ACL Setting
+
+# . /etc/linuxigd/DeviceSecurity11a
+
+i=0
+
+if [ "$ACLMethod" = "Disable" ] || [ "$ApplyDevices" = "802.11b" ]; then
+	if [ "$x_AESEnable" = "0" ]; then
+		aclcmd="accesspermission disable"
+	else
+		aclcmd="accesspermission enable"
+	fi
+else
+  if [ "$ACLMethod" = "Accept" ]; then
+	  aclcmd="accesspermission strict"
+	  acltype="allow"
+  else
+	  aclcmd="accesspermission enable"
+	  acltype="deny"
+  fi
+ 
+  while [ "$i" -lt $ACLListCount ]; do
+    eval macaddr='$'MacAddr${i}
+    aclcmd="$aclcmd,acl $acltype $macaddr"
+    i=$(($i+1))
+  done	
+fi
+
+echo $aclcmd
+
+# wlanutil drvset eth2 "$startcmd"
+# AES Setting
+
+j=0
+
+if [ "$x_AESEnable" = "1" ] && [ "$AESListCount" != "" ]; then
+while [ "$j" -lt $AESListCount ]; do
+	eval macaddr='$'AESMacAddr${j}
+	eval keytypeStr='$'AESType${j}
+	eval key='$'AESKey${i}
+
+	if [ "$keytypeStr" = "64bits" ]; then
+		keytype="40"
+	elif [ "$keytypeStr" = "128bits" ]; then
+		keytype="108"
+	else
+		keytype="128"
+	fi
+	
+	if [ "$j" = "0" ]; then
+	   aescmd="acl keymap $macaddr $(($j+5))"
+	   keycmd="key $(($j+5)) $keytype $key"
+	else
+	   aescmd="$aclcmd,acl $macaddr $(($j+5))"	
+	   keycmd="$keycmd,key $(($j+5)) $keytype $key"
+	fi
+
+	j=$(($j+1))
+done
+fi
+
+echo $keycmd
+echo $aescmd
+
+cmd="acltable $(($i+$j))"
+
+if [ "$aclcmd" != "" ]; then
+	cmd="$cmd,$aclcmd"
+fi
+
+if [ "$keycmd" != "" ]; then
+	cmd="$cmd,$keycmd,$aescmd"
+fi
+
+echo "ACL Command : " $cmd
+
+wlanutil drvset eth2 "$cmd"
+

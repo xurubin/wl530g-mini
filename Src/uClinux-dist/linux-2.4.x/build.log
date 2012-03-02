@@ -1,0 +1,94 @@
+gcc -D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -pipe -mpreferred-stack-boundary=2   -DKBUILD_BASENAME=main -c -o init/main.o init/main.c
+In file included from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/capability.h:17,
+                 from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/binfmts.h:5,
+                 from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/sched.h:9,
+                 from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/mm.h:4,
+                 from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/slab.h:14,
+                 from /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/proc_fs.h:5,
+                 from init/main.c:15:
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `triple_down':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h: In function `init':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `down':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `down_interruptible':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:101: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:101: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `down_trylock':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:110: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:110: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `up':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `smb_lock_server':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `smb_unlock_server':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `lock_parent':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `unlock_dir':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `double_down':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `double_up':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `triple_up':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `double_unlock':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h: In function `execve':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r2' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r1' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/unistd.h:449: unknown register name `r0' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `lock_super':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:88: unknown register name `ip' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h: In function `unlock_super':
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `lr' in `asm'
+/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/asm/semaphore.h:125: unknown register name `ip' in `asm'
+make: *** [init/main.o] Error 1

@@ -1,0 +1,5 @@
+brctl delif br0 wlan0
+kill -1 24
+sleep 1
+brctl addif br0 wlan0
+

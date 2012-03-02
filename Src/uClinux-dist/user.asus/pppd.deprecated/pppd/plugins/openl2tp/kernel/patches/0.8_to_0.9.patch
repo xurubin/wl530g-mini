@@ -1,0 +1,376 @@
+--- pppol2tp-linux-2.4.27.patch	2006-01-13 09:58:41.000000000 +0800
++++ /root/wx54g/openl2tp-no_rpc/kernel/patches/pppol2tp-linux-2.4.27.patch	2006-01-11 15:40:37.000000000 +0800
+@@ -1,6 +1,7 @@
+-diff -Naur linux-2.4.27.orig/Documentation/Configure.help linux-2.4.27/Documentation/Configure.help
++Index: linux-2.4.27/Documentation/Configure.help
++===================================================================
+ --- linux-2.4.27.orig/Documentation/Configure.help	2004-08-08 00:26:04.000000000 +0100
+-+++ linux-2.4.27/Documentation/Configure.help	2004-09-04 01:24:35.000000000 +0100
+++++ linux-2.4.27/Documentation/Configure.help	2005-09-10 17:17:59.728217313 +0100
+ @@ -9913,6 +9913,16 @@
+    on cvs.samba.org.  The required support will be present in the next
+    ppp release (2.4.2).
+@@ -18,9 +19,10 @@
+  Wireless LAN (non-hamradio)
+  CONFIG_NET_RADIO
+    Support for wireless LANs and everything having to do with radio,
+-diff -Naur linux-2.4.27.orig/drivers/net/Config.in linux-2.4.27/drivers/net/Config.in
++Index: linux-2.4.27/drivers/net/Config.in
++===================================================================
+ --- linux-2.4.27.orig/drivers/net/Config.in	2004-08-08 00:26:04.000000000 +0100
+-+++ linux-2.4.27/drivers/net/Config.in	2004-09-04 01:13:53.000000000 +0100
+++++ linux-2.4.27/drivers/net/Config.in	2005-09-10 17:17:59.745214004 +0100
+ @@ -327,6 +327,7 @@
+     dep_tristate '  PPP BSD-Compress compression' CONFIG_PPP_BSDCOMP $CONFIG_PPP
+     if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+@@ -29,9 +31,10 @@
+     fi
+     if [ "$CONFIG_ATM" = "y" -o "$CONFIG_ATM" = "m" ]; then
+        dep_tristate '  PPP over ATM (EXPERIMENTAL)' CONFIG_PPPOATM $CONFIG_PPP $CONFIG_ATM
+-diff -Naur linux-2.4.27.orig/drivers/net/Makefile linux-2.4.27/drivers/net/Makefile
++Index: linux-2.4.27/drivers/net/Makefile
++===================================================================
+ --- linux-2.4.27.orig/drivers/net/Makefile	2004-08-08 00:26:04.000000000 +0100
+-+++ linux-2.4.27/drivers/net/Makefile	2004-08-19 13:46:51.000000000 +0100
+++++ linux-2.4.27/drivers/net/Makefile	2005-09-10 17:17:59.753212447 +0100
+ @@ -162,6 +162,7 @@
+  obj-$(CONFIG_PPP_DEFLATE) += ppp_deflate.o
+  obj-$(CONFIG_PPP_BSDCOMP) += bsd_comp.o
+@@ -40,10 +43,11 @@
+  
+  obj-$(CONFIG_SLIP) += slip.o
+  ifeq ($(CONFIG_SLIP_COMPRESSED),y)
+-diff -Naur linux-2.4.27.orig/drivers/net/pppol2tp.c linux-2.4.27/drivers/net/pppol2tp.c
+---- linux-2.4.27.orig/drivers/net/pppol2tp.c	1970-01-01 01:00:00.000000000 +0100
+-+++ linux-2.4.27/drivers/net/pppol2tp.c	2004-10-20 16:43:00.000000000 +0100
+-@@ -0,0 +1,2532 @@
++Index: linux-2.4.27/drivers/net/pppol2tp.c
++===================================================================
++--- /dev/null	1970-01-01 00:00:00.000000000 +0000
+++++ linux-2.4.27/drivers/net/pppol2tp.c	2005-09-10 17:20:09.481957291 +0100
++@@ -0,0 +1,2575 @@
+ +/** -*- linux-c -*- ***********************************************************
+ + * Linux PPP over L2TP (PPPoX/PPPoL2TP) Sockets
+ + *
+@@ -51,7 +55,7 @@
+ + * PPPoL2TP --- PPP over L2TP (RFC 2661)
+ + *
+ + *
+-+ * Version:    0.8.0
+++ * Version:    0.9.0
+ + *
+ + * 251003 :	Copied from pppoe.c version 0.6.9.
+ + *
+@@ -109,7 +113,9 @@
+ +
+ +#include <linux/string.h>
+ +#include <linux/module.h>
+++#include <linux/version.h>
+ +
+++#include <linux/list.h>
+ +#include <asm/uaccess.h>
+ +
+ +#include <linux/kernel.h>
+@@ -130,15 +136,16 @@
+ +#include <linux/if_ppp.h>
+ +#include <linux/if_pppvar.h>
+ +#include <linux/file.h>
+-+#include <linux/proc_fs.h>
+ +#include <linux/hash.h>
+++#include <linux/proc_fs.h>
+ +#include <net/dst.h>
+ +#include <net/ip.h>
+++#include <net/udp.h>
+ +
+ +#include <asm/byteorder.h>
+ +#include <asm/atomic.h>
+ +
+-+#define PPPOL2TP_DRV_VERSION	"V0.8"
+++#define PPPOL2TP_DRV_VERSION	"V0.9"
+ +
+ +/* Developer debug code. */
+ +#if 0
+@@ -286,7 +293,7 @@
+ +{
+ +	int			magic;		/* Should be L2TP_TUNNEL_MAGIC */
+ +	
+-+	struct proto		old_proto;	/* original proto */
+++	struct proto		*old_proto;	/* original proto */
+ +	struct proto		l2tp_proto;	/* L2TP proto */
+ +	rwlock_t		hlist_lock;	/* protect session_hlist */
+ +	struct hlist_head	session_hlist[PPPOL2TP_HASH_SIZE]; 
+@@ -317,7 +324,7 @@
+ +	unsigned long		expires;
+ +};
+ +
+-+#define PPPOL2TP_SKB_CB(skb)	((struct pppol2tp_skb_cb *) &skb->cb[0])
+++#define PPPOL2TP_SKB_CB(skb)	((struct pppol2tp_skb_cb *) &skb->cb[sizeof(struct inet_skb_parm)])
+ +
+ +/* Number of bytes to build transmit L2TP headers.
+ + * Unfortunately the size is different depending on whether sequence numbers
+@@ -489,7 +496,6 @@
+ +			if (!session_sock->dead)
+ +				session_sock->data_ready(session_sock, 0);
+ +		}
+-+;
+ +	}
+ +
+ +	DPRINTK(session->debug, "calling sock_put; refcnt=%d\n", 
+@@ -589,7 +595,7 @@
+ +
+ +	/* Trace packet contents, if enabled */
+ +	if (tunnel->debug & PPPOL2TP_MSG_DATA) {
+-+		printk(KERN_DEBUG "%s: recv: " KERN_DEBUG, tunnel->name);
+++		printk(KERN_DEBUG "%s: recv: ", tunnel->name);
+ +
+ +		for (length = 0; length < 16; length++)
+ +			printk(" %02X", ptr[length]);
+@@ -900,7 +906,7 @@
+ +	set_fs(get_ds());
+ +
+ +	/* The actual sendmsg() call... */
+-+	error = tunnel->old_proto.sendmsg(session->tunnel_sock, msg, total_len);
+++	error = tunnel->old_proto->sendmsg(session->tunnel_sock, msg, total_len);
+ +	if (error >= 0) {
+ +		tunnel->stats.tx_packets++;
+ +		tunnel->stats.tx_bytes += error;
+@@ -993,6 +999,24 @@
+ +		PRINTK(session->debug, PPPOL2TP_MSG_DATA, KERN_DEBUG, 
+ +		       "%s: send %d bytes\n", session->name, total_len);
+ +
+++	if (session->debug & PPPOL2TP_MSG_DATA) {
+++		int i, j, count;
+++
+++		printk(KERN_DEBUG "%s: xmit:", session->name);
+++		count = 0;
+++		for (i = 0; i < m->msg_iovlen; i++) {
+++			for (j = 0; j < m->msg_iov[i].iov_len; j++) {
+++				printk(" %02X", ((unsigned char *) m->msg_iov[i].iov_base)[j]);
+++				count++;
+++				if (count == 15) {
+++					printk(" ...");
+++					break;
+++				}
+++			}
+++		}
+++		printk("\n");
+++	}
+++
+ +	/* Unfortunately, there is no direct way for us to pass an skb to the
+ +	 * UDP layer, we have to pretend to be sending ordinary data and use
+ +	 * sendmsg.
+@@ -1054,7 +1078,8 @@
+ + */
+ +static int pppol2tp_xmit(struct ppp_channel *chan, struct sk_buff *skb)
+ +{
+-+	struct sock *sk = (struct sock *) chan->private;
+++	static unsigned char ppph[2] = { 0xff, 0x03 };
+++ 	struct sock *sk = (struct sock *) chan->private;
+ +	int error = 0;
+ +	u8 hdr[PPPOL2TP_L2TP_HDR_SIZE_SEQ];
+ +	int hdr_len;
+@@ -1085,6 +1110,20 @@
+ +		PRINTK(session->debug, PPPOL2TP_MSG_DATA, KERN_DEBUG, 
+ +		       "%s: send %d bytes\n", session->name, skb->len);
+ +
+++	if (session->debug & PPPOL2TP_MSG_DATA) {
+++		int i;
+++
+++		printk(KERN_DEBUG "%s: xmit:", session->name);
+++		for (i = 0; i < skb->len; i++) {
+++			printk(" %02X", skb->data[i]);
+++			if (i == 15) {
+++				printk(" ...");
+++				break;
+++			}
+++		}
+++		printk("\n");
+++	}
+++
+ +	/* Unfortunatly there doesn't appear to be a way for us to pass an skb
+ +	 * to the UDP layer, we have to pretend to be sending ordinary data
+ +	 * and use sendmsg
+@@ -1108,9 +1147,11 @@
+ +	msg->msg_iov[0].iov_base = &hdr;
+ +	msg->msg_iov[0].iov_len	 = hdr_len;
+ +	/* FIXME: do we need to handle skb fragments here? */
+-+	msg->msg_iov[1].iov_base = skb->data;
+-+	msg->msg_iov[1].iov_len	 = skb->len;
+-+	msg->msg_iovlen = 2;
+++        msg->msg_iov[1].iov_base = &ppph;
+++        msg->msg_iov[1].iov_len  = sizeof(ppph);
+++	msg->msg_iov[2].iov_base = skb->data;
+++	msg->msg_iov[2].iov_len	 = skb->len;
+++	msg->msg_iovlen = 3;
+ +	
+ +	/* If the user calls sendto() that's just too bad */
+ +	msg->msg_name	 = &session->tunnel_addr.addr;
+@@ -1124,7 +1165,7 @@
+ +	 * there was an error
+ +	 */
+ +	error = pppol2tp_udp_sock_send(session, tunnel, msg, 
+-+				       skb->len + hdr_len);
+++				       skb->len + hdr_len + sizeof(ppph));
+ +
+ +	kfree_skb(skb);
+ +
+@@ -1199,10 +1240,17 @@
+ + */
+ +static void pppol2tp_tunnel_free(struct pppol2tp_tunnel *tunnel)
+ +{
+++	struct sock *sk = tunnel->sock;
+++
+ +	ENTER_FUNCTION;
+ +
+ +	/* Remove from socket list */
+-+	list_del(&tunnel->list);
+++	list_del_init(&tunnel->list);
+++
+++	sk->prot = tunnel->old_proto;
+++       	sk->data_ready = tunnel->old_data_ready;
+++	sk->destruct = tunnel->old_sk_destruct;
+++	sk->user_data = NULL;
+ +
+ +	DPRINTK(tunnel->debug, "%s: MOD_DEC_USE_COUNT\n", tunnel->name);
+ +	kfree(tunnel);
+@@ -1497,9 +1545,9 @@
+ +		tunnel_id, tunnel, sk, sock);
+ +
+ +	/* Setup the new protocol stuff */
+-+	tunnel->old_proto  = *sk->prot;
+++	tunnel->old_proto  = sk->prot;
+ +	tunnel->l2tp_proto = *sk->prot;
+-+	
+++
+ +	sk->prot = &tunnel->l2tp_proto;
+ +	
+ +	tunnel->old_data_ready = sk->data_ready;
+@@ -1626,12 +1674,11 @@
+ +	if (sp->pppol2tp.s_tunnel == 0)
+ +		goto end;
+ +
+-+	/* This looks up the tunnel socket and configures it if necessary */
+-+	tunnel_sock = 
+-+		pppol2tp_prepare_tunnel_socket(sp->pppol2tp.pid,
+-+					       sp->pppol2tp.fd, 
+-+					       sp->pppol2tp.s_tunnel, 
+-+					       &error);
+++	/* Look up the tunnel socket and configure it if necessary */
+++	tunnel_sock = pppol2tp_prepare_tunnel_socket(sp->pppol2tp.pid,
+++						     sp->pppol2tp.fd,
+++						     sp->pppol2tp.s_tunnel,
+++						     &error);
+ +	if (tunnel_sock == NULL)
+ +		goto end;
+ +	tunnel = tunnel_sock->user_data;
+@@ -2143,7 +2190,7 @@
+ +	int err = 0;
+ +
+ +	if (level != SOL_PPPOL2TP)
+-+		return ip_setsockopt(sk, level, optname, optval, optlen);
+++		return udp_prot.setsockopt(sk, level, optname, optval, optlen);
+ +
+ +	if (optlen<sizeof(int))
+ +		return -EINVAL;
+@@ -2259,7 +2306,7 @@
+ +	int err = 0;
+ +
+ +	if (level != SOL_PPPOL2TP)
+-+		return ip_getsockopt(sk, level, optname, optval, optlen);
+++		return udp_prot.getsockopt(sk, level, optname, optval, optlen);
+ +
+ +	if (get_user(len,optlen))
+ +		return -EFAULT;
+@@ -2576,9 +2623,10 @@
+ +MODULE_AUTHOR("Martijn van Oosterhout <kleptog@svana.org>");
+ +MODULE_DESCRIPTION("PPP over L2TP over UDP, " PPPOL2TP_DRV_VERSION);
+ +MODULE_LICENSE("GPL");
+-diff -Naur linux-2.4.27.orig/drivers/net/pppox.c linux-2.4.27/drivers/net/pppox.c
++Index: linux-2.4.27/drivers/net/pppox.c
++===================================================================
+ --- linux-2.4.27.orig/drivers/net/pppox.c	2002-08-03 01:39:44.000000000 +0100
+-+++ linux-2.4.27/drivers/net/pppox.c	2004-10-13 18:50:41.000000000 +0100
+++++ linux-2.4.27/drivers/net/pppox.c	2005-09-10 17:17:59.763210500 +0100
+ @@ -121,10 +121,17 @@
+  	int err = 0;
+  
+@@ -2599,9 +2647,10 @@
+  
+  	err = (*proto[protocol]->create)(sock);
+  
+-diff -Naur linux-2.4.27.orig/include/linux/hash.h linux-2.4.27/include/linux/hash.h
+---- linux-2.4.27.orig/include/linux/hash.h	1970-01-01 01:00:00.000000000 +0100
+-+++ linux-2.4.27/include/linux/hash.h	2004-09-13 18:48:37.000000000 +0100
++Index: linux-2.4.27/include/linux/hash.h
++===================================================================
++--- /dev/null	1970-01-01 00:00:00.000000000 +0000
+++++ linux-2.4.27/include/linux/hash.h	2005-09-10 17:17:59.763210500 +0100
+ @@ -0,0 +1,58 @@
+ +#ifndef _LINUX_HASH_H
+ +#define _LINUX_HASH_H
+@@ -2661,9 +2710,10 @@
+ +	return hash_long((unsigned long)ptr, bits);
+ +}
+ +#endif /* _LINUX_HASH_H */
+-diff -Naur linux-2.4.27.orig/include/linux/if_ppp.h linux-2.4.27/include/linux/if_ppp.h
++Index: linux-2.4.27/include/linux/if_ppp.h
++===================================================================
+ --- linux-2.4.27.orig/include/linux/if_ppp.h	2001-04-21 00:18:35.000000000 +0100
+-+++ linux-2.4.27/include/linux/if_ppp.h	2004-10-11 22:26:33.000000000 +0100
+++++ linux-2.4.27/include/linux/if_ppp.h	2005-09-10 17:17:59.773208554 +0100
+ @@ -107,6 +107,21 @@
+  	struct ppp_comp_stats stats;
+  };
+@@ -2694,9 +2744,10 @@
+  
+  #define SIOCGPPPSTATS   (SIOCDEVPRIVATE + 0)
+  #define SIOCGPPPVER     (SIOCDEVPRIVATE + 1)	/* NEVER change this!! */
+-diff -Naur linux-2.4.27.orig/include/linux/if_pppol2tp.h linux-2.4.27/include/linux/if_pppol2tp.h
+---- linux-2.4.27.orig/include/linux/if_pppol2tp.h	1970-01-01 01:00:00.000000000 +0100
+-+++ linux-2.4.27/include/linux/if_pppol2tp.h	2004-10-04 15:25:35.000000000 +0100
++Index: linux-2.4.27/include/linux/if_pppol2tp.h
++===================================================================
++--- /dev/null	1970-01-01 00:00:00.000000000 +0000
+++++ linux-2.4.27/include/linux/if_pppol2tp.h	2005-09-10 17:17:59.773208554 +0100
+ @@ -0,0 +1,67 @@
+ +/***************************************************************************
+ + * Linux PPP over L2TP (PPPoL2TP) Socket Implementation (RFC 2661) 
+@@ -2765,9 +2816,10 @@
+ +
+ +
+ +#endif
+-diff -Naur linux-2.4.27.orig/include/linux/if_pppox.h linux-2.4.27/include/linux/if_pppox.h
++Index: linux-2.4.27/include/linux/if_pppox.h
++===================================================================
+ --- linux-2.4.27.orig/include/linux/if_pppox.h	2002-08-03 01:39:45.000000000 +0100
+-+++ linux-2.4.27/include/linux/if_pppox.h	2004-09-23 15:12:46.000000000 +0100
+++++ linux-2.4.27/include/linux/if_pppox.h	2005-09-10 17:17:59.775208165 +0100
+ @@ -28,6 +28,7 @@
+  #include <asm/semaphore.h>
+  #include <linux/ppp_channel.h>
+@@ -2813,9 +2865,10 @@
+  
+  /*********************************************************************
+   *
+-diff -Naur linux-2.4.27.orig/include/linux/list.h linux-2.4.27/include/linux/list.h
++Index: linux-2.4.27/include/linux/list.h
++===================================================================
+ --- linux-2.4.27.orig/include/linux/list.h	2004-02-18 13:36:32.000000000 +0000
+-+++ linux-2.4.27/include/linux/list.h	2004-09-23 15:11:58.000000000 +0100
+++++ linux-2.4.27/include/linux/list.h	2005-09-10 17:17:59.781206997 +0100
+ @@ -3,7 +3,9 @@
+  
+  #if defined(__KERNEL__) || defined(_LVM_H_INCLUDE)
+@@ -2986,9 +3039,10 @@
+  #endif /* __KERNEL__ || _LVM_H_INCLUDE */
+  
+  #endif
+-diff -Naur linux-2.4.27.orig/include/linux/socket.h linux-2.4.27/include/linux/socket.h
++Index: linux-2.4.27/include/linux/socket.h
++===================================================================
+ --- linux-2.4.27.orig/include/linux/socket.h	2003-11-28 18:26:21.000000000 +0000
+-+++ linux-2.4.27/include/linux/socket.h	2004-09-23 15:11:58.000000000 +0100
+++++ linux-2.4.27/include/linux/socket.h	2005-09-10 17:17:59.786206024 +0100
+ @@ -259,6 +259,7 @@
+  #define SOL_IRDA        266
+  #define SOL_NETBEUI	267

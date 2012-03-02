@@ -1,0 +1,21 @@
+make -C pppd/plugins
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins'
+for d in openl2tp; do make -w -C $d all; done
+make[2]: Entering directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp'
+make[3]: Entering directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/usl'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/usl'
+make[3]: Entering directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/plugins'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/plugins'
+make[3]: Entering directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/pppd'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp/pppd'
+arm-elf-gcc -c -I/Marvell/Src/uClinux-dist/uClibc/include -I. -Iusl -Icli -isystem kernel/include -MMD -Wall -s   -I../.. -DEMBED  l2tp_session.c -o l2tp_session.o
+l2tp_session.c:3400: conflicting types for `l2tp_session_incall_ind_1_svc'
+l2tp_rpc.h:1061: previous declaration of `l2tp_session_incall_ind_1_svc'
+make[2]: *** [l2tp_session.o] Error 1
+make[2]: Leaving directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins/openl2tp'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user.asus/pppd.deprecated/pppd/plugins'
+make: *** [all] Error 2

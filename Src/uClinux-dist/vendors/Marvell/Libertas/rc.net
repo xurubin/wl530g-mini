@@ -1,0 +1,34 @@
+# Bridge LAN & WLAN
+/bin/ifconfig LAN up
+/bin/ifconfig wlan0 up
+/bin/brctl addbr br0
+/bin/brctl addif br0 LAN
+/bin/brctl addif br0 wlan0
+/bin/brctl setfd br0 1
+/bin/ifconfig br0 192.168.0.1 up
+
+# DHCP Server configuration
+#/bin/dhcpd br0 &
+
+# DHCP Client configuration
+#rm -rf /etc/dhcpc/*
+#chmod 777 /etc/resolv.conf
+#chmod 777 /etc/resolv.dnsmasq
+
+/bin/ifconfig lo 127.0.0.1
+/bin/route add 127.0.0.0 lo
+
+#/bin/ifconfig WAN up
+#/bin/dhcpcd -rDH -l 86400 WAN &
+
+# DNS settings
+#/bin/dnsmasq -r /etc/resolv.dnsmasq &
+
+# FW + NAT settings
+#/bin/iptables -t nat -F
+#/bin/iptables -t nat -A POSTROUTING -o WAN -j MASQUERADE
+#cp -f 1 /proc/sys/net/ipv4/ip_dynaddr
+#cp -f 1 /proc/sys/net/ipv4/ip_forward
+
+# HTTP server
+#/bin/boa &

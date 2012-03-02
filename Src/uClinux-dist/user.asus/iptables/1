@@ -1,0 +1,121 @@
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -DIPT_LIB_DIR=\"/usr/local/lib/iptables\" -c -o iptables.o iptables.c
+iptables.c: In function `parse_target':
+iptables.c:803: warning: int format, long int arg (arg 4)
+iptables.c: In function `register_match':
+iptables.c:1011: warning: unsigned int format, size_t arg (arg 5)
+iptables.c: In function `register_target':
+iptables.c:1041: warning: unsigned int format, size_t arg (arg 5)
+iptables.c: In function `print_firewall':
+iptables.c:1262: warning: unsigned int format, long unsigned int arg (arg 2)
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_ah_init -c -o extensions/libipt_ah.o extensions/libipt_ah.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_conntrack_init -c -o extensions/libipt_conntrack.o extensions/libipt_conntrack.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_esp_init -c -o extensions/libipt_esp.o extensions/libipt_esp.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_helper_init -c -o extensions/libipt_helper.o extensions/libipt_helper.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_icmp_init -c -o extensions/libipt_icmp.o extensions/libipt_icmp.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_length_init -c -o extensions/libipt_length.o extensions/libipt_length.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_limit_init -c -o extensions/libipt_limit.o extensions/libipt_limit.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_mac_init -c -o extensions/libipt_mac.o extensions/libipt_mac.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_mark_init -c -o extensions/libipt_mark.o extensions/libipt_mark.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_multiport_init -c -o extensions/libipt_multiport.o extensions/libipt_multiport.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_owner_init -c -o extensions/libipt_owner.o extensions/libipt_owner.c
+extensions/libipt_owner.c: In function `parse':
+extensions/libipt_owner.c:128: warning: int format, long int arg (arg 4)
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_pkttype_init -c -o extensions/libipt_pkttype.o extensions/libipt_pkttype.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_standard_init -c -o extensions/libipt_standard.o extensions/libipt_standard.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_state_init -c -o extensions/libipt_state.o extensions/libipt_state.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_tcp_init -c -o extensions/libipt_tcp.o extensions/libipt_tcp.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_tcpmss_init -c -o extensions/libipt_tcpmss.o extensions/libipt_tcpmss.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_tos_init -c -o extensions/libipt_tos.o extensions/libipt_tos.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_ttl_init -c -o extensions/libipt_ttl.o extensions/libipt_ttl.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_udp_init -c -o extensions/libipt_udp.o extensions/libipt_udp.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_unclean_init -c -o extensions/libipt_unclean.o extensions/libipt_unclean.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_DNAT_init -c -o extensions/libipt_DNAT.o extensions/libipt_DNAT.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_LOG_init -c -o extensions/libipt_LOG.o extensions/libipt_LOG.c
+extensions/libipt_LOG.c: In function `parse':
+extensions/libipt_LOG.c:137: warning: unsigned int format, long unsigned int arg (arg 3)
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_MARK_init -c -o extensions/libipt_MARK.o extensions/libipt_MARK.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_MASQUERADE_init -c -o extensions/libipt_MASQUERADE.o extensions/libipt_MASQUERADE.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_MIRROR_init -c -o extensions/libipt_MIRROR.o extensions/libipt_MIRROR.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_REDIRECT_init -c -o extensions/libipt_REDIRECT.o extensions/libipt_REDIRECT.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_REJECT_init -c -o extensions/libipt_REJECT.o extensions/libipt_REJECT.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_SAME_init -c -o extensions/libipt_SAME.o extensions/libipt_SAME.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_SNAT_init -c -o extensions/libipt_SNAT.o extensions/libipt_SNAT.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_TCPMSS_init -c -o extensions/libipt_TCPMSS.o extensions/libipt_TCPMSS.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_TOS_init -c -o extensions/libipt_TOS.o extensions/libipt_TOS.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_ULOG_init -c -o extensions/libipt_ULOG.o extensions/libipt_ULOG.c
+extensions/libipt_ULOG.c: In function `parse':
+extensions/libipt_ULOG.c:115: warning: unsigned int format, long unsigned int arg (arg 3)
+extensions/libipt_ULOG.c: In function `save':
+extensions/libipt_ULOG.c:168: warning: int format, long int arg (arg 2)
+extensions/libipt_ULOG.c:171: warning: int format, long int arg (arg 2)
+extensions/libipt_ULOG.c: In function `print':
+extensions/libipt_ULOG.c:183: warning: int format, long int arg (arg 2)
+extensions/libipt_ULOG.c:187: warning: int format, long int arg (arg 2)
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_time_init -c -o extensions/libipt_time.o extensions/libipt_time.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_NETMAP_init -c -o extensions/libipt_NETMAP.o extensions/libipt_NETMAP.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_TTL_init -c -o extensions/libipt_TTL.o extensions/libipt_TTL.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -D_INIT=ipt_iplimit_init -c -o extensions/libipt_iplimit.o extensions/libipt_iplimit.c
+echo "" > extensions/initext.c
+for i in ipt_ah ipt_conntrack ipt_esp ipt_helper ipt_icmp ipt_length ipt_limit ipt_mac ipt_mark ipt_multiport ipt_owner ipt_pkttype ipt_standard ipt_state ipt_tcp ipt_tcpmss ipt_tos ipt_ttl ipt_udp ipt_unclean ipt_DNAT ipt_LOG ipt_MARK ipt_MASQUERADE ipt_MIRROR ipt_REDIRECT ipt_REJECT ipt_SAME ipt_SNAT ipt_TCPMSS ipt_TOS ipt_ULOG ipt_time ipt_NETMAP ipt_TTL ipt_iplimit; do \
+	echo "extern void ${i}_init(void);" >> extensions/initext.c; \
+done
+echo "void init_extensions(void) {" >> extensions/initext.c
+for i in ipt_ah ipt_conntrack ipt_esp ipt_helper ipt_icmp ipt_length ipt_limit ipt_mac ipt_mark ipt_multiport ipt_owner ipt_pkttype ipt_standard ipt_state ipt_tcp ipt_tcpmss ipt_tos ipt_ttl ipt_udp ipt_unclean ipt_DNAT ipt_LOG ipt_MARK ipt_MASQUERADE ipt_MIRROR ipt_REDIRECT ipt_REJECT ipt_SAME ipt_SNAT ipt_TCPMSS ipt_TOS ipt_ULOG ipt_time ipt_NETMAP ipt_TTL ipt_iplimit; do \
+	echo "	${i}_init();" >> extensions/initext.c; \
+done
+echo "}" >> extensions/initext.c
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1   -c -o extensions/initext.o extensions/initext.c
+rm -f extensions/libext.a; ar crv extensions/libext.a extensions/libipt_ah.o extensions/libipt_conntrack.o extensions/libipt_esp.o extensions/libipt_helper.o extensions/libipt_icmp.o extensions/libipt_length.o extensions/libipt_limit.o extensions/libipt_mac.o extensions/libipt_mark.o extensions/libipt_multiport.o extensions/libipt_owner.o extensions/libipt_pkttype.o extensions/libipt_standard.o extensions/libipt_state.o extensions/libipt_tcp.o extensions/libipt_tcpmss.o extensions/libipt_tos.o extensions/libipt_ttl.o extensions/libipt_udp.o extensions/libipt_unclean.o extensions/libipt_DNAT.o extensions/libipt_LOG.o extensions/libipt_MARK.o extensions/libipt_MASQUERADE.o extensions/libipt_MIRROR.o extensions/libipt_REDIRECT.o extensions/libipt_REJECT.o extensions/libipt_SAME.o extensions/libipt_SNAT.o extensions/libipt_TCPMSS.o extensions/libipt_TOS.o extensions/libipt_ULOG.o extensions/libipt_time.o extensions/libipt_NETMAP.o extensions/libipt_TTL.o extensions/libipt_iplimit.o extensions/initext.o
+a - extensions/libipt_ah.o
+a - extensions/libipt_conntrack.o
+a - extensions/libipt_esp.o
+a - extensions/libipt_helper.o
+a - extensions/libipt_icmp.o
+a - extensions/libipt_length.o
+a - extensions/libipt_limit.o
+a - extensions/libipt_mac.o
+a - extensions/libipt_mark.o
+a - extensions/libipt_multiport.o
+a - extensions/libipt_owner.o
+a - extensions/libipt_pkttype.o
+a - extensions/libipt_standard.o
+a - extensions/libipt_state.o
+a - extensions/libipt_tcp.o
+a - extensions/libipt_tcpmss.o
+a - extensions/libipt_tos.o
+a - extensions/libipt_ttl.o
+a - extensions/libipt_udp.o
+a - extensions/libipt_unclean.o
+a - extensions/libipt_DNAT.o
+a - extensions/libipt_LOG.o
+a - extensions/libipt_MARK.o
+a - extensions/libipt_MASQUERADE.o
+a - extensions/libipt_MIRROR.o
+a - extensions/libipt_REDIRECT.o
+a - extensions/libipt_REJECT.o
+a - extensions/libipt_SAME.o
+a - extensions/libipt_SNAT.o
+a - extensions/libipt_TCPMSS.o
+a - extensions/libipt_TOS.o
+a - extensions/libipt_ULOG.o
+a - extensions/libipt_time.o
+a - extensions/libipt_NETMAP.o
+a - extensions/libipt_TTL.o
+a - extensions/libipt_iplimit.o
+a - extensions/initext.o
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1   -c -o libiptc/libip4tc.o libiptc/libip4tc.c
+In file included from libiptc/libip4tc.c:115:
+libiptc/libiptc.c: In function `entry2index':
+libiptc/libiptc.c:133: warning: int format, long int arg (arg 3)
+arm-elf-ar rv libiptc/libiptc.a libiptc/libip4tc.o
+a - libiptc/libip4tc.o
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -DIPT_LIB_DIR=\"/usr/local/lib/iptables\" -static -Wl,-elf2flt="" -o iptables iptables-standalone.c iptables.o extensions/libext.a libiptc/libiptc.a 
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -DIPT_LIB_DIR=\"/usr/local/lib/iptables\" -static -Wl,-elf2flt="" -o iptables-save iptables-save.c iptables.o extensions/libext.a libiptc/libiptc.a 
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1 -DIPT_LIB_DIR=\"/usr/local/lib/iptables\" -static -Wl,-elf2flt="" -o iptables-restore iptables-restore.c iptables.o extensions/libext.a libiptc/libiptc.a 
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1   -c -o libipq/libipq.o libipq/libipq.c
+arm-elf-ar rv libipq/libipq.a libipq/libipq.o
+a - libipq/libipq.o
+arm-elf-gcc -O2 -Wall -Wunused -I/usr/src/linux/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -DNO_SHARED_LIBS=1   -c -o libipulog/libipulog.o libipulog/libipulog.c
+arm-elf-ar rv libipulog/libipulog.a libipulog/libipulog.o
+a - libipulog/libipulog.o
+rm libiptc/libip4tc.o libipulog/libipulog.o libipq/libipq.o

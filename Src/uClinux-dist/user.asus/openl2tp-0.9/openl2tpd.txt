@@ -1,0 +1,134 @@
+openl2tpd(8)			OpenL2TP Manual			  openl2tpd(8)
+
+
+
+NAME
+       openl2tpd - L2TP protocol daemon
+
+SYNOPSIS
+       openl2tpd [-f] [-R] [-d nnn] [-L log-facility] [-p plugin-file]
+
+DESCRIPTION
+       openl2tpd implements the control message protocols of L2TP version 2 as
+       specified in RFC2661. It is required to setup,  maintain	 and  teardown
+       L2TP tunnels and sessions.
+
+       For   general   information  on	the  features  of  OpenL2TP  refer  to
+       openl2tp(7).
+
+OPTIONS
+       -d nnn  Set the system-wide trace message mask. Trace messages are cat-
+	       egorized	 as SYSTEM, API, PROTOCOL, FSM (finite state machine),
+	       DATA, FUNC (functions), XPRT (transport), AVP, AVPHIDE and AVP-
+	       DATA  and each category of message may be enabled/disabled when
+	       L2TP is first started using this option. See the DEBUGGING sec-
+	       tion below.
+
+       -f      Run  in	the foreground. By default, openl2tpd forks itself and
+	       runs in the background. For debugging, it is  sometimes	useful
+	       to run the application in the foreground. Note that when run in
+	       the foreground, any trace messages are sent to the  controlling
+	       terminal rather than to syslog.
+
+       -L log-facility
+	       By  default,  openl2tpd	logs messages to the LOG_DAEMON syslog
+	       facility. This option may be used to log messages to one of the
+	       localN  facilities  instead (local0..local7) so that the logged
+	       messages can be directed via syslog configuration to a separate
+	       file  or syslog server. See syslog.conf(5) for how to configure
+	       syslog.
+
+       -p plugin-file
+	       Loads the named L2TP PPP plugin (a  shared  library  supporting
+	       the OpenL2TP plugin interface). By default, the ppp_unix plugin
+	       is loaded, which makes openl2tpd use the standard UNIX pppd PPP
+	       daemon. The ability to load a different plugin allows openl2tpd
+	       to interface with other (possibly proprietary) PPP  implementa-
+	       tions  without  requiring internal changes to openl2tpd itself.
+	       Plugins are installed in /usr/lib/openl2tp/. More than one plu-
+	       gin may be loaded by specifying multiple -p options.
+
+       -R      Enables	remote	management.  openl2tpd is controlled using Sun
+	       RPC requests. Sun RPC requests may be sent over a network so  a
+	       control application implementing the OpenL2TP RPC API document-
+	       ed in openl2tp_rpc(4) may control openl2tpd remotely.  In  most
+	       environments,  remote configuration isn't useful so is disabled
+	       by default. However, in closed cluster or chassis systems where
+	       several	instances  of  openl2tpd  may  be running on different
+	       CPUs, the ability to control openl2tpd over a network using RPC
+	       is extremely useful.
+
+CONFIGURATION
+       There  are  no  configuration files! All configuration is done using an
+       application  supporting	OpenL2TP's   RPC   interface   documented   in
+       openl2tp_rpc(4).	  One  such application is l2tpconfig(1) which is bun-
+       dled with OpenL2TP and which provides an intuitive command line	inter-
+       face.
+
+       Since OpenL2TP uses Sun RPC which is available in most commercial oper-
+       ating systems including Microsoft Windows, Sun Solaris and even	embed-
+       ded  RTOS  such	as WindRiver's VxWorks, custom management applications
+       may be developed to control openl2tpd.
+
+DEBUGGING
+       Many  problems  can  be	debugged  without  enabling   debug   logging.
+       openl2tpd  maintains numerous counters that can help with problem diag-
+       nosis.  At the system level, the total number of good/bad L2TP  control
+       messages	 received  of  each message type are counted, as are the total
+       number of illegal messages received, the number of vendor-specific AVPs
+       received,  tunnel  authentication failures, session setup failures, re-
+       source allocation failures, sequence number errors and so on. Each tun-
+       nel  keeps  detailed  status about the low-level L2TP transport such as
+       next sequence number to be sent, sequence  number  expected  next  from
+       peer,  number  of  ZLB messages sent and received, number of HELLO mes-
+       sages sent and received and the number of data  packets	sent  and  re-
+       ceived.	Thus  the first stage of problem diagnosis should always be to
+       examine system status and statistics.
+
+       General status and statistics available will often point to  where  the
+       problem	lies,  but  it	may also be necessary to obtain trace from the
+       system.	OpenL2TP allows very fine levels of control over  system  log-
+       ging, right down to individual message categories of specific tunnel or
+       session instances.  A modifiable trace_flags parameter is a trace  mes-
+       sage  mask.  Each tunnel and session instance has a trace_flags parame-
+       ter, the initial value of which is set from a tunnel  or	 session  pro-
+       file.
+
+       trace_flags  is	defined as a 32-bit bitmask, where bits are defined as
+       follows:-
+
+       Type	   Bitmask	 Description
+       PROTOCOL	   1		 L2TP control protocol messages
+       FSM	   2		 State Machine events and state changes
+       API	   4		 Management interface
+       AVP	   8		 L2TP message attributes
+       AVP_HIDE	   16		 AVP hiding mechanism
+       AVP_DATA	   32		 AVP contents
+       FUNC	   64		 Low level operations
+       XPRT	   128		 Transport
+       DATA	   256		 Protocol data
+       SYSTEM	   512		 Internal system functions
+       PPP	   1024		 PPP operations
+
+       To debug a locally created tunnel creation,  for	 example,  create  the
+       tunnel  as usual, but also specify a value for the tunnel's trace_flags
+       parameter.
+
+       To debug incoming tunnels or sessions, identify or create a  tunnel  or
+       session profile that will be used for the incoming request, then modify
+       the tunnel or session profile's trace_flags parameter in the  same  way
+       as described above.
+
+       Note  that  changing  a	profile's parameter value affects only new in-
+       stances created using that profile; instances already created  continue
+       to use the parameter value that existed at the time of creation.
+
+REPORTING BUGS
+       Please report bugs to <openl2tp-bugs@lists.sourceforge.net>.
+
+SEE ALSO
+       openl2tp(7), openl2tpd(8), openl2tp_rpc(4)
+
+
+
+OpenL2TP		       10 September 2004		  openl2tpd(8)

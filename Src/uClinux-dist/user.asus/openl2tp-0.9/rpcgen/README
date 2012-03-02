@@ -1,0 +1,14 @@
+The rpcgen tool is part of glibc. Unfortunately, some newer versions
+of glibc, specificially those distributed with Fedora Linux
+distributions, include a buggy rpcgen which segfaults when compiling
+OpenL2TP RPC protocol definition files.
+
+As a workaround, sources for rpcgen are distributed with OpenL2TP.
+Simply invoke "make" in this directory to build it, then compile
+OpenL2TP pointing to this version of rpcgen, i.e.
+
+make
+cd ..
+make clean
+make RPCGEN=rpcgen/rpcgen
+

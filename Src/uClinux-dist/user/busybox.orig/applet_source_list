@@ -1,0 +1,1 @@
+APPLET_SOURCES := cat.c cp.c du.c echo.c env.c hostname.c ifconfig.c insmod.c kill.c klogd.c logread.c ls.c lsmod.c mkdir.c mount.c nfsmount.c nslookup.c ping.c ps.c reboot.c rm.c rmmod.c route.c sleep.c syslogd.c traceroute.c umount.c which.c 

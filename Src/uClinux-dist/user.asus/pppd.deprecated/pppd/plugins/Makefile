@@ -1,0 +1,40 @@
+#CC	= gcc
+COPTS	= -O2 -s
+CFLAGS	= $(COPTS) -I.. -I../../include -DEMBED
+LDFLAGS	+= -static
+INSTALL	= install -o root
+
+#eric--SUBDIRS := rp-pppoe #openl2tp
+#eric**
+SUBDIRS := openl2tp
+# Uncomment the next line to include the radius authentication plugin
+# SUBDIRS += radius
+PLUGINS := #minconn.so passprompt.so passwordfd.so
+
+# include dependencies if present
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+
+all:	$(PLUGINS)
+	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d all; done
+
+%.so: %.c
+	$(CC) -o $@ $(LDFLAGS) $(CFLAGS) $^
+
+VERSION = $(shell awk -F '"' '/VERSION/ { print $$2; }' ../patchlevel.h)
+LIBDIR	= $(DESTDIR)/usr/lib/pppd/$(VERSION)
+
+install: $(PLUGINS)
+	$(INSTALL) -d $(LIBDIR)
+	$(INSTALL) $? $(LIBDIR)
+	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d INSTALL=$(INSTALL) \
+				LIBDIR=$(LIBDIR) install; done
+
+clean:
+	rm -f *.o *.so *.a
+	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d clean; done
+
+depend:
+	$(CPP) -M $(CFLAGS) *.c >.depend
+	for d in $(SUBDIRS); do $(MAKE) $(MFLAGS) -C $$d depend; done

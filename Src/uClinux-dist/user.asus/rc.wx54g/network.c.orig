@@ -1,0 +1,564 @@
+/*
+ * Network services
+ *
+ * Copyright 2003, Broadcom Corporation
+ * All Rights Reserved.                
+ *                                     
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Broadcom Corporation;   
+ * the contents of this file may not be disclosed to third parties, copied
+ * or duplicated in any form, in whole or in part, without the prior      
+ * written permission of Broadcom Corporation.                            
+ *
+ * $Id: network.c,v 1.71.4.2 2003/07/03 01:18:56 davidm Exp $
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <syslog.h>
+#include <ctype.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/if_arp.h>
+
+#include <bcmnvram.h>
+#include <netconf.h>
+#include <shutils.h>
+//#include <wlutils.h>
+#include <rc.h>
+
+#define IFUP (IFF_UP | IFF_RUNNING | IFF_BROADCAST | IFF_MULTICAST)
+
+#define wlconfig(name)	eval("wlconfig", name)
+
+void
+start_lan(int brup)
+{
+	char *lan_ifname = nvram_safe_get("lan_ifname");
+	char name[80], *next;
+	int s;
+	struct ifreq ifr;
+
+
+	//dprintf("%s\n", lan_ifname);
+
+	if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0)
+		return;
+
+	if (nvram_match("2_x_ConnectionType", "Disabled")) 
+	{
+		nvram_set("lan_ifnames", "LAN WAN wlan0");
+	}
+	else
+	{
+		nvram_set("lan_ifnames", "LAN wlan0");
+	}
+
+ 	/* Bring up bridged interfaces */
+	if (strncmp(lan_ifname, "br", 2) == 0) 
+	{
+		if (brup)
+		{
+			eval("brctl", "addbr", lan_ifname);
+			eval("brctl", "setfd", lan_ifname, "0");
+		
+			if (nvram_match("router_disable", "1") || nvram_match("lan_stp", "0"))
+				eval("brctl", "stp", lan_ifname, "dis");
+		}
+		foreach(name, nvram_safe_get("lan_ifnames"), next) {
+			/* Bring up interface */
+				dprintf("Bring up %s\n", name);
+				ifconfig(name, IFUP, "0.0.0.0", NULL);
+				/* Set the logical bridge address to that of the first interface */
+				strncpy(ifr.ifr_name, lan_ifname, IFNAMSIZ);
+				if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0 &&
+			    	memcmp(ifr.ifr_hwaddr.sa_data, "\0\0\0\0\0\0", ETHER_ADDR_LEN) == 0) {
+					strncpy(ifr.ifr_name, name, IFNAMSIZ);
+					if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
+						strncpy(ifr.ifr_name, lan_ifname, IFNAMSIZ);
+						ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+						ioctl(s, SIOCSIFHWADDR, &ifr);
+					}
+				}			
+#ifdef ASUS
+			eval("brctl", "addif", lan_ifname, name);
+
+#else
+			/* If not a wl i/f then simply add it to the bridge */
+			if (wlconfig(name))
+				eval("brctl", "addif", lan_ifname, name);
+			else {
+				/* get the instance number of the wl i/f */
+				char wl_name[] = "wlXXXXXXXXXX_mode";
+				int unit;
+				wl_ioctl(name, WLC_GET_INSTANCE, &unit, sizeof(unit));
+				snprintf(wl_name, sizeof(wl_name), "wl%d_mode", unit);
+				/* Receive all multicast frames in WET mode */
+				if (nvram_match(wl_name, "wet"))
+					ifconfig(name, IFUP | IFF_ALLMULTI, "0.0.0.0", NULL);
+				/* Do not attach the main wl i/f if in wds mode */
+				if (nvram_invmatch(wl_name, "wds"))
+					eval("brctl", "addif", lan_ifname, name);
+			}
+#endif
+		}
+	}
+
+
+	/* Bring up and configure LAN interface */
+	ifconfig(lan_ifname, IFUP,
+		 nvram_safe_get("9_IPRouters"), nvram_safe_get("9_SubnetMask"));
+
+	/* Get current LAN hardware address */
+	strncpy(ifr.ifr_name, lan_ifname, IFNAMSIZ);
+	if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
+		char eabuf[32];
+		nvram_set("lan_hwaddr", ether_etoa(ifr.ifr_hwaddr.sa_data, eabuf));
+	}
+
+	close(s);
+
+#ifdef ASUS	
+	/* Bring up local host interface */
+	ifconfig("lo", IFUP, "127.0.0.1", NULL);
+
+	nvram_set("lan_ipaddr", nvram_safe_get("9_IPRouters"));
+	nvram_set("lan_netmask", nvram_safe_get("9_SubnetMask"));
+	nvram_set("lan_gateway", nvram_safe_get("9_x_Gateway"));
+
+#else
+	/* Start remote syslogd if log_ipaddr is set */
+	if (nvram_invmatch("log_ipaddr", ""))
+		eval("syslogd", "-R", nvram_get("log_ipaddr"));
+
+	dprintf("%s %s\n",
+		nvram_safe_get("9_IPRouters"),
+		nvram_safe_get("9_Subnetmask"));
+
+
+	/* Bring up local host interface */
+	ifconfig("lo", IFUP, "127.0.0.1", NULL);
+
+#ifdef ASUS_EXTENSION
+	if (nvram_match("4_ConnectionType", "IP_Bridged") && nvram_match("9_x_LANDHCPClient", "1"))
+	{		
+		char *lan_hostname = nvram_get("lan_hostname");
+		char *dhcp_argv[] = { "udhcpc",
+				      "-i", lan_ifname,
+				      "-p", "/var/run/udhcpc.pid",
+				      "-s", "/tmp/udhcpc",
+				      lan_hostname && *lan_hostname ? "-H" : NULL,
+				      lan_hostname && *lan_hostname ? lan_hostname : NULL,
+				      NULL
+		};
+		pid_t pid;
+
+		symlink("/bin/rc", "/tmp/udhcpc");
+
+		_eval(dhcp_argv, NULL, 0, &pid);
+
+		//sleep(1);
+
+		/* Bring up and configure LAN interface */
+		//ifconfig(lan_ifname, IFUP,
+		// 	nvram_safe_get("lan_ipaddr"), nvram_safe_get("lan_netmask"));
+	}	
+#endif
+#endif	
+}
+
+void
+stop_lan(void)
+{
+	char *lan_ifname = nvram_safe_get("lan_ifname");
+	char name[80], *next;
+
+	dprintf("%s\n", lan_ifname);
+
+	/* Stop the syslogd daemon */
+	eval("killall", "syslogd");
+
+	/* Bring down LAN interface */
+	ifconfig(lan_ifname, 0, NULL, NULL);
+
+	/* Bring down bridged interfaces */
+	if (strncmp(lan_ifname, "br", 2) == 0) {
+		foreach(name, nvram_safe_get("lan_ifnames"), next) 
+		{
+#ifdef REMOVE
+			ifconfig(name, 0, NULL, NULL);
+#endif
+			eval("brctl", "delif", lan_ifname, name);
+		}
+#ifdef REMOVE
+		eval("brctl", "delbr", lan_ifname);
+#endif
+	}
+	dprintf("done\n");
+}
+
+#define sin_addr(s) (((struct sockaddr_in *)(s))->sin_addr)
+
+void
+start_wan(void)
+{
+	char *wan_ifname = nvram_safe_get("wan_ifname");
+	char *wan_proto = nvram_safe_get("wan_proto");
+	int s;
+	struct ifreq ifr;
+	pid_t pid;
+
+
+	dprintf("%s %s\n", wan_ifname, wan_proto);
+
+	if (nvram_match("router_disable", "1") || strcmp(wan_proto, "disabled") == 0) {
+		start_wan_done(wan_ifname);
+		return;
+	}
+
+	if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0)
+		return;
+	strncpy(ifr.ifr_name, wan_ifname, IFNAMSIZ);
+
+	/* Set WAN hardware address before bringing interface up */
+	memset(ifr.ifr_hwaddr.sa_data, 0, ETHER_ADDR_LEN);
+
+	if (!nvram_invmatch("wan_hwaddr", "") ||
+	    !ether_atoe(nvram_safe_get("wan_hwaddr"), ifr.ifr_hwaddr.sa_data))
+		ether_atoe(nvram_safe_get("et1macaddr"), ifr.ifr_hwaddr.sa_data);
+
+	if (memcmp(ifr.ifr_hwaddr.sa_data, "\0\0\0\0\0\0", ETHER_ADDR_LEN)) {
+		ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+		ioctl(s, SIOCSIFHWADDR, &ifr);
+	}
+	
+	/* Bring up WAN interface */
+	ifconfig(wan_ifname, IFUP, NULL, NULL);
+
+	/* Configure WAN interface */
+	if (nvram_match("wan_proto", "pppoe")) 
+	{
+		char pppoe_parameters[64];
+		char *pppoe_argv[] = { "/bin/pppd",
+					"pty",
+					pppoe_parameters,
+					"user", nvram_safe_get("wan_pppoe_username"),
+					"demand", "connect", "true",
+					"persist", 
+					"usepeerdns",
+					"lcp-echo-interval", "10", 
+					"lcp-echo-failure", "3", 
+					"noaccomp", 
+					"noccp",
+					NULL, NULL, 	// idle time
+					NULL, 		// tx idle only
+					NULL, NULL,	// mtu
+					NULL, NULL,	// mru
+					NULL
+		}, **arg;
+		char *prelay_argv[] = { "/bin/pppoe-relay",
+					"-C", "br0",
+					"-S", "WAN", 
+					"-F", NULL, NULL};
+
+		int timeout = 5;
+		FILE *fp;
+
+
+		fp = fopen("/etc/ppp/pap-secrets", "w+");
+
+		if (fp!=NULL)
+		{
+			fprintf(fp, "%s\t*\t%s\t", 
+				nvram_safe_get("wan_pppoe_username"), 
+				nvram_safe_get("wan_pppoe_passwd"));
+			fclose(fp);				
+		}
+
+		fp = fopen("/etc/ppp/chap-secrets", "w+");
+
+		if (fp!=NULL)
+		{
+			fprintf(fp, "%s\t*\t%s\t", 
+				nvram_safe_get("wan_pppoe_username"), 
+				nvram_safe_get("wan_pppoe_passwd"));
+			fclose(fp);				
+		}
+
+
+
+/*JYWeng: 20040130*/
+		sprintf(pppoe_parameters, "/bin/pppoe -m 1412 -I WAN");
+
+		if (nvram_invmatch("wan_pppoe_ac", ""))
+			sprintf(pppoe_parameters, " -C %s", nvram_safe_get("wan_pppoe_ac"));
+
+		if (nvram_invmatch("wan_pppoe_service", ""))
+			sprintf(pppoe_parameters, " -S %s", nvram_safe_get("wan_pppoe_service") );
+
+
+		for (arg=pppoe_argv; *arg; arg++);
+
+		if (nvram_invmatch("wan_pppoe_idletime", ""))
+		{
+			*arg++ = "idle";
+			*arg++ = nvram_safe_get("wan_pppoe_idletime");
+		}
+		if (nvram_match("wan_pppoe_txonly_x", "1"))
+		{
+			*arg++ = "tx_only";
+		}
+		if (nvram_invmatch("wan_pppoe_mtu", "")) 
+		{
+			*arg++ = "mtu";
+			*arg++ = nvram_safe_get("wan_pppoe_mtu");
+		}
+		if (nvram_invmatch("wan_pppoe_mru", "")) 
+		{
+			*arg++ = "mru";
+			*arg++ = nvram_safe_get("wan_pppoe_mru");
+		}
+
+		mkdir("/tmp/ppp", 0777);
+		symlink("/bin/rc", "/etc/ppp/ip-up");
+		symlink("/bin/rc", "/etc/ppp/ip-down");
+
+		{
+			int j;
+			
+			j = 0;
+			while(pppoe_argv[j]!=NULL)
+			{
+				printf("arg %d: %s\n", j, pppoe_argv[j]);
+				j++;
+			}
+		}
+
+		_eval(pppoe_argv, NULL, 0, &pid);
+
+		
+		if (nvram_match("wan_pppoe_relay_x", "1")) 
+		{
+			_eval(prelay_argv, NULL, 0, &pid);
+		}
+	}	 
+	else if (nvram_match("wan_proto", "pptp")) 
+	{
+		char pptp_parameters[64];
+		char *pptp_argv[] = { "/bin/pppd",
+					"pty",
+					pptp_parameters,
+					"demand", "connect", "true",
+					"persist", 
+					"usepeerdns",
+					"lcp-echo-interval", "10", 
+					"lcp-echo-failure", "3", 
+					"noauth",
+					NULL, NULL
+		}, **arg;
+
+		int timeout = 5;
+		FILE *fp;
+
+
+		ifconfig(wan_ifname, IFUP,
+			 nvram_safe_get("wan_ipaddr"), nvram_safe_get("wan_netmask"));
+
+		fp = fopen("/etc/ppp/pap-secrets", "w+");
+
+		if (fp!=NULL)
+		{
+			fprintf(fp, "%s * %s\r\n", 
+				nvram_safe_get("wan_pppoe_username"), 
+				nvram_safe_get("wan_pppoe_passwd"));
+			fclose(fp);				
+		}
+
+/*JYWeng: 20040130*/
+		sprintf(pptp_parameters, "/bin/pptp %s --nolaunchpppd", nvram_safe_get("wan_gateway"));
+
+		if (nvram_invmatch("wan_pppoe_ac", ""))
+			sprintf(pptp_parameters, " -C %s", nvram_safe_get("wan_pppoe_ac") );
+		if (nvram_invmatch("wan_pppoe_service", ""))
+			sprintf(pptp_parameters, " -S %s", nvram_safe_get("wan_pppoe_service") );
+
+/*JY: 20040130*/
+		mkdir("/tmp/ppp", 0777);
+		symlink("/bin/rc", "/etc/ppp/ip-up");
+		symlink("/bin/rc", "/etc/ppp/ip-down");
+
+		{
+			int j;
+			
+			j = 0;
+			while(pptp_argv[j]!=NULL)
+			{
+				printf("arg %d: %s\n", j, pptp_argv[j]);
+				j++;
+			}
+		}
+		_eval(pptp_argv, NULL, 0, &pid);
+	}	 
+	else if (nvram_match("wan_proto","dhcp")) {
+		char *wan_hostname = nvram_get("wan_hostname");
+		char *dhcp_argv[] = { "udhcpc",
+				      "-i", wan_ifname,
+				      "-p", "/var/run/udhcpc.pid",
+				      "-s", "/tmp/udhcpc",
+				      wan_hostname && *wan_hostname ? "-H" : NULL,
+				      wan_hostname && *wan_hostname ? wan_hostname : NULL,
+				      NULL
+		};
+
+		symlink("/bin/rc", "/tmp/udhcpc");
+		_eval(dhcp_argv, NULL, 0, &pid);
+	} else 
+	{
+		ifconfig(wan_ifname, IFUP,
+			 nvram_safe_get("wan_ipaddr"), nvram_safe_get("wan_netmask"));
+		start_wan_done(wan_ifname);
+	}
+
+	/* Get current WAN hardware address */
+	strncpy(ifr.ifr_name, wan_ifname, IFNAMSIZ);
+	if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
+		char eabuf[32];
+		nvram_set("wan_hwaddr", ether_etoa(ifr.ifr_hwaddr.sa_data, eabuf));
+	}
+
+	close(s);
+
+#ifdef ASUS
+#else
+	dprintf("%s %s\n",
+		nvram_safe_get("wan_ipaddr"),
+		nvram_safe_get("wan_netmask"));
+#endif
+}
+
+void
+start_wan_done(char *wan_ifname)
+{
+	dprintf("%s %s %s\n", wan_ifname, nvram_safe_get("wan_proto"), nvram_safe_get("wan_gateway"));
+
+	/* Delete all default routes */
+	while (route_del(wan_ifname, 0, NULL, NULL, NULL) == 0);
+
+	/* Set default route to gateway if specified */
+	route_add(wan_ifname, 0, "0.0.0.0", nvram_safe_get("wan_gateway"), "0.0.0.0");
+
+
+#ifdef ASUS
+	if (nvram_invmatch("4_x_DNSServerEnable", "1"))	
+	{	
+		char dns_str[64];
+	
+		if (nvram_invmatch("4_x_DNSServer1",""))
+			sprintf(dns_str, "%s", nvram_safe_get("4_x_DNSServer1"));		
+		if (nvram_invmatch("4_x_DNSServer2",""))
+			sprintf(dns_str, "%s %s", nvram_safe_get("4_x_DNSServer2"));
+		nvram_set("wan_dns", dns_str);
+	}
+
+	/* Restart DNS proxy */
+	stop_dns();
+	start_dns();
+
+	/* Start firewall */
+	start_firewall();
+	//start_firewall_ex(wan_ifname, nvram_safe_get("wan_ipaddr"), nvram_safe_get("lan_ifname"), nvram_safe_get("lan_ipaddr"), 0, 0, 0, 0);
+
+	start_ddns();
+
+	nvram_set("wan_link", "Connected");
+#endif
+}
+
+void
+stop_wan(void)
+{
+	char *wan_ifname = nvram_safe_get("wan_ifname");
+
+	dprintf("%s %s\n", wan_ifname, nvram_safe_get("wan_proto"));
+
+	/* Stop firewall */
+#ifndef ASUS
+	stop_firewall();
+#endif
+
+	/* Kill any WAN client daemons or callbacks */
+	eval("killall", "ip-up");
+	eval("killall", "ip-down");
+	eval("killall", "pppd");
+	eval("killall", "udhcpc");
+	eval("killall", "stats");
+	eval("killall", "ntpclient");
+
+	/* Bring down WAN interfaces */
+	ifconfig(wan_ifname, 0, NULL, NULL);
+
+	dprintf("done\n");
+}
+
+int
+set_routes(void)
+{
+	char word[80], *tmp;
+	char *ipaddr, *netmask, *gateway, *metric, *ifname;
+
+	foreach(word, nvram_safe_get("static_route"), tmp) {
+		netmask = word;
+		ipaddr = strsep(&netmask, ":");
+		if (!ipaddr || !netmask)
+			continue;
+		gateway = netmask;
+		netmask = strsep(&gateway, ":");
+		if (!netmask || !gateway)
+			continue;
+		metric = gateway;
+		gateway = strsep(&metric, ":");
+		if (!gateway || !metric)
+			continue;
+		ifname = metric;
+		metric = strsep(&ifname, ":");
+		if (!metric || !ifname)
+			continue;
+
+		route_add(ifname, atoi(metric) + 1, ipaddr, gateway, netmask);
+	}
+
+	return 0;
+}
+
+int
+hotplug_net(void)
+{
+	char *interface, *action;
+
+	if (!(interface = getenv("INTERFACE")) ||
+	    !(action = getenv("ACTION")))
+		return EINVAL;
+
+	/* Bridge WDS interfaces */
+	if (!strncmp(interface, "wds", 3)) {
+		if (!strcmp(action, "register")) {
+			ifconfig(interface, IFUP, NULL, NULL);
+			return eval("brctl", "addif", nvram_safe_get("lan_ifname"), interface);
+		}
+	}
+
+	return 0;
+}
+
+int
+start_sroute(void)
+{
+	return 0;
+}

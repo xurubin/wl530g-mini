@@ -1,0 +1,23 @@
+# DHCP Server configuration 
+/bin/dhcpd LAN &
+
+# DHCP Client configuration
+rm -rf /etc/dhcpc/*
+chmod 777 /etc/resolv.conf
+chmod 777 /etc/resolv.dnsmasq
+/bin/ifconfig lo 127.0.0.1 
+/bin/route add 127.0.0.0 lo 
+/bin/ifconfig WAN up 
+/bin/dhcpcd -rDH -l 86400 WAN &
+
+# DNS settings
+/bin/dnsmasq -r /etc/resolv.dnsmasq & 
+
+# FW + NAT settings
+/bin/iptables -t nat -F
+/bin/iptables -t nat -A POSTROUTING -o WAN -j MASQUERADE
+cp -f 1 /proc/sys/net/ipv4/ip_dynaddr
+cp -f 1 /proc/sys/net/ipv4/ip_forward
+
+# HTTP server
+/bin/boa &

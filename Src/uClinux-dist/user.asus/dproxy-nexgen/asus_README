@@ -1,0 +1,5 @@
+* Directory Content
+  dns proxy, dproxy, for Marvell solution on uClinux platform
+
+* How to generate image
+  1. make

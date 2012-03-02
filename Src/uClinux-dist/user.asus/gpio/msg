@@ -1,0 +1,39 @@
+mipsel-linux-gcc -I/root/broadcom/src/linux/linux/include/asm/gcc -D__KERNEL__ -I/root/broadcom/src/linux/linux/include -D__KERNEL__ -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer -fno-strict-aliasing -G 0 -mno-abicalls -fno-pic -mcpu=r4600 -mips2 -Wa,--trap -m4710a0kern -pipe -I/root/broadcom/src/linux/linux/../../include  -I. -DMODULE -mlong-calls -fno-common -DLinux -DWL310  -c splink_led.c -o splink_led.o
+splink_led.c: In function `key_timer_handler':
+splink_led.c:193: warning: implicit declaration of function `machine_restart'
+splink_led.c:208: warning: int format, long int arg (arg 2)
+splink_led.c: In function `led_toggle':
+splink_led.c:307: `GPLR' undeclared (first use in this function)
+splink_led.c:307: (Each undeclared identifier is reported only once
+splink_led.c:307: for each function it appears in.)
+splink_led.c: In function `auto_crossover':
+splink_led.c:370: `GPLR' undeclared (first use in this function)
+splink_led.c:371: `GPCR' undeclared (first use in this function)
+splink_led.c:372: `GPSR' undeclared (first use in this function)
+splink_led.c: In function `led_interrupt':
+splink_led.c:392: `IRQ_GPIO26' undeclared (first use in this function)
+splink_led.c:392: `LED_WAN' undeclared (first use in this function)
+splink_led.c:392: `LED_LAN' undeclared (first use in this function)
+splink_led.c:396: `GPLR' undeclared (first use in this function)
+splink_led.c:400: warning: implicit declaration of function `disable_irq'
+splink_led.c:403: `GPSR' undeclared (first use in this function)
+splink_led.c:416: `GPCR' undeclared (first use in this function)
+splink_led.c:390: warning: `led' might be used uninitialized in this function
+splink_led.c: In function `poll_link':
+splink_led.c:429: `GPLR' undeclared (first use in this function)
+splink_led.c:441: `LED_WAN' undeclared (first use in this function)
+splink_led.c:441: `IRQ_GPIO26' undeclared (first use in this function)
+splink_led.c:441: `IRQ_GPIO25' undeclared (first use in this function)
+splink_led.c:443: warning: implicit declaration of function `enable_irq'
+splink_led.c:426: warning: `irq' might be used uninitialized in this function
+splink_led.c: In function `led_read':
+splink_led.c:534: warning: unused variable `kbuf'
+splink_led.c: In function `led_write':
+splink_led.c:565: warning: implicit declaration of function `bcm_atoi'
+splink_led.c:574: warning: int format, long int arg (arg 2)
+splink_led.c:574: warning: int format, long int arg (arg 3)
+splink_led.c: In function `led_init':
+splink_led.c:635: warning: unused variable `irqval'
+splink_led.c: At top level:
+splink_led.c:108: warning: `wait_interval' defined but not used
+make: *** [splink_led.o] Error 1

@@ -1,0 +1,1909 @@
+make ARCH=armnommu CROSS_COMPILE=arm-elf- -C linux-2.4.x  || exit 1
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+. scripts/mkversion > .tmpversion
+arm-elf-gcc -D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float  -DUTS_MACHINE='"armnommu"' -DKBUILD_BASENAME=version -c -o init/version.o init/version.c
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/tools'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/tools'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  kernel
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  drivers
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C block
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make -C cdrom
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make -C char
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make -C hotplug
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make -C media
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C radio
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make -C video
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C misc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make -C mtd
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C chips
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make -C devices
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make -C maps
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make -C nand
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+arm-elf-ld -r -o mtd_blkdevs.o mtd_blkdevs-24.o
+rm -f mtdlink.o
+arm-elf-ld   -r -o mtdlink.o mtdcore.o mtdpart.o mtdchar.o mtdblock.o mtd_blkdevs.o chips/chipslink.o maps/mapslink.o devices/devlink.o nand/nandlink.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C net
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C wireless
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C parport
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make -C sound
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  mmnommu
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  fs
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make -C ext2
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make -C jffs2
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make -C lockd
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make -C nfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make -C partitions
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make -C proc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make -C ramfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make -C romfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  net
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C 802
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make -C bridge
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make -C bridge/netfilter
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make -C core
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make -C ethernet
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make -C ipv4
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make -C ipv4/netfilter
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[4]: Circular /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/netfilter_ipv4/ip_conntrack_helper.h <- /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/netfilter_ipv4/ip_conntrack.h dependency dropped.
+arm-elf-ld -r -o ip_conntrack.o ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o
+arm-elf-ld -r -o iptable_nat.o ip_nat_standalone.o ip_nat_rule.o ip_nat_core.o ip_nat_helper.o ip_nat_proto_unknown.o ip_nat_proto_tcp.o ip_nat_proto_udp.o ip_nat_proto_icmp.o
+rm -f netfilter.o
+arm-elf-ld   -r -o netfilter.o ip_conntrack.o ip_conntrack_ftp.o ip_conntrack_irc.o ip_nat_ftp.o ip_nat_irc.o ip_tables.o iptable_filter.o iptable_mangle.o iptable_nat.o ipt_limit.o ipt_mark.o ipt_mac.o ipt_multiport.o ipt_tos.o ipt_ah.o ipt_esp.o ipt_length.o ipt_ttl.o ipt_state.o ipt_tcpmss.o ipt_REJECT.o ipt_TOS.o ipt_MARK.o ipt_MASQUERADE.o ipt_REDIRECT.o ipt_LOG.o ipt_ULOG.o ipt_TCPMSS.o arp_tables.o arptable_filter.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make -C netlink
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make -C packet
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make -C sched
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make -C sunrpc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make -C unix
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+rm -f network.o
+arm-elf-ld   -r -o network.o socket.o core/core.o ethernet/ethernet.o 802/802.o sched/sched.o netlink/netlink.o ipv4/ipv4.o ipv4/netfilter/netfilter.o unix/unix.o bridge/netfilter/netfilter.o packet/packet.o bridge/bridge.o sunrpc/sunrpc.o netsyms.o sysctl_net.o
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  ipc
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  lib
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make -C zlib_deflate
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make -C zlib_inflate
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  crypto
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/mach-libertas
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/kernel
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/mm
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/lib
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/nwfpe
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+arm-elf-ld -p -X -T arch/armnommu/vmlinux.lds arch/armnommu/kernel/head-armv.o arch/armnommu/kernel/init_task.o init/main.o init/version.o init/do_mounts.o \
+	--start-group \
+	arch/armnommu/kernel/kernel.o arch/armnommu/mm/mm.o arch/armnommu/mach-libertas/libertas.o kernel/kernel.o mmnommu/mmnommu.o fs/fs.o ipc/ipc.o \
+	 drivers/char/char.o drivers/block/block.o drivers/misc/misc.o drivers/net/net.o drivers/mtd/mtdlink.o drivers/net/wireless/wireless_net.o drivers/media/media.o \
+	net/network.o \
+	arch/armnommu/lib/lib.a /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/lib.a /usr/local/lib/gcc-lib/arm-elf/2.95.3/libgcc.a \
+	--end-group \
+	-o linux
+arm-elf-nm linux | grep -v '\(compiled\)\|\(\.o$\)\|\( [aUw] \)\|\(\.\.ng$\)\|\(LASH[RL]DI\)' | sort > System.map
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+make ARCH=armnommu CROSS_COMPILE=arm-elf- -C linux-2.4.x zImage || exit 1
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+. scripts/mkversion > .tmpversion
+arm-elf-gcc -D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float  -DUTS_MACHINE='"armnommu"' -DKBUILD_BASENAME=version -c -o init/version.o init/version.c
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/tools'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/tools'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  kernel
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  drivers
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C block
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make -C cdrom
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make -C char
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make -C hotplug
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make -C media
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C radio
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make -C video
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C misc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make -C mtd
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C chips
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make -C devices
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make -C maps
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make -C nand
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+arm-elf-ld -r -o mtd_blkdevs.o mtd_blkdevs-24.o
+rm -f mtdlink.o
+arm-elf-ld   -r -o mtdlink.o mtdcore.o mtdpart.o mtdchar.o mtdblock.o mtd_blkdevs.o chips/chipslink.o maps/mapslink.o devices/devlink.o nand/nandlink.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C net
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C wireless
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make all_targets
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[5]: Nothing to be done for `all_targets'.
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C parport
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make -C sound
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  mmnommu
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  fs
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make -C ext2
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ext2'
+make -C jffs2
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/jffs2'
+make -C lockd
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/lockd'
+make -C nfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/nfs'
+make -C partitions
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/partitions'
+make -C proc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/proc'
+make -C ramfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/ramfs'
+make -C romfs
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs/romfs'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  net
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C 802
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/802'
+make -C bridge
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge'
+make -C bridge/netfilter
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make -C core
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make -C ethernet
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ethernet'
+make -C ipv4
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make -C ipv4/netfilter
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[4]: Circular /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/netfilter_ipv4/ip_conntrack_helper.h <- /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include/linux/netfilter_ipv4/ip_conntrack.h dependency dropped.
+arm-elf-ld -r -o ip_conntrack.o ip_conntrack_standalone.o ip_conntrack_core.o ip_conntrack_proto_generic.o ip_conntrack_proto_tcp.o ip_conntrack_proto_udp.o ip_conntrack_proto_icmp.o
+arm-elf-ld -r -o iptable_nat.o ip_nat_standalone.o ip_nat_rule.o ip_nat_core.o ip_nat_helper.o ip_nat_proto_unknown.o ip_nat_proto_tcp.o ip_nat_proto_udp.o ip_nat_proto_icmp.o
+rm -f netfilter.o
+arm-elf-ld   -r -o netfilter.o ip_conntrack.o ip_conntrack_ftp.o ip_conntrack_irc.o ip_nat_ftp.o ip_nat_irc.o ip_tables.o iptable_filter.o iptable_mangle.o iptable_nat.o ipt_limit.o ipt_mark.o ipt_mac.o ipt_multiport.o ipt_tos.o ipt_ah.o ipt_esp.o ipt_length.o ipt_ttl.o ipt_state.o ipt_tcpmss.o ipt_REJECT.o ipt_TOS.o ipt_MARK.o ipt_MASQUERADE.o ipt_REDIRECT.o ipt_LOG.o ipt_ULOG.o ipt_TCPMSS.o arp_tables.o arptable_filter.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make -C netlink
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make -C packet
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/packet'
+make -C sched
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make -C sunrpc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sunrpc'
+make -C unix
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/unix'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+rm -f network.o
+arm-elf-ld   -r -o network.o socket.o core/core.o ethernet/ethernet.o 802/802.o sched/sched.o netlink/netlink.o ipv4/ipv4.o ipv4/netfilter/netfilter.o unix/unix.o bridge/netfilter/netfilter.o packet/packet.o bridge/bridge.o sunrpc/sunrpc.o netsyms.o sysctl_net.o
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  ipc
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  lib
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make -C zlib_deflate
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_deflate'
+make -C zlib_inflate
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make all_targets
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make[4]: Nothing to be done for `all_targets'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/zlib_inflate'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  crypto
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/mach-libertas
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/kernel
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/mm
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/lib
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float " -C  arch/armnommu/nwfpe
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make all_targets
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[3]: Nothing to be done for `all_targets'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+arm-elf-ld -p -X -T arch/armnommu/vmlinux.lds arch/armnommu/kernel/head-armv.o arch/armnommu/kernel/init_task.o init/main.o init/version.o init/do_mounts.o \
+	--start-group \
+	arch/armnommu/kernel/kernel.o arch/armnommu/mm/mm.o arch/armnommu/mach-libertas/libertas.o kernel/kernel.o mmnommu/mmnommu.o fs/fs.o ipc/ipc.o \
+	 drivers/char/char.o drivers/block/block.o drivers/misc/misc.o drivers/net/net.o drivers/mtd/mtdlink.o drivers/net/wireless/wireless_net.o drivers/media/media.o \
+	net/network.o \
+	arch/armnommu/lib/lib.a /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib/lib.a /usr/local/lib/gcc-lib/arm-elf/2.95.3/libgcc.a \
+	--end-group \
+	-o linux
+arm-elf-nm linux | grep -v '\(compiled\)\|\(\.o$\)\|\( [aUw] \)\|\(\.\.ng$\)\|\(LASH[RL]DI\)' | sort > System.map
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/boot'
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/boot/compressed'
+arm-elf-objcopy -O binary -R .note -R .comment -S /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/linux piggy
+gzip -9 < piggy > piggy.gz
+arm-elf-ld -r -o piggy.o -b binary piggy.gz
+rm -f piggy piggy.gz
+arm-elf-ld -p -X -T linux.lds head.o misc.o piggy.o -o linux
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/boot/compressed'
+arm-elf-objcopy -O binary -R .note -R .comment -S compressed/linux zImage
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/boot'
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+if [ -f linux-2.4.x/vmlinux ]; then \
+	ln -f linux-2.4.x/vmlinux linux-2.4.x/linux ; \
+fi
+for dir in  lib user ; do make ARCH=armnommu CROSS_COMPILE=arm-elf- -C $dir || exit 1 ; done
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib'
+for i in uClibc libnet libcrypt_old /home/yhlin/uClinux/uClinux-dist/prop libpcap zlib zlib ; do [ ! -d $i ] || make -C $i || exit $? ; done
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc'
+rm -f include/asm;
+rm -f include/linux include/scsi
+ln -fs "/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/."/include/linux include/linux
+ln -fs "/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/."/include/scsi include/scsi
++ rm -f include/bits/sysnum.h
++ TOPDIR=.
++ CC=arm-elf-gcc
++ /bin/sh extra/scripts/gen_bits_syscall_h.sh
+make -C libc/sysdeps/linux/arm headers
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/arm'
+make[3]: Nothing to be done for `headers'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/arm'
+make -C  extra
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/extra'
+make -C  gcc-uClibc
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/extra/gcc-uClibc'
+gcc -O2 -Wall -Wl,-s gcc-uClibc.c -o arm-uclibc-gcc
+chmod a+x arm-uclibc-ld
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/extra/gcc-uClibc'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/extra'
+make -C  ldso
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/ldso'
+echo "Not building ld-uClibc"
+Not building ld-uClibc
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/ldso'
+make -C  libc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc'
+make -C  misc
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc'
+make -C  assert
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/assert'
+arm-elf-ar r ../../../libc/libc.a __assert.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/assert'
+make -C  ctype
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/ctype'
+arm-elf-ar r ../../../libc/libc.a isalnum.o isalpha.o isascii.o iscntrl.o isdigit.o isgraph.o islower.o isprint.o ispunct.o isspace.o isupper.o isxdigit.o isxlower.o isxupper.o toascii.o tolower.o toupper.o isblank.o __isctype_loc.o junk.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/ctype'
+make -C  dirent
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/dirent'
+arm-elf-ar r ../../../libc/libc.a alphasort.o closedir.o dirfd.o opendir.o readdir.o rewinddir.o scandir.o seekdir.o telldir.o readdir64.o alphasort64.o scandir64.o readdir_r.o readdir64_r.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/dirent'
+make -C  file
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/file'
+arm-elf-ar r ../../../libc/libc.a lockf.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/file'
+make -C  fnmatch
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/fnmatch'
+arm-elf-ar r ../../../libc/libc.a fnmatch.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/fnmatch'
+make -C  glob
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/glob'
+arm-elf-ar r ../../../libc/libc.a glob.o glob64.o glob-hooks.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/glob'
+make -C  internals
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/internals'
+arm-elf-ar r ../../../libc/libc.a __uClibc_main.o tempname.o errno.o __errno_location.o __h_errno_location.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/internals'
+make -C  mntent
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/mntent'
+arm-elf-ar r ../../../libc/libc.a mntent.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/mntent'
+make -C  syslog
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/syslog'
+arm-elf-ar r ../../../libc/libc.a syslog.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/syslog'
+make -C  time
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/time'
+arm-elf-ar r ../../../libc/libc.a adjtime.o ftime.o asctime.o asctime_r.o clock.o ctime.o ctime_r.o gmtime.o gmtime_r.o localtime.o localtime_r.o mktime.o strftime.o strptime.o tzset.o _time_t2tm.o __time_tm.o _time_mktime.o difftime.o 
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/time'
+make -C  utmp
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/utmp'
+arm-elf-ar r ../../../libc/libc.a utent.o wtent.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/utmp'
+make -C  locale
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/locale'
+arm-elf-ar r ../../../libc/libc.a setlocale.o localeconv.o _locale_init.o nl_langinfo.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/locale'
+make -C  sysvipc
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/sysvipc'
+arm-elf-ar r ../../../libc/libc.a semget.o semctl.o semop.o shmat.o shmctl.o shmdt.o shmget.o msgctl.o msgget.o msgrcv.o msgsnd.o ftok.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/sysvipc'
+make -C  statfs
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/statfs'
+arm-elf-ar r ../../../libc/libc.a statvfs.o fstatvfs.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/statfs'
+make -C  error
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/error'
+arm-elf-ar r ../../../libc/libc.a error.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/error'
+make -C  ttyent
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/ttyent'
+arm-elf-ar r ../../../libc/libc.a getttyent.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/ttyent'
+make -C  gnu
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/gnu'
+arm-elf-ar r ../../../libc/libc.a obstack.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/gnu'
+make -C  search
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/search'
+arm-elf-ar r ../../../libc/libc.a hsearch.o tsearch.o tfind.o tdelete.o twalk.o lfind.o lsearch.o insque.o remque.o hcreate_r.o hdestroy_r.o hsearch_r.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/search'
+make -C  regex
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/regex'
+arm-elf-ar r ../../../libc/libc.a regex.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/regex'
+make -C  pthread
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/pthread'
+arm-elf-ar r ../../../libc/libc.a no-tsd.o weaks.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc/pthread'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/misc'
+make -C  pwd_grp
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/pwd_grp'
+arm-elf-ar r ../../libc/libc.a pwent.o getpwnam.o getpwuid.o putpwent.o getpw.o fgetpwent.o __getgrent.o grent.o getgrnam.o getgrgid.o fgetgrent.o initgroups.o __getpwent_r.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/pwd_grp'
+make -C  stdio
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdio'
+arm-elf-ar r ../../libc/libc.a fclose.o fflush.o fopen.o freopen.o perror.o remove.o setbuf.o setvbuf.o fgetc.o fgets.o fputc.o fputs.o getc.o getchar.o gets.o putc.o putchar.o puts.o ungetc.o fread.o fwrite.o fgetpos.o fseek.o fsetpos.o ftell.o rewind.o clearerr.o feof.o ferror.o fileno.o fdopen.o getw.o putw.o setbuffer.o setlinebuf.o fcloseall.o fopen64.o freopen64.o ftello64.o fseeko64.o fsetpos64.o fgetpos64.o __fbufsize.o __freading.o __fwriting.o __freadable.o __fwritable.o __flbf.o __fpurge.o __fpending.o _flushlbf.o fopencookie.o fmemopen.o open_memstream.o __fsetlocking.o flockfile.o ftrylockfile.o funlockfile.o _stdio_fopen.o _stdio_fread.o _stdio_fwrite.o _stdio_adjpos.o _stdio_lseek.o _stdio_init.o _stdio_fsfopen.o _stdio_fdout.o _uintmaxtostr.o _stdio_strerror_r.o getdelim.o getline.o ctermid.o vsnprintf.o vdprintf.o vasprintf.o vprintf.o vsprintf.o fprintf.o  snprintf.o  dprintf.o  asprintf.o  printf.o  sprintf.o _ppfs_init.o _ppfs_prepargs.o _ppfs_setargs.o _ppfs_parsespec.o vfprintf.o _store_inttype.o _load_inttype.o register_printf_function.o parse_printf_format.o _dtostr.o scanf.o sscanf.o fscanf.o vscanf.o vsscanf.o vfscanf.o popen.o tmpfile.o tmpnam.o tmpnam_r.o tempnam.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdio'
+make -C  string
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/string'
+arm-elf-ar r ../../libc/libc.a    basename.o bcopy.o bzero.o dirname.o ffs.o memccpy.o memchr.o memcmp.o memcpy.o memmove.o mempcpy.o memrchr.o 	memset.o rawmemchr.o stpcpy.o stpncpy.o strcasecmp.o strcasestr.o strcat.o strchrnul.o strchr.o strcmp.o strcpy.o strcspn.o strdup.o strlen.o strncasecmp.o strncat.o strncmp.o strncpy.o strndup.o strnlen.o strpbrk.o strrchr.o strsep.o strspn.o strstr.o strtok.o strtok_r.o strerror.o _susv3_strerror_r.o _string_syserrmsgs.o _glibc_strerror_r.o _string_syssigmsgs.o sys_siglist.o strsignal.o psignal.o __xpg_basename.o strlcat.o strlcpy.o sys_errlist.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/string'
+make -C  termios
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/termios'
+arm-elf-ar r ../../libc/libc.a tcdrain.o tcflow.o tcflush.o tcsendbreak.o tcsetpgrp.o tcgetpgrp.o isatty.o cfgetospeed.o cfgetispeed.o cfsetospeed.o cfsetispeed.o cfmakeraw.o cfsetspeed.o tcgetattr.o tcgetsid.o tcsetattr.o ttyname.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/termios'
+make -C  inet
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/inet'
+arm-elf-ar r ../../libc/libc.a inet_aton.o inet_addr.o inet_ntoa.o inet_makeaddr.o inet_lnaof.o inet_netof.o encodeh.o decodeh.o encoded.o decoded.o lengthd.o encodeq.o decodeq.o lengthq.o encodea.o decodea.o encodep.o decodep.o formquery.o dnslookup.o resolveaddress.o opennameservers.o closenameservers.o resolvename.o gethostbyname.o res_init.o res_query.o gethostbyaddr.o read_etc_hosts_r.o get_hosts_byname_r.o get_hosts_byaddr_r.o gethostbyname2.o getnameinfo.o gethostent.o gethostbyname_r.o gethostbyname2_r.o gethostbyaddr_r.o accept.o bind.o connect.o getpeername.o getsockname.o getsockopt.o listen.o recv.o recvfrom.o recvmsg.o send.o sendmsg.o sendto.o setsockopt.o shutdown.o socket.o socketpair.o  getservice.o getproto.o hostid.o getnetent.o getnetbynm.o getnetbyad.o inet_net.o ntop.o herror.o if_nametoindex.o gai_strerror.o getaddrinfo.o in6_addr.o ether_addr.o
+make -C  rpc
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/inet/rpc'
+arm-elf-ar r ../../../libc/libc.a auth_none.o auth_unix.o authunix_prot.o bindresvport.o clnt_generic.o clnt_perror.o clnt_raw.o clnt_simple.o clnt_tcp.o clnt_udp.o rpc_dtablesize.o get_myaddress.o getrpcent.o getrpcport.o pmap_clnt.o pmap_getmaps.o pmap_getport.o pmap_prot.o pmap_prot2.o pmap_rmt.o rpc_prot.o rpc_commondata.o rpc_callmsg.o svc.o svc_auth.o svc_auth_unix.o svc_raw.o svc_run.o svc_simple.o svc_tcp.o svc_udp.o xdr.o xdr_array.o xdr_float.o xdr_mem.o xdr_rec.o xdr_reference.o xdr_stdio.o rtime.o clnt_unix.o svc_unix.o create_xid.o xdr_intXX_t.o rcmd.o rexec.o sa_len.o ruserpass.o rpc_thread.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/inet/rpc'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/inet'
+make -C  signal
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/signal'
+arm-elf-ar r ../../libc/libc.a allocrtsig.o killpg.o raise.o sigaction.o sigaddset.o sigandset.o sigblock.o sigdelset.o sigempty.o sigfillset.o siggetmask.o sighold.o sigignore.o sigintr.o sigisempty.o sigismem.o sigjmp.o signal.o sigorset.o sigpause.o sigrelse.o sigset.o sigsetmask.o sigsetops.o sysv_signal.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/signal'
+make -C  stdlib
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdlib'
+arm-elf-ar r ../../libc/libc.a abs.o labs.o atoi.o atol.o strtol.o strtoul.o _stdlib_strto_l.o qsort.o bsearch.o llabs.o atoll.o strtoll.o strtoull.o _stdlib_strto_ll.o atof.o atexit.o on_exit.o __exit_handler.o exit.o abort.o getenv.o mkdtemp.o mktemp.o realpath.o mkstemp.o mkstemp64.o rand.o random.o random_r.o setenv.o system.o div.o ldiv.o getpt.o ptsname.o grantpt.o unlockpt.o gcvt.o drand48.o drand48-iter.o drand48_r.o erand48.o erand48_r.o jrand48.o jrand48_r.o lrand48.o lrand48_r.o mrand48.o mrand48_r.o nrand48.o nrand48_r.o rand_r.o srand48.o srand48_r.o calloc.o valloc.o strtod.o strtof.o strtold.o
+make -C  malloc
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdlib/malloc'
+arm-elf-ar r ../../../libc/libc.a malloc.o free.o realloc.o memalign.o heap_alloc.o heap_alloc_at.o heap_free.o
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdlib/malloc'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/stdlib'
+make -C  sysdeps
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps'
+make -C  linux
+make[5]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux'
+make -C  common
+make[6]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/common'
+arm-elf-ar r ../../../../libc/libc.a waitpid.o getdnnm.o gethstnm.o getcwd.o ptrace.o mkfifo.o setegid.o wait.o getpagesize.o seteuid.o wait3.o setpgrp.o getdtablesize.o create_module.o cmsg_nxthdr.o longjmp.o open64.o ftruncate64.o mmap64.o truncate64.o getrlimit64.o setrlimit64.o creat64.o llseek.o pread_write.o _exit.o sync.o getdirname.o sendfile64.o xstatconv.o getdents.o getdents64.o  __libc_fork.o  __libc_read.o  __libc_write.o  __syscall_open.o  __libc_close.o  __syscall_creat.o  link.o  unlink.o  execve.o  chdir.o  time.o  __syscall_mknod.o  __syscall_chmod.o  __syscall_lchown.o  __libc_lseek.o  __libc_getpid.o  mount.o  umount.o  __syscall_setuid.o  getuid.o  stime.o  __ptrace.o  alarm.o  __libc_pause.o  utime.o  utimes.o  access.o  nice.o  __syscall_kill.o  rename.o  __syscall_mkdir.o  rmdir.o  dup.o  pipe.o  times.o  __syscall_setgid.o  getgid.o  geteuid.o  getegid.o  acct.o  umount2.o  __syscall_ioctl.o  _fcntl.o  __syscall_setpgid.o  __syscall_umask.o  chroot.o  dup2.o  getppid.o  getpgrp.o  setsid.o  __syscall_sigaction.o  __syscall_setreuid.o  __syscall_setregid.o  __sigsuspend.o  sigpending.o  sethostname.o  __setrlimit.o  setrlimit.o  __getrlimit.o  getrusage.o  gettimeofday.o  settimeofday.o  __syscall_getgroups.o  __syscall_setgroups.o  select.o  symlink.o  readlink.o  uselib.o  swapon.o  _reboot.o  _mmap.o  munmap.o  truncate.o  ftruncate.o  __syscall_fchmod.o  __syscall_fchown.o  __syscall_getpriority.o  setpriority.o  statfs.o  fstatfs.o  ioperm.o  __socketcall.o  _syslog.o  setitimer.o  getitimer.o  __syscall_stat.o  __syscall_lstat.o  __syscall_fstat.o  iopl.o  vhangup.o  __syscall_wait4.o  swapoff.o  sysinfo.o  __ipc.o  __libc_fsync.o  setdomainname.o  uname.o  modify_ldt.o  adjtimex.o  mprotect.o  sigprocmask.o  init_module.o  delete_module.o  get_kernel_syms.o  quotactl.o  __syscall_getpgid.o  fchdir.o  bdflush.o  __syscall_setfsuid.o  __syscall_setfsgid.o  _newselect.o flock.o  __libc_msync.o  readv.o  writev.o  __syscall_getsid.o  fdatasync.o  _sysctl.o  mlock.o  munlock.o  mlockall.o  munlockall.o  __syscall_sched_setparam.o  __syscall_sched_getparam.o  __syscall_sched_setscheduler.o  __syscall_sched_getscheduler.o  sched_yield.o  sched_get_priority_max.o  sched_get_priority_min.o  __syscall_sched_rr_get_interval.o  __libc_nanosleep.o  mremap.o  __syscall_setresuid.o  __syscall_getresuid.o  query_module.o  poll.o  __syscall_setresgid.o  __syscall_getresgid.o  __syscall_rt_sigaction.o  __rt_sigprocmask.o  __rt_sigpending.o  __rt_sigtimedwait.o  __rt_sigsuspend.o  __syscall_chown.o  capget.o  capset.o  sigaltstack.o sendfile.o  __ugetrlimit.o  __syscall_stat64.o  __syscall_lstat64.o  __syscall_fstat64.o  pivot_root.o  _fcntl64.o
+make[6]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/common'
+make -C  arm
+make[6]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/arm'
+arm-elf-ar r ../../../../libc/libc.a __longjmp.o vfork.o clone.o setjmp.o bsd-setjmp.o bsd-_setjmp.o sigrestorer.o  brk.o syscall.o ioperm.o sigaction.o
+cp crt0.o crt1.o ../../../../lib/
+make[6]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux/arm'
+make[5]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps/linux'
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/sysdeps'
+make -C  unistd
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/unistd'
+arm-elf-ar r ../../libc/libc.a execl.o execlp.o execv.o execvep.o execvp.o execle.o sleep.o usleep.o getpass.o sysconf_src.o getlogin.o fpathconf.o confstr.o pathconf.o swab.o usershell.o getopt.o getsubopt.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc/unistd'
+arm-elf-ranlib libc.a
+install -d ../lib
+rm -f ../lib/libc.a
+install -m 644 libc.a ../lib
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libc'
+make -C  libcrypt
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libcrypt'
+arm-elf-ar r libcrypt.a crypt.o des.o md5.o
+install -d ../lib
+rm -f ../lib/libcrypt.a
+install -m 644 libcrypt.a ../lib
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libcrypt'
+make -C  libresolv
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libresolv'
+arm-elf-ar r libresolv.a resolv.o
+install -d ../lib
+rm -f ../lib/libresolv.a
+install -m 644 libresolv.a ../lib
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libresolv'
+make -C  libnsl
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libnsl'
+arm-elf-ar r libnsl.a nsl.o
+install -d ../lib
+rm -f ../lib/libnsl.a
+install -m 644 libnsl.a ../lib
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libnsl'
+make -C  libutil
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libutil'
+arm-elf-ar r libutil.a login.o login_tty.o logout.o logwtmp.o openpty.o
+install -d ../lib
+rm -f ../lib/libutil.a
+install -m 644 libutil.a ../lib/
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libutil'
+make -C  libm
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libm'
+arm-elf-ar r libm.a e_acos.o e_acosh.o e_asin.o e_atan2.o e_atanh.o e_cosh.o e_exp.o e_fmod.o e_gamma.o e_gamma_r.o e_hypot.o e_j0.o e_j1.o e_jn.o e_lgamma.o e_lgamma_r.o e_log.o e_log10.o e_pow.o e_remainder.o e_rem_pio2.o e_scalb.o e_sinh.o e_sqrt.o k_cos.o k_rem_pio2.o k_sin.o k_standard.o k_tan.o s_asinh.o s_atan.o s_cbrt.o s_ceil.o s_copysign.o s_cos.o s_erf.o s_expm1.o s_fabs.o s_finite.o s_floor.o s_frexp.o s_ilogb.o s_ldexp.o s_lib_version.o s_log1p.o s_logb.o s_matherr.o s_modf.o s_nextafter.o s_rint.o s_scalbn.o s_signgam.o s_significand.o s_sin.o s_tan.o s_tanh.o w_acos.o w_acosh.o w_asin.o w_atan2.o w_atanh.o w_cabs.o w_cosh.o w_drem.o w_exp.o w_fmod.o w_gamma.o w_gamma_r.o w_hypot.o w_j0.o w_j1.o w_jn.o w_lgamma.o w_lgamma_r.o w_log.o w_log10.o w_pow.o w_remainder.o w_scalb.o w_sinh.o w_sqrt.o w_sqrtf.o fpmacros.o nan.o
++ install -d ../lib
++ rm -f ../lib/libm.a
++ install -m 644 libm.a ../lib
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libm'
+make -C  libpthread
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libpthread'
+make -C  linuxthreads
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libpthread/linuxthreads'
+arm-elf-ar r ../libpthread.a attr.o cancel.o condvar.o errno.o events.o join.o lockfile.o manager.o mutex.o oldsemaphore.o pt-machine.o ptfork.o pthread.o ptlongjmp.o rwlock.o semaphore.o signals.o specific.o spinlock.o wrapsyscall.o
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libpthread/linuxthreads'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc/libpthread'
+
+Not building shared libraries...
+
+
+Finally finished compiling...
+
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libnet'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libnet'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libcrypt_old'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libcrypt_old'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libpcap'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libpcap'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib'
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user'
+for i in boa bridge-utils busybox dhcp-isc dhcpcd-new dnsmasq ffnetdrv games inetd init iptables levee mtd-utils portmap ramimage rgcfg route sash telnetd /home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas/. /home/yhlin/uClinux/uClinux-dist/prop ; do \
+	[ ! -d $i ] || make -C $i || exit  ; \
+done
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/boa'
+for i in src ; do make -C $i all || exit ; done
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/boa/src'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/boa/src'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/boa'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils'
+for x in libbridge brctl doc; do (cd $x && make ); done
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/libbridge'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/libbridge'
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/brctl'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/brctl'
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/doc'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils/doc'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make build-config
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+if [ -f "$ROMFSDIR/bin/busybox" ]; then \
+	inode=`ls -i $ROMFSDIR/bin/busybox | awk '{print $1}'`; \
+	ls -i "$ROMFSDIR/bin" | grep "^ *$inode" | awk '{print $2}' | \
+		sed "s:^:$ROMFSDIR/bin/:" | env -i xargs rm -f; \
+fi
+awk -f build-config.awk Config.h >Config.temp
+if cmp -s Config.temp config.h	 	;	\
+then						\
+	rm -f Config.temp		;	\
+else						\
+	mv -f config.h config.h-	;	\
+	mv -f Config.temp config.h	;	\
+	rm -f applet_source_list	;	\
+	make applet_source_list 	;	\
+fi
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make applet_source_list
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[3]: `applet_source_list' is up to date.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make busybox
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[3]: `busybox' is up to date.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make busybox.links
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[3]: `busybox.links' is up to date.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make doc
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[3]: Nothing to be done for `doc'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc'
+Making all in common
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/common'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/common'
+Making all in server
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/server'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/server'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcpcd-new'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcpcd-new'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dnsmasq'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dnsmasq'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/ffnetdrv'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/ffnetdrv'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/games'
+for i in  dummy ; do \
+	[ $i = dummy ] || make -C $i || exit  ; \
+done
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/games'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/inetd'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/inetd'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/init'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/init'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/iptables'
+Extensions found: IPv4:recent IPv6:ah IPv6:esp IPv6:frag IPv6:ipv6header IPv6:hbh IPv6:dst IPv6:rt
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/iptables'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/levee'
+make[2]: `vi' is up to date.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/levee'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/mtd-utils'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/mtd-utils'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/portmap'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/portmap'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/ramimage'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/ramimage'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/rgcfg'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/rgcfg'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/route'
+make -C lib
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/route/lib'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/route/lib'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/route'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/sash'
+make -C libsash
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/sash/libsash'
+make[3]: Nothing to be done for `all'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/sash/libsash'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/sash'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/telnetd'
+make[2]: Nothing to be done for `all'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/telnetd'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'
+make[2]: Nothing to be done for `clean'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user'
+for dir in  lib user ; do make ARCH=armnommu CROSS_COMPILE=arm-elf- -C $dir romfs || exit 1 ; done
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib'
+for i in uClibc libnet libcrypt_old /home/yhlin/uClinux/uClinux-dist/prop libpcap zlib zlib ; do \
+	[ ! -d $i ] || make -C $i romfs || exit $? ; \
+done
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/uClibc'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/uClibc'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libnet'
+make[2]: Nothing to be done for `romfs'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libnet'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libcrypt_old'
+make[2]: Nothing to be done for `romfs'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libcrypt_old'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/libpcap'
+make[2]: Nothing to be done for `romfs'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/libpcap'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Nothing to be done for `romfs'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+make[2]: Nothing to be done for `romfs'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib/zlib'
+arm-elf-strip /home/yhlin/uClinux/uClinux-dist/romfs/lib/*
+arm-elf-strip: /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules: Is a directory
+make[1]: [romfs] Error 1 (ignored)
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/lib'
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user'
+for i in /home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas/. /home/yhlin/uClinux/uClinux-dist/prop boa bridge-utils busybox dhcp-isc dhcpcd-new dnsmasq ffnetdrv games inetd init iptables levee mtd-utils portmap ramimage rgcfg route sash telnetd ; do \
+	[ ! -d $i ] || make -C $i romfs || exit  ; \
+done
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'
+[ -d /home/yhlin/uClinux/uClinux-dist/romfs/$i ] || mkdir -p /home/yhlin/uClinux/uClinux-dist/romfs
+for i in bin dev etc home lib/modules mnt proc usr var etc/config etc/dhcpc; do \
+	[ -d /home/yhlin/uClinux/uClinux-dist/romfs/$i ] || mkdir -p /home/yhlin/uClinux/uClinux-dist/romfs/$i; \
+done
+for i in tty,c,5,0      console,c,5,1      cua0,c,5,64      cua1,c,5,65 mem,c,1,1      kmem,c,1,2         null,c,1,3       ram0,b,1,0 ram1,b,1,1 ptyp0,c,2,0    ptyp1,c,2,1        ptyp2,c,2,2      ptyp3,c,2,3 ptyp4,c,2,4    ptyp5,c,2,5        ptyp6,c,2,6      ptyp7,c,2,7 ptyp8,c,2,8    ptyp9,c,2,9        ptypa,c,2,10     ptypb,c,2,11 ptypc,c,2,12   ptypd,c,2,13       ptype,c,2,14     ptypf,c,2,15 rom0,b,31,0    rom1,b,31,1        rom2,b,31,2      rom3,b,31,3 rom4,b,31,4    rom5,b,31,5        rom6,b,31,6      rom7,b,31,7 rom8,b,31,8    rom9,b,31,9 mtd0,c,90,0    mtd1,c,90,2        mtd2,c,90,4      mtd3,c,90,6 mtd4,c,90,8    mtd5,c,90,10 mtdr0,c,90,1   mtdr1,c,90,3       mtdr2,c,90,5     mtdr3,c,90,7 mtdr4,c,90,9   mtdr5,c,90,11 mtdblock0,b,31,0         mtdblock1,b,31,1        mtdblock2,b,31,2 mtdblock3,b,31,3         mtdblock4,b,31,4        mtdblock5,b,31,5 tty0,c,4,0     tty1,c,4,1         tty2,c,4,2       tty3,c,4,3 ttyS0,c,4,64   ttyS1,c,4,65 ttyp0,c,3,0    ttyp1,c,3,1        ttyp2,c,3,2      ttyp3,c,3,3 ttyp4,c,3,4    ttyp5,c,3,5        ttyp6,c,3,6      ttyp7,c,3,7 ttyp8,c,3,8    ttyp9,c,3,9        ttypa,c,3,10     ttypb,c,3,11 ttypc,c,3,12   ttypd,c,3,13       ttype,c,3,14     ttypf,c,3,15 zero,c,1,5     random,c,1,8       urandom,c,1,9; do \
+	touch /home/yhlin/uClinux/uClinux-dist/romfs/dev/@$i; \
+done
+romfs-inst.sh -s /var/tmp /tmp
+romfs-inst.sh -s /bin /sbin
+romfs-inst.sh /1
+romfs-inst.sh /etc/rc
+romfs-inst.sh /etc/rc.net
+romfs-inst.sh /etc/inittab
+romfs-inst.sh /etc/services
+case "linux-2.4.x" in \
+*2.4.*) ;; \
+*) echo "ttyS0:linux:/bin/sh" >> /home/yhlin/uClinux/uClinux-dist/romfs/etc/inittab ;; \
+esac
+romfs-inst.sh /etc/inetd.conf
+romfs-inst.sh /etc/config/dhcpd.conf
+romfs-inst.sh /etc/config/dhcpd.leases
+romfs-inst.sh /etc/motd
+romfs-inst.sh /etc/resolv.conf
+romfs-inst.sh /etc/resolv.dnsmasq
+romfs-inst.sh /etc/config/unimac.conf
+romfs-inst.sh /etc/hostapd.conf
+romfs-inst.sh /etc/hostapd.accept
+romfs-inst.sh /etc/hostapd.deny
+echo "Marvell/Libertas Version 1.0.6 -- " `date` > /home/yhlin/uClinux/uClinux-dist/romfs/etc/version
+./mkfs.jffs2 -r /home/yhlin/uClinux/uClinux-dist/romfs/etc -o jffs2.img
+romfs-inst.sh /etc/jffs2.img
+romfs-inst.sh /etc/updateapd
+rm -rf mvwlan.o
+cp mvwlan-16M-160MHZ.o mvwlan.o
+romfs-inst.sh /lib/modules/mvwlan.o
+romfs-inst.sh /bin/mvmfgd
+romfs-inst.sh /bin/mvapd
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/boa'
+for i in src ; do make -C $i romfs || exit ; done
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/boa/src'
+romfs-inst.sh /bin/boa
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/boa/src'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/boa'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils'
+romfs-inst.sh brctl/brctl /bin/brctl
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/bridge-utils'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+romfs-inst.sh -e CONFIG_USER_BUSYBOX_SYSLOGD -s /var/tmp/log /dev/log
+cp busybox /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+/bin/sh install-romfs.sh /home/yhlin/uClinux/uClinux-dist/romfs/bin/
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/cat -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/cp -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/echo -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/hostname -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/kill -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/ls -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/mkdir -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/mount -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/ping -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/ps -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/rm -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/sleep -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/umount -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/ifconfig -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/insmod -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/lsmod -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/reboot -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/rmmod -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/route -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/du -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/env -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/killall -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/nslookup -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/traceroute -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+  /home/yhlin/uClinux/uClinux-dist/romfs/bin/which -> /home/yhlin/uClinux/uClinux-dist/romfs/bin/busybox
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/busybox'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc'
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/common'
+true
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/common'
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/server'
+romfs-inst.sh /bin/dhcpd
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc/server'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcp-isc'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dhcpcd-new'
+romfs-inst.sh /bin/dhcpcd
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dhcpcd-new'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/dnsmasq'
+romfs-inst.sh /bin/dnsmasq
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/dnsmasq'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/ffnetdrv'
+romfs-inst.sh unimac.o /lib/modules/unimac.o
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/ffnetdrv'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/games'
+for i in  dummy ; do \
+	[ $i = dummy ] || make -C $i romfs || exit  ; \
+done
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/games'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/inetd'
+romfs-inst.sh /bin/inetd
+:
+: inetd.conf
+:
+romfs-inst.sh -e CONFIG_USER_DISCARD_DISCARD \
+-a "discard dgram  udp wait   root /bin/discard" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_DISCARD_DISCARD \
+-a "discard stream tcp nowait root /bin/discard" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_MARADNS_MARADNS \
+-a "domain  stream tcp nowait root /bin/zoneserver" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_TFTPD_TFTPD \
+   	-a "tftp    dgram  udp wait   root /bin/tftpd" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_SSH_SSHD \
+-a "ssh     stream tcp nowait root /bin/sshd -i" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_TELNETD_TELNETD \
+-a "telnet  stream tcp nowait root /bin/telnetd" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_FTPD_FTPD \
+-a "ftp     stream tcp nowait root /bin/ftpd -l" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_GAMES_ADVENT4 \
+-a "advent4 stream tcp nowait root /bin/advent4" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_GAMES_DUNGEON \
+-a "dungeon stream tcp nowait root /bin/dungeon" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_DESTEST_DESPERF \
+-a "des     stream tcp nowait root /bin/desperf des" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_DESTEST_DESPERF \
+-a "des3    stream tcp nowait root /bin/desperf 3des" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_DESTEST_DESPERF \
+-a "aes    stream tcp nowait root /bin/desperf aes" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_SAMBA \
+-a "netbios-ssn stream tcp nowait root smbd -d1" /etc/inetd.conf
+:
+: Klaxon configuration
+:
+romfs-inst.sh -e CONFIG_USER_KLAXON_CHARGEN \
+	-a "chargen stream tcp nowait root /bin/klaxon tcp-chargen" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_CHARGEN \
+	-a "chargen stream udp wait   root /bin/klaxon udp-chargen" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_DISCARD \
+	-a "discard stream tcp nowait root /bin/klaxon tcp-discard" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_DISCARD \
+	-a "discard stream udp wait   root /bin/klaxon udp-discard" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_ECHO \
+	-a "echo    stream tcp nowait root /bin/klaxon tcp-echo" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_ECHO \
+	-a "echo    stream udp wait   root /bin/klaxon udp-echo" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_FTP \
+	-a "ftp     stream tcp nowait root /bin/klaxon ftp" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_FTP \
+	-a "ftpdata stream tcp nowait root /bin/klaxon ftp-data" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_HTTP \
+	-a "http    stream tcp nowait root /bin/klaxon http" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_SMTP \
+	-a "smtp    stream tcp nowait root /bin/klaxon smtp" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_SNMP \
+	-a "snmp    stream tcp nowait root /bin/klaxon tcp-snmp" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_SNMP \
+	-a "snmp    stream udp wait   root /bin/klaxon udp-snmp" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_SSH \
+	-a "ssh     stream tcp nowait root /bin/klaxon ssh" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_TELNET \
+	-a "telnet  stream tcp nowait root /bin/klaxon telnet" /etc/inetd.conf
+romfs-inst.sh -e CONFIG_USER_KLAXON_TFTP \
+	-a "tftp    stream udp wait   root /bin/klaxon tftp" /etc/inetd.conf
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/inetd'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/init'
+romfs-inst.sh -e CONFIG_USER_INIT_EXPAND /bin/expand
+romfs-inst.sh -e CONFIG_USER_INIT_INIT /bin/init
+romfs-inst.sh -e CONFIG_USER_INIT_INIT -e CONFIG_USER_FACTORY_FACTTEST \
+	-a "facttest:unknown:/bin/facttest" /etc/inittab
+romfs-inst.sh -e CONFIG_USER_INIT_INIT -e CONFIG_USER_BUSYBOX_SYSLOGD \
+	-a "slog:unknown:/bin/syslogd -n" /etc/inittab
+romfs-inst.sh -e CONFIG_USER_INIT_INIT -e CONFIG_USER_BUSYBOX_KLOGD \
+	-a "klog:unknown:/bin/klogd -n" /etc/inittab
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/init'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/iptables'
+romfs-inst.sh /bin/iptables
+romfs-inst.sh -l /home/yhlin/uClinux/uClinux-dist/romfs/bin/iptables /bin/iptables-batch
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/iptables'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/levee'
+romfs-inst.sh /bin/vi
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/levee'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/mtd-utils'
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_ERASE        /bin/erase
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_ERASEALL     /bin/eraseall
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_FTL_CHECK    /bin/ftl_check
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_FTL_FORMAT   /bin/ftl_format
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_MKFSJFFS     /bin/mkfs.jffs
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_MKFSJFFS2    /bin/mkfs.jffs2
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_NFTLDUMP     /bin/nftldump
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_NFTL_FORMAT  /bin/nftl_format
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_NANDDUMP     /bin/nanddump
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_NANDTEST     /bin/nandtest
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_NANDWRITE    /bin/nandwrite
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_DOC_LOADBIOS /bin/doc_loadbios
+romfs-inst.sh -e CONFIG_USER_MTDUTILS_DOC_LOADIPL  /bin/doc_loadipl
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/mtd-utils'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/portmap'
+romfs-inst.sh -e CONFIG_USER_PORTMAP_PORTMAP   /bin/portmap
+romfs-inst.sh -e CONFIG_USER_PORTMAP_PMAP_DUMP /bin/pmap_dump
+romfs-inst.sh -e CONFIG_USER_PORTMAP_PMAP_SET  /bin/pmap_set
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/portmap'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/ramimage'
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS64  ramfs64.img  /etc/ramfs.img
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS128 ramfs128.img /etc/ramfs.img
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS256 ramfs256.img /etc/ramfs.img
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS512 ramfs512.img /etc/ramfs.img
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS1024 ramfs1024.img /etc/ramfs.img
+romfs-inst.sh -e CONFIG_USER_RAMIMAGE_RAMFS2048 ramfs2048.img /etc/ramfs.img
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/ramimage'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/rgcfg'
+romfs-inst.sh /bin/rgcfg
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/rgcfg'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/route'
+romfs-inst.sh -e CONFIG_USER_ROUTE_ROUTE    /bin/route
+romfs-inst.sh -e CONFIG_USER_ROUTE_IFCONFIG /bin/ifconfig
+romfs-inst.sh -e CONFIG_USER_ROUTE_ARP      /bin/arp
+romfs-inst.sh -e CONFIG_USER_ROUTE_NETSTAT  /bin/netstat
+romfs-inst.sh -e CONFIG_USER_ROUTE_MIITOOL  /bin/mii-tool
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/route'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/sash'
+romfs-inst.sh -e CONFIG_USER_SASH_SH       /bin/sh
+romfs-inst.sh -e CONFIG_USER_SASH_REBOOT /bin/reboot
+romfs-inst.sh -e CONFIG_USER_SASH_REBOOT_SNAPGEAR reboot-snapgear.sh /bin/reboot
+romfs-inst.sh -e CONFIG_USER_SASH_SHUTDOWN /bin/shutdown
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/sash'
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/user/telnetd'
+romfs-inst.sh /bin/telnetd
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user/telnetd'
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/user'
+find /home/yhlin/uClinux/uClinux-dist/romfs/. -name CVS | xargs -r rm -rf
+. linux-2.4.x/.config; if [ "$CONFIG_MODULES" = "y" ]; then \
+	[ -d linux-2.4.x/modules ] || mkdir linux-2.4.x/modules; \
+	make ARCH=armnommu CROSS_COMPILE=arm-elf- -C linux-2.4.x modules; \
+fi
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+make -C  kernel CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make -C  drivers CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C block modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make -C cdrom modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make -C char modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make -C hotplug modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make -C media modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C radio modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make -C video modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C misc modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make -C mtd modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C chips modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make -C devices modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make -C maps modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make -C nand modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C net modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C wireless modules
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C parport modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make -C sound modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C  mmnommu CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make -C  fs CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make -C  net CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C bridge/netfilter modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make -C core modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make -C ipv4 modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make -C ipv4/netfilter modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make -C netlink modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make -C sched modules
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[3]: Nothing to be done for `modules'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C  ipc CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make -C  lib CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make -C  crypto CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make -C  arch/armnommu/mach-libertas CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make -C  arch/armnommu/kernel CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make -C  arch/armnommu/mm CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make -C  arch/armnommu/lib CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make -C  arch/armnommu/nwfpe CFLAGS="-D__KERNEL__ -I/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/include  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fno-common -pipe -fno-builtin -D__linux__ -g -DNO_MM -mapcs-32   -mshort-load-bytes -msoft-float -DMODULE" MAKING_MODULES=1 modules
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[2]: Nothing to be done for `modules'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+. linux-2.4.x/.config; if [ "$CONFIG_MODULES" = "y" ]; then \
+	[ -d /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules ] || mkdir -p /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules; \
+	make ARCH=armnommu CROSS_COMPILE=arm-elf- -C linux-2.4.x INSTALL_MOD_PATH=/home/yhlin/uClinux/uClinux-dist/romfs DEPMOD=true modules_install; \
+	rm -f /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules/*/build; \
+	find /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules -type f | xargs -r arm-elf-strip -g; \
+fi
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+make -C  kernel modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/kernel'
+make -C  drivers modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C block modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/block'
+make -C cdrom modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/cdrom'
+make -C char modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/char'
+make -C hotplug modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/hotplug'
+make -C media modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C radio modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/radio'
+make -C video modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media/video'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/media'
+make -C misc modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/misc'
+make -C mtd modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C chips modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/chips'
+make -C devices modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/devices'
+make -C maps modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/maps'
+make -C nand modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd/nand'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/mtd'
+make -C net modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C wireless modules_install
+make[4]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[4]: Nothing to be done for `modules_install'.
+make[4]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net/wireless'
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/net'
+make -C parport modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/parport'
+make -C sound modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers/sound'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/drivers'
+make -C  mmnommu modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/mmnommu'
+make -C  fs modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/fs'
+make -C  net modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C bridge/netfilter modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/bridge/netfilter'
+make -C core modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/core'
+make -C ipv4 modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4'
+make -C ipv4/netfilter modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/ipv4/netfilter'
+make -C netlink modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/netlink'
+make -C sched modules_install
+make[3]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[3]: Nothing to be done for `modules_install'.
+make[3]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net/sched'
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/net'
+make -C  ipc modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/ipc'
+make -C  lib modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/lib'
+make -C  crypto modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/crypto'
+make -C  arch/armnommu/mach-libertas modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mach-libertas'
+make -C  arch/armnommu/kernel modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/kernel'
+make -C  arch/armnommu/mm modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/mm'
+make -C  arch/armnommu/lib modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/lib'
+make -C  arch/armnommu/nwfpe modules_install
+make[2]: Entering directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+make[2]: Nothing to be done for `modules_install'.
+make[2]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/nwfpe'
+cd /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules/2.4.22-uc0; \
+mkdir -p pcmcia; \
+find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf ../{} pcmcia
+/bin/sh: line 1: cd: /home/yhlin/uClinux/uClinux-dist/romfs/lib/modules/2.4.22-uc0: No such file or directory
+if [ -r System.map ]; then true -ae -F System.map -b /home/yhlin/uClinux/uClinux-dist/romfs -r 2.4.22-uc0; fi
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/linux-2.4.x'
+[ -d /home/yhlin/uClinux/uClinux-dist/images ] || mkdir /home/yhlin/uClinux/uClinux-dist/images
+make ARCH=armnommu CROSS_COMPILE=arm-elf- -C /home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas/. image
+make[1]: Entering directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'
+[ -d /home/yhlin/uClinux/uClinux-dist/images ] || mkdir -p /home/yhlin/uClinux/uClinux-dist/images
+genromfs -v -V "ROMdisk" -f /home/yhlin/uClinux/uClinux-dist/images/romfs.img -d /home/yhlin/uClinux/uClinux-dist/romfs
+0    ROMdisk              [0xffffffff, 0xffffffff] 37777777777, sz     0, at 0x0     
+1    .                    [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x20    
+1    ..                   [0x306     , 0x12295c  ] 0040755, sz     0, at 0x40     [link to 0x20    ]
+1    bin                  [0x306     , 0x116d97  ] 0040755, sz     0, at 0x60    
+2    .                    [0x306     , 0x116d97  ] 0040755, sz     0, at 0x80     [link to 0x60    ]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0xa0     [link to 0x20    ]
+2    mvmfgd               [0x306     , 0x116f1f  ] 0100744, sz 56888, at 0xc0    
+2    mvapd                [0x306     , 0x116f20  ] 0100744, sz 150736, at 0xdf20  
+2    boa                  [0x306     , 0x116f21  ] 0100744, sz 115476, at 0x32c10 
+2    brctl                [0x306     , 0x116f22  ] 0100744, sz 51444, at 0x4ef50 
+2    busybox              [0x306     , 0x116f23  ] 0100744, sz 174716, at 0x5b870 
+2    cat                  [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86310  [link to 0x5b870 ]
+2    cp                   [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86330  [link to 0x5b870 ]
+2    echo                 [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86350  [link to 0x5b870 ]
+2    hostname             [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86370  [link to 0x5b870 ]
+2    kill                 [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86390  [link to 0x5b870 ]
+2    ls                   [0x306     , 0x116f23  ] 0100744, sz     0, at 0x863b0  [link to 0x5b870 ]
+2    mkdir                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x863d0  [link to 0x5b870 ]
+2    mount                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x863f0  [link to 0x5b870 ]
+2    ping                 [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86410  [link to 0x5b870 ]
+2    ps                   [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86430  [link to 0x5b870 ]
+2    rm                   [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86450  [link to 0x5b870 ]
+2    sleep                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86470  [link to 0x5b870 ]
+2    umount               [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86490  [link to 0x5b870 ]
+2    ifconfig             [0x306     , 0x116f23  ] 0100744, sz     0, at 0x864b0  [link to 0x5b870 ]
+2    insmod               [0x306     , 0x116f23  ] 0100744, sz     0, at 0x864d0  [link to 0x5b870 ]
+2    lsmod                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x864f0  [link to 0x5b870 ]
+2    reboot               [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86510  [link to 0x5b870 ]
+2    rmmod                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86530  [link to 0x5b870 ]
+2    route                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86550  [link to 0x5b870 ]
+2    du                   [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86570  [link to 0x5b870 ]
+2    env                  [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86590  [link to 0x5b870 ]
+2    killall              [0x306     , 0x116f23  ] 0100744, sz     0, at 0x865b0  [link to 0x5b870 ]
+2    nslookup             [0x306     , 0x116f23  ] 0100744, sz     0, at 0x865d0  [link to 0x5b870 ]
+2    traceroute           [0x306     , 0x116f23  ] 0100744, sz     0, at 0x865f0  [link to 0x5b870 ]
+2    which                [0x306     , 0x116f23  ] 0100744, sz     0, at 0x86610  [link to 0x5b870 ]
+2    dhcpd                [0x306     , 0x116f24  ] 0100744, sz 143820, at 0x86630 
+2    dhcpcd               [0x306     , 0x116f25  ] 0100744, sz 108012, at 0xa9820 
+2    dnsmasq              [0x306     , 0x116f26  ] 0100744, sz 83964, at 0xc3e30 
+2    inetd                [0x306     , 0x116f27  ] 0100744, sz 39584, at 0xd8650 
+2    expand               [0x306     , 0x116f28  ] 0100744, sz 28408, at 0xe2110 
+2    init                 [0x306     , 0x116f29  ] 0100744, sz 31040, at 0xe9030 
+2    iptables             [0x306     , 0x116f36  ] 0100744, sz 207556, at 0xf0990 
+2    iptables-batch       [0x306     , 0x116f36  ] 0100744, sz     0, at 0x123480 [link to 0xf0990 ]
+2    vi                   [0x306     , 0x116f2b  ] 0100744, sz 70572, at 0x1234a0
+2    eraseall             [0x306     , 0x116f2c  ] 0100744, sz 35548, at 0x134870
+2    portmap              [0x306     , 0x116f2d  ] 0100744, sz 82400, at 0x13d370
+2    rgcfg                [0x306     , 0x116f2f  ] 0100744, sz 47596, at 0x151570
+2    arp                  [0x306     , 0x116f30  ] 0100744, sz 70364, at 0x15cf80
+2    sh                   [0x306     , 0x116f32  ] 0100744, sz 83912, at 0x16e280
+2    telnetd              [0x306     , 0x116f34  ] 0100744, sz 54820, at 0x182a70
+1    dev                  [0x306     , 0x116d98  ] 0040755, sz     0, at 0x1900c0
+2    .                    [0x306     , 0x116d98  ] 0040755, sz     0, at 0x1900e0 [link to 0x1900c0]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x190100 [link to 0x20    ]
+2    tty                  [0x306     , 0x116d9b  ] 0020644, sz     0, at 0x190120
+2    console              [0x306     , 0x116d9c  ] 0020644, sz     0, at 0x190140
+2    cua0                 [0x306     , 0x116d9d  ] 0020644, sz     0, at 0x190160
+2    cua1                 [0x306     , 0x116d9e  ] 0020644, sz     0, at 0x190180
+2    mem                  [0x306     , 0x116d9f  ] 0020644, sz     0, at 0x1901a0
+2    kmem                 [0x306     , 0x116da0  ] 0020644, sz     0, at 0x1901c0
+2    null                 [0x306     , 0x116da1  ] 0020644, sz     0, at 0x1901e0
+2    ram0                 [0x306     , 0x116da2  ] 0060644, sz     0, at 0x190200
+2    ram1                 [0x306     , 0x116eb5  ] 0060644, sz     0, at 0x190220
+2    ptyp0                [0x306     , 0x116eb6  ] 0020644, sz     0, at 0x190240
+2    ptyp1                [0x306     , 0x116eb7  ] 0020644, sz     0, at 0x190260
+2    ptyp2                [0x306     , 0x116ece  ] 0020644, sz     0, at 0x190280
+2    ptyp3                [0x306     , 0x116ecf  ] 0020644, sz     0, at 0x1902a0
+2    ptyp4                [0x306     , 0x116ed0  ] 0020644, sz     0, at 0x1902c0
+2    ptyp5                [0x306     , 0x116ed1  ] 0020644, sz     0, at 0x1902e0
+2    ptyp6                [0x306     , 0x116ed2  ] 0020644, sz     0, at 0x190300
+2    ptyp7                [0x306     , 0x116ed3  ] 0020644, sz     0, at 0x190320
+2    ptyp8                [0x306     , 0x116ed4  ] 0020644, sz     0, at 0x190340
+2    ptyp9                [0x306     , 0x116ed5  ] 0020644, sz     0, at 0x190360
+2    ptypa                [0x306     , 0x116ed6  ] 0020644, sz     0, at 0x190380
+2    ptypb                [0x306     , 0x116ed7  ] 0020644, sz     0, at 0x1903a0
+2    ptypc                [0x306     , 0x116ed8  ] 0020644, sz     0, at 0x1903c0
+2    ptypd                [0x306     , 0x116ed9  ] 0020644, sz     0, at 0x1903e0
+2    ptype                [0x306     , 0x116eda  ] 0020644, sz     0, at 0x190400
+2    ptypf                [0x306     , 0x116edb  ] 0020644, sz     0, at 0x190420
+2    rom0                 [0x306     , 0x116edc  ] 0060644, sz     0, at 0x190440
+2    rom1                 [0x306     , 0x116edd  ] 0060644, sz     0, at 0x190460
+2    rom2                 [0x306     , 0x116ede  ] 0060644, sz     0, at 0x190480
+2    rom3                 [0x306     , 0x116edf  ] 0060644, sz     0, at 0x1904a0
+2    rom4                 [0x306     , 0x116ee0  ] 0060644, sz     0, at 0x1904c0
+2    rom5                 [0x306     , 0x116ee1  ] 0060644, sz     0, at 0x1904e0
+2    rom6                 [0x306     , 0x116ee2  ] 0060644, sz     0, at 0x190500
+2    rom7                 [0x306     , 0x116ee3  ] 0060644, sz     0, at 0x190520
+2    rom8                 [0x306     , 0x116ee4  ] 0060644, sz     0, at 0x190540
+2    rom9                 [0x306     , 0x116ee5  ] 0060644, sz     0, at 0x190560
+2    mtd0                 [0x306     , 0x116ee6  ] 0020644, sz     0, at 0x190580
+2    mtd1                 [0x306     , 0x116ee7  ] 0020644, sz     0, at 0x1905a0
+2    mtd2                 [0x306     , 0x116ee8  ] 0020644, sz     0, at 0x1905c0
+2    mtd3                 [0x306     , 0x116ee9  ] 0020644, sz     0, at 0x1905e0
+2    mtd4                 [0x306     , 0x116eea  ] 0020644, sz     0, at 0x190600
+2    mtd5                 [0x306     , 0x116eeb  ] 0020644, sz     0, at 0x190620
+2    mtdr0                [0x306     , 0x116eec  ] 0020644, sz     0, at 0x190640
+2    mtdr1                [0x306     , 0x116eed  ] 0020644, sz     0, at 0x190660
+2    mtdr2                [0x306     , 0x116eee  ] 0020644, sz     0, at 0x190680
+2    mtdr3                [0x306     , 0x116eef  ] 0020644, sz     0, at 0x1906a0
+2    mtdr4                [0x306     , 0x116ef0  ] 0020644, sz     0, at 0x1906c0
+2    mtdr5                [0x306     , 0x116ef1  ] 0020644, sz     0, at 0x1906e0
+2    mtdblock0            [0x306     , 0x116ef2  ] 0060644, sz     0, at 0x190700
+2    mtdblock1            [0x306     , 0x116ef3  ] 0060644, sz     0, at 0x190720
+2    mtdblock2            [0x306     , 0x116ef4  ] 0060644, sz     0, at 0x190740
+2    mtdblock3            [0x306     , 0x116ef5  ] 0060644, sz     0, at 0x190760
+2    mtdblock4            [0x306     , 0x116ef6  ] 0060644, sz     0, at 0x190780
+2    mtdblock5            [0x306     , 0x116ef7  ] 0060644, sz     0, at 0x1907a0
+2    tty0                 [0x306     , 0x116ef8  ] 0020644, sz     0, at 0x1907c0
+2    tty1                 [0x306     , 0x116ef9  ] 0020644, sz     0, at 0x1907e0
+2    tty2                 [0x306     , 0x116efa  ] 0020644, sz     0, at 0x190800
+2    tty3                 [0x306     , 0x116efb  ] 0020644, sz     0, at 0x190820
+2    ttyS0                [0x306     , 0x116efc  ] 0020644, sz     0, at 0x190840
+2    ttyS1                [0x306     , 0x116efd  ] 0020644, sz     0, at 0x190860
+2    ttyp0                [0x306     , 0x116efe  ] 0020644, sz     0, at 0x190880
+2    ttyp1                [0x306     , 0x116eff  ] 0020644, sz     0, at 0x1908a0
+2    ttyp2                [0x306     , 0x116f00  ] 0020644, sz     0, at 0x1908c0
+2    ttyp3                [0x306     , 0x116f01  ] 0020644, sz     0, at 0x1908e0
+2    ttyp4                [0x306     , 0x116f02  ] 0020644, sz     0, at 0x190900
+2    ttyp5                [0x306     , 0x116f03  ] 0020644, sz     0, at 0x190920
+2    ttyp6                [0x306     , 0x116f04  ] 0020644, sz     0, at 0x190940
+2    ttyp7                [0x306     , 0x116f05  ] 0020644, sz     0, at 0x190960
+2    ttyp8                [0x306     , 0x116f06  ] 0020644, sz     0, at 0x190980
+2    ttyp9                [0x306     , 0x116f07  ] 0020644, sz     0, at 0x1909a0
+2    ttypa                [0x306     , 0x116f08  ] 0020644, sz     0, at 0x1909c0
+2    ttypb                [0x306     , 0x116f09  ] 0020644, sz     0, at 0x1909e0
+2    ttypc                [0x306     , 0x116f0a  ] 0020644, sz     0, at 0x190a00
+2    ttypd                [0x306     , 0x116f0b  ] 0020644, sz     0, at 0x190a20
+2    ttype                [0x306     , 0x116f0c  ] 0020644, sz     0, at 0x190a40
+2    ttypf                [0x306     , 0x116f0d  ] 0020644, sz     0, at 0x190a60
+2    zero                 [0x306     , 0x116f0e  ] 0020644, sz     0, at 0x190a80
+2    random               [0x306     , 0x116f0f  ] 0020644, sz     0, at 0x190aa0
+2    urandom              [0x306     , 0x116f10  ] 0020644, sz     0, at 0x190ac0
+1    etc                  [0x306     , 0x116d99  ] 0040755, sz     0, at 0x190ae0
+2    .                    [0x306     , 0x116d99  ] 0040755, sz     0, at 0x190b00 [link to 0x190ae0]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x190b20 [link to 0x20    ]
+2    config               [0x306     , 0x54120   ] 0040755, sz     0, at 0x190b40
+3    .                    [0x306     , 0x54120   ] 0040755, sz     0, at 0x190b60 [link to 0x190b40]
+3    ..                   [0x306     , 0x116d99  ] 0040755, sz     0, at 0x190b80 [link to 0x190ae0]
+3    dhcpd.conf           [0x306     , 0x54122   ] 0100644, sz   383, at 0x190ba0
+3    dhcpd.leases         [0x306     , 0x54123   ] 0100644, sz     0, at 0x190d40
+3    unimac.conf          [0x306     , 0x54124   ] 0100644, sz   325, at 0x190d60
+2    dhcpc                [0x306     , 0x54121   ] 0040755, sz     0, at 0x190ed0
+3    .                    [0x306     , 0x54121   ] 0040755, sz     0, at 0x190ef0 [link to 0x190ed0]
+3    ..                   [0x306     , 0x116d99  ] 0040755, sz     0, at 0x190f10 [link to 0x190ae0]
+2    rc                   [0x306     , 0x116f11  ] 0100644, sz   527, at 0x190f30
+2    rc.net               [0x306     , 0x116f12  ] 0100644, sz   725, at 0x191160
+2    inittab              [0x306     , 0x116f13  ] 0100644, sz    48, at 0x191460
+2    services             [0x306     , 0x116f14  ] 0100644, sz  8220, at 0x1914b0
+2    inetd.conf           [0x306     , 0x116f15  ] 0100644, sz    87, at 0x1934f0
+2    motd                 [0x306     , 0x116f16  ] 0100644, sz   354, at 0x193570
+2    resolv.conf          [0x306     , 0x116f17  ] 0100644, sz    21, at 0x193700
+2    resolv.dnsmasq       [0x306     , 0x116f18  ] 0100644, sz     0, at 0x193740
+2    hostapd.conf         [0x306     , 0x116f19  ] 0100644, sz  7380, at 0x193760
+2    hostapd.accept       [0x306     , 0x116f1a  ] 0100644, sz    86, at 0x195460
+2    hostapd.deny         [0x306     , 0x116f1b  ] 0100644, sz    90, at 0x1954e0
+2    version              [0x306     , 0x116f1c  ] 0100644, sz    64, at 0x195560
+2    jffs2.img            [0x306     , 0x116f1d  ] 0100644, sz 31492, at 0x1955c0
+2    updateapd            [0x306     , 0x116f1e  ] 0100644, sz    64, at 0x19d0f0
+2    ramfs.img            [0x306     , 0x116f2e  ] 0100644, sz  2874, at 0x19d150
+1    home                 [0x306     , 0x116d9a  ] 0040755, sz     0, at 0x19dcb0
+2    .                    [0x306     , 0x116d9a  ] 0040755, sz     0, at 0x19dcd0 [link to 0x19dcb0]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x19dcf0 [link to 0x20    ]
+1    lib                  [0x306     , 0x5411a   ] 0040755, sz     0, at 0x19dd10
+2    .                    [0x306     , 0x5411a   ] 0040755, sz     0, at 0x19dd30 [link to 0x19dd10]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x19dd50 [link to 0x20    ]
+2    modules              [0x306     , 0x5411b   ] 0040755, sz     0, at 0x19dd70
+3    .                    [0x306     , 0x5411b   ] 0040755, sz     0, at 0x19dd90 [link to 0x19dd70]
+3    ..                   [0x306     , 0x5411a   ] 0040755, sz     0, at 0x19ddb0 [link to 0x19dd10]
+3    mvwlan.o             [0x306     , 0x54127   ] 0100644, sz 228644, at 0x19ddd0
+3    unimac.o             [0x306     , 0x54126   ] 0100644, sz 76604, at 0x1d5b20
+1    mnt                  [0x306     , 0x5411c   ] 0040755, sz     0, at 0x1e8680
+2    .                    [0x306     , 0x5411c   ] 0040755, sz     0, at 0x1e86a0 [link to 0x1e8680]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x1e86c0 [link to 0x20    ]
+1    proc                 [0x306     , 0x5411d   ] 0040755, sz     0, at 0x1e86e0
+2    .                    [0x306     , 0x5411d   ] 0040755, sz     0, at 0x1e8700 [link to 0x1e86e0]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x1e8720 [link to 0x20    ]
+1    usr                  [0x306     , 0x5411e   ] 0040755, sz     0, at 0x1e8740
+2    .                    [0x306     , 0x5411e   ] 0040755, sz     0, at 0x1e8760 [link to 0x1e8740]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x1e8780 [link to 0x20    ]
+1    var                  [0x306     , 0x5411f   ] 0040755, sz     0, at 0x1e87a0
+2    .                    [0x306     , 0x5411f   ] 0040755, sz     0, at 0x1e87c0 [link to 0x1e87a0]
+2    ..                   [0x306     , 0xc36a7   ] 0040755, sz     0, at 0x1e87e0 [link to 0x20    ]
+1    tmp                  [0x306     , 0xc36a8   ] 0120777, sz     8, at 0x1e8800
+1    sbin                 [0x306     , 0xc36a9   ] 0120777, sz     4, at 0x1e8830
+1    1                    [0x306     , 0xc36aa   ] 0100644, sz     2, at 0x1e8860
+arm-elf-objcopy -O binary --remove-section=.romvec \
+		--remove-section=.text --remove-section=.ramvec \
+		--remove-section=.init \
+		--remove-section=.bss --remove-section=.eram \
+		/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/linux /home/yhlin/uClinux/uClinux-dist/images/linux.data
+arm-elf-objcopy -O binary --remove-section=.ramvec \
+		--remove-section=.bss --remove-section=.data \
+		--remove-section=.eram \
+		--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
+		/home/yhlin/uClinux/uClinux-dist/linux-2.4.x/linux /home/yhlin/uClinux/uClinux-dist/images/linux.text
+cat /home/yhlin/uClinux/uClinux-dist/images/linux.text /home/yhlin/uClinux/uClinux-dist/images/linux.data /home/yhlin/uClinux/uClinux-dist/images/romfs.img > /home/yhlin/uClinux/uClinux-dist/images/image.bin
+[ -n "" ] || cp /home/yhlin/uClinux/uClinux-dist/linux-2.4.x/arch/armnommu/boot/zImage /tftpboot
+[ -n "" ] || cp /home/yhlin/uClinux/uClinux-dist/images/romfs.img /tftpboot
+make[1]: Leaving directory `/home/yhlin/uClinux/uClinux-dist/vendors/Marvell/Libertas'

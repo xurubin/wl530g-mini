@@ -1,0 +1,6 @@
+* Directory Content
+  initial script, rc, for Marvell solution on uClinux platform
+
+* How to generate image
+  1. add -DSNAPAP for SnapAP
+  2. remove -DSNAPAP for WL520g

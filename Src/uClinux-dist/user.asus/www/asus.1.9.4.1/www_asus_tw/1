@@ -1,0 +1,280 @@
+11c11
+< 
+---
+> var varload=0;
+143c143
+<    alert('¨â²Õ±K½X¦r¦ê¤£²Å!!!'); 
+---
+>    alert('µÎ °³ÀÇ ºñ¹Ð¹øÈ£ ¹®ÀÚ¿­ÀÌ ¸ÂÁö ¾Ê½À´Ï´Ù!!!'); 
+315c315
+<             	alert('½Ð¿é¤J¤@¼Æ­È¤¶©ó 0 to ' + document.form.qos_maxbw_x_0.value + '.');	
+---
+>             	alert('  »çÀÌÀÇ °ªÀ» ÀÔ·ÂÇÏ½Ê½Ã¿À. 0 to ' + document.form.qos_maxbw_x_0.value + '.');	
+338c338
+<             	alert('½Ð¿é¤J¤@¼Æ­È¤¶©ó 0 to ' + document.form.qos_umaxbw_x_0.value + '.');
+---
+>             	alert('  »çÀÌÀÇ °ªÀ» ÀÔ·ÂÇÏ½Ê½Ã¿À. 0 to ' + document.form.qos_umaxbw_x_0.value + '.');
+352c352
+<         alert("Äæ¦ì¤£¥i¥HªÅ¥Õ!!!"); 
+---
+>         alert("ÇÊµå´Â °ø¶õÀÌ µÉ ¼ö ¾ø½À´Ï´Ù!!!"); 
+354c354
+<         alert("¥»ªí¶È¤¹³\ " + c + " ¶µ¥Ø!!!");
+---
+>         alert("º» Å×ÀÌºí¸¸ ÀÎÁ¤ÇÔ " + c + " Ç×¸ñ!!!");
+468c468
+< 			alert('¥»¶µ¦­¤w¯Ç¤Jªí®æ¤º!!!');
+---
+> 			alert('º» ÀÔ·Â»çÇ×Àº Å×ÀÌºí¿¡ ÀÖ½À´Ï´Ù!!!');
+502c502
+<              alert('½Ð¿é¤J§¹¾ã¥]§t12­Ó16¶i¦ì¨î¦r¥ÀªºMAC¦ì§}¡C');
+---
+>              alert('12°³ÀÇ 16Áø¼ö·Î ±¸¼ºµÇ´Â ¿Ïº®ÇÑ MACÁÖ¼Ò¸¦ ÀÔ·ÂÇÏ½Ê½Ã¿À.');
+511c511
+<   alert('½Ð¿é¤J§¹¾ã¥]§t12­Ó16¶i¦ì¨î¦r¥ÀªºMAC¦ì§}¡C');
+---
+>   alert('12°³ÀÇ 16Áø¼ö·Î ±¸¼ºµÇ´Â ¿Ïº®ÇÑ MACÁÖ¼Ò¸¦ ÀÔ·ÂÇÏ½Ê½Ã¿À.');
+525c525
+<   alert('µL®Ä¦r¤¸!');
+---
+>   alert('À¯È¿ÇÏÁö ¾ÊÀº ¹®ÀÚ!');
+533c533
+<   	alert("¥»¦r¦êµLªk°_¦Û '\"'");
+---
+>   	alert("¹®ÀÚ¿­·Î ½ÃÀÛÇÒ ¼ö ¾ø´Â ¹®ÀÚ '\"'");
+550c550
+<   		 alert("¥»¦r¦êµLªk¥]§t " + inv +"!");
+---
+>   		 alert("¹®ÀÚ¿­¿¡ Æ÷ÇÔµÉ ¼ö ¾ø´Â ¹®ÀÚ " + inv +"!");
+587c587
+<       alert('½Ð¿é¤J¤@¼Æ­È¤¶©ó ' + min + ' to ' + max + '.');
+---
+>       alert('  »çÀÌÀÇ °ªÀ» ÀÔ·ÂÇÏ½Ê½Ã¿À. ' + min + ' to ' + max + '.');
+605c605
+<       alert('½Ð¿é¤J¤@¼Æ­È¤¶©ó ' + min + ' to ' + max + '.');
+---
+>       alert('  »çÀÌÀÇ °ªÀ» ÀÔ·ÂÇÏ½Ê½Ã¿À. ' + min + ' to ' + max + '.');
+738,739c738,746
+<   	alert("Äæ¦ì¤£¥i¥HªÅ¥Õ!!!");
+<   	o.focus();
+---
+>   	alert("ÇÊµå´Â °ø¶õÀÌ µÉ ¼ö ¾ø½À´Ï´Ù!!!");  	
+>   	if (v=='wan_ipaddr') 
+>   	{
+>   		document.form.wan_ipaddr.value = "10.1.1.1";
+>   		document.form.wan_netmask.value = "255.0.0.0";
+>   	}	
+>   	else if (v=='dhcp_start') document.form.dhcp_start.value = document.form.dhcp_end.value;
+>   	else if (v=='dhcp_end') document.form.dhcp_end.value = document.form.dhcp_start.value;
+>   	//o.focus();
+761c768
+<             alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>             alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+776c783
+<      alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>      alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+888c895
+<       	 alert(port + ' ¤£¬O¦³®Äªº³q°T°ð½s¸¹!');
+---
+>       	 alert(port + ' À¯È¿ÇÏÁö ¾ÊÀº Æ÷Æ®¹øÈ£!');
+916c923
+<             alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>             alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+927c934
+<      alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>      alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+1060c1067
+<             alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>             alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+1072c1079
+<      alert(o.value + ' ¤£¬O¦³®ÄªºIP¦ì§}!');
+---
+>      alert(o.value + ' À¯È¿ÇÏÁö ¾ÊÀº IPÁÖ¼Ò!');
+1148c1155
+<      	   alert(num + ' ¤£¬O¦³®Äªº³q°T°ð½s¸¹!');
+---
+>      	   alert(num + ' À¯È¿ÇÏÁö ¾ÊÀº Æ÷Æ®¹øÈ£!');
+1165c1172
+<         alert(num + ' ¤£¬O¦³®Äªº³q°T°ð½s¸¹!');
+---
+>         alert(num + ' À¯È¿ÇÏÁö ¾ÊÀº Æ÷Æ®¹øÈ£!');
+1167c1174
+<         alert(o.value + ' ¤£¬O¦³®Äªº³q°T°ð½d³ò¡I');
+---
+>         alert(o.value + ' JS_1validportrange');
+1229c1236
+<      	   alert(num + ' ¤£¬O¦³®Äªº³q°T°ð½s¸¹!');
+---
+>      	   alert(num + ' À¯È¿ÇÏÁö ¾ÊÀº Æ÷Æ®¹øÈ£!');
+1239c1246
+<      alert(num + ' ¤£¬O¦³®Äªº³q°T°ð½s¸¹!');
+---
+>      alert(num + ' À¯È¿ÇÏÁö ¾ÊÀº Æ÷Æ®¹øÈ£!');
+1530c1537
+<        rst = confirm("·PÁÂ±zÁÊ¶R¡uµØºÓµL½u¸ô¥Ñ¾¹¡v¡A±z­nª½±µ±Ò°Ê¡u§Ö³t³]©w¡vµ{¦¡¶Ü¡H");
+---
+>        rst = confirm("ASUS ¹«¼± ¶ó¿ìÅÍ¸¦ ±¸ÀÔÇØ ÁÖ¼Å¼­ °¨»çÇÕ´Ï´Ù. ºü¸¥ ¼³Á¤À» Á÷Á¢ ½ÃÀÛÇÏ½Ã°Ú½À´Ï±î?");
+1599c1606
+<   				1, 0);
+---
+>   				rcheck(document.form.wl_lazywds), 0);
+2039c2046
+<         //inputRCtrl2(document.form.wl_lazywds, 1);
+---
+>         inputRCtrl2(document.form.wl_lazywds, 1);
+2041c2048
+<         //inputRCtrl1(document.form.wl_lazywds, 0);        
+---
+>         inputRCtrl1(document.form.wl_lazywds, 0);        
+2048c2055
+<             //inputRCtrl2(document.form.wl_lazywds, 1);            	
+---
+>             inputRCtrl2(document.form.wl_lazywds, 1);            	
+2052c2059
+<         //inputRCtrl1(document.form.wl_lazywds, 1);
+---
+>         inputRCtrl1(document.form.wl_lazywds, 1);
+2077c2084
+< 	     alert("½Ð³]©w¾A¦XWDSªº©T©w³q¹D!!!");
+---
+> 	     alert("°íÁ¤ WDS Ã¤³ÎÀ» ¼³Á¤ÇÏ½Ê½Ã¿À!!!");
+2092,2093c2099,2100
+<     //if (window.top.isFlash() != '2MB')
+<     //   document.form.WirelessBridge_img.src = wdsimage;
+---
+>     if (window.top.isFlash() != '2MB')
+>        document.form.WirelessBridge_img.src = wdsimage;
+2147c2154
+< 	     alert("½Ð³]©w¾A¦XWDSªº©T©w³q¹D!!!");
+---
+> 	     alert("°íÁ¤ WDS Ã¤³ÎÀ» ¼³Á¤ÇÏ½Ê½Ã¿À!!!");
+2186c2193
+<   	       alert("·í±z±NIP©Î¤lºô¸ô¾B¸nÄæ¦ì«O¯dªÅ¥Õ¡A³s½uÃþ«¬§Y·|³]©w¬°¡u¦Û°ÊIP¡v!");
+---
+>   	       alert("IP ¶Ç´Â ¼­ºê³Ý ¸¶½ºÅ© ÇÊµåÇ×¸ñÀ» °ø¶õÀ¸·Î µÎ¸é ¿¬°áÀ¯ÇüÀº ÀÚµ¿IP·Î ¼³Á¤µÇ°Ô µË´Ï´Ù!");
+2238c2245
+<            //inputRCtrl1(document.form.wl_lazywds, 1);   	
+---
+>            inputRCtrl1(document.form.wl_lazywds, 1);   	
+2240c2247
+<            //inputRCtrl2(document.form.wl_lazywds, 1);       
+---
+>            inputRCtrl2(document.form.wl_lazywds, 1);       
+2248a2256
+>    	inputCtrl(document.form.wl_wep_x, 1);
+2268a2277,2281
+> function load_upload()
+> {
+>    varload=0;	
+> }
+> 
+2272c2285,2295
+<    if (s!='Upload') document.form.action_mode.value = s;
+---
+>    if (s!='Upload' && s!='Upload1') document.form.action_mode.value = s;
+>    if (s=='Upload1') 
+>    {
+>    	if (varload) 
+>    	{
+>    	   alert("It spends about 30 seconds to upload and program the firmware. Please do not press '¾÷·Îµå' twice.");
+>    	   return false;
+>    	}  
+>    	else document.form.submit(); 
+>    	varload++;   	
+>    }	
+2336c2359
+<    		alert("·í±z±NIP©Î¤lºô¸ô¾B¸nÄæ¦ì«O¯dªÅ¥Õ¡A³s½uÃþ«¬§Y·|³]©w¬°¡u¦Û°ÊIP¡v!1");	
+---
+>    		alert("IP ¶Ç´Â ¼­ºê³Ý ¸¶½ºÅ© ÇÊµåÇ×¸ñÀ» °ø¶õÀ¸·Î µÎ¸é ¿¬°áÀ¯ÇüÀº ÀÚµ¿IP·Î ¼³Á¤µÇ°Ô µË´Ï´Ù!1");	
+2374c2397
+<       else if (o.value == "shared")
+---
+>       else if (o.value == "shared" || o.value == "radius")
+2383c2406
+<   	if (window.top.isCard()=='ralink' || window.top.isModel2()=='WL530')  
+---
+>   	if (window.top.isCard()=='ralink' || window.top.isModel2()=='WL530')   
+2389c2412
+<  	else change_wireless_bridge(o.value, rcheck(document.form.wl_wdsapply_x), 1, 1);
+---
+>  	else change_wireless_bridge(o.value, rcheck(document.form.wl_wdsapply_x), rcheck(document.form.wl_lazywds), 1);
+2419c2442
+<            alert("¿ï¾Ü¡u¥á±ó¡v®É¡A·|±N¥þ³¡WAN to LAN«Ê¥]·í¤¤°£¤F»P¹LÂoªí¤º¬Û²Å¥H¥~ªº³¡¥÷¥á±ó¡C½ÐÂÔ·V¨Ï¥Î¡C");
+---
+>            alert("µå·ÓÀ» ¼±ÅÃÇÏ¸é ÇÊÅÍ Å×ÀÌºí¿¡ ¸Â´Â °ÍÀ» Á¦¿ÜÇÑ ¸ðµç WAN>LAN ÆÐÅ¶À» µå·ÓÇÏ°Ô µË´Ï´Ù. ½ÅÁßÇÏ°Ô »ç¿ëÇÏ½Ê½Ã¿À.");
+2424c2447
+<            alert("¿ï¾Ü¡u¥á±ó¡v®É¡A·|±N¥þ³¡LAN to WAN«Ê¥]·í¤¤°£¤F»P¹LÂoªí¤º¬Û²Å¥H¥~ªº³¡¥÷¥á±ó¡C½ÐÂÔ·V¨Ï¥Î¡C");        
+---
+>            alert("µå·ÓÀ» ¼±ÅÃÇÏ¸é ÇÊÅÍ Å×ÀÌºí¿¡ ¸Â´Â °ÍÀ» Á¦¿ÜÇÑ ¸ðµç LAN > WAN ÆÐÅ¶À» µå·ÓÇÏ°Ô µË´Ï´Ù. ½ÅÁßÇÏ°Ô »ç¿ëÇÏ½Ê½Ã¿À.");        
+2436c2459
+< 	     alert("½Ð³]©w¾A¦XWDSªº©T©w³q¹D!!!");
+---
+> 	     alert("°íÁ¤ WDS Ã¤³ÎÀ» ¼³Á¤ÇÏ½Ê½Ã¿À!!!");
+2458c2481
+<   	else change_wireless_bridge(document.form.wl_mode_x.value, r, 1, 0);
+---
+>   	else change_wireless_bridge(document.form.wl_mode_x.value, r, rcheck(document.form.wl_lazywds), 0);
+2491c2514
+<   		rst = confirm("¦pªG±z­n±Ò¥ÎAES unique¥\¯à¡AÅçÃÒ¤è¦¡±N·|¦]¦¹³]¦¨¡u¨t²Î¶}©ñ¡v!");
+---
+>   		rst = confirm("AES¸¦ È°¼ºÈ­ ÇÏ·Á¸é ÀÎÁõÀÌ ¿ÀÇÂ ½Ã½ºÅÛÀ¸·Î ¼³Á¤µÇ¾î ÀÖ¾î¾ß ÇÕ´Ï´Ù!");
+2505c2528
+<            	    rst = confirm("¦pªG±z­n±Ò¥ÎAES unique¥\¯à¡AÀ³¸Ó¤]­n±Ò¥ÎWEP!");
+---
+>            	    rst = confirm("AES¸¦ È°¼ºÈ­ ÇÏ·Á¸é WEPÀÌ ¿ª½Ã È°¼ºÈ­µÇ¾î¾ß ÇÕ´Ï´Ù!");
+2656c2679
+< 		alert("WPAª÷Æ_¤£±o¤Ö©ó64­Ó¦r¤¸!!!");		
+---
+> 		alert("»çÀü °øÀ¯Å°´Â 64 ¹®ÀÚ¹Ì¸¸ÀÌ¾î¾ß ÇÕ´Ï´Ù!!!");		
+2681,2687c2704,2705
+<       {
+<       	  if (wepType.value == "0") 
+<       	  {
+<       	  	wepLen = "0";
+<       	  	pflag = "0";
+<       	  }	
+<       	  else if (wepType.value == "1") wepLen = "64";
+---
+>       {      	  	
+>       	  if (wepType.value == "0") wepLen = "64";
+2909c2927
+<   alert('½Ð¿é¤J§¹¾ãªºWEPª÷Æ_¡C'); 
+---
+>   alert('¿Ïº®ÇÑ À¥ Å°¸¦ ÀÔ·ÂÇÏ½Ê½Ã¿À.'); 
+2915c2933
+< 	if(confirm('JS_RESET')) {		
+---
+> 	if(confirm('°æ°í:\n ¸ðµç ¼³Á¤ÀÌ »ç¶óÁý´Ï´Ù!\n°è¼ÓÇÏ°Ú½À´Ï±î?')) {		
+2984c3002
+<    	      alert("WPAª÷Æ_¤£±o¶W¥X7­Ó¦r¤¸!!!¦pªG±z±N¥»Äæ¦ì«O¯dªÅ¥Õ¡A¨t²Î±N·|«ü©w00000000§@¬°±zªº³qÃö±K»y¡C");
+---
+>    	      alert("»çÀü °øÀ¯Å°´Â 7¹®ÀÚÀÌ»óÀÌ¾î¾ß ÇÕ´Ï´Ù!!! °ø¶õÀ¸·Î µÎ¸é ½Ã½ºÅÛÀÌ00000000À» ºñ¹Ð¹®±¸·Î Á¤ÇÏ°Ô µË´Ï´Ù.");
+3104c3122
+<             if (confirm("DHCP¦øªA¾¹ªº³]©w­È»P¥Ø«eLANªºIP¦ì§}¤£²Å¡C±z­n±Ä¥Î¦Û°Êªº¤è¦¡ÅÜ§ó¶Ü¡H"))
+---
+>             if (confirm("DHCP ¼­¹ö¼³Á¤ÀÌ ÇöÀç LANÀÇ IPÁÖ¼Ò¿Í ¸ÂÁö ¾Ê½À´Ï´Ù. ÀÌ°ÍÀ» ÀÚµ¿À¸·Î º¯°æÇÏ°Ú½À´Ï±î?"))
+3125c3143
+<             if (confirm("DHCP¦øªA¾¹ªº³]©w­È»P¥Ø«e¡uµL½u¨¾¤õÀð¡vªºIP¦ì§}¤£²Å¡C±z­n±Ä¥Î¦Û°Êªº¤è¦¡ÅÜ§ó¶Ü¡H"))
+---
+>             if (confirm("DHCP ¼­¹ö ¼³Á¤ÀÌ ÇöÀç ¹«¼± ¹æÈ­º®ÀÇ IPÁÖ¼Ò¿Í ¸ÂÁö ¾Ê½À´Ï´Ù. ÀÌ°ÍÀ» ÀÚµ¿À¸·Î º¯°æÇÏ°Ú½À´Ï±î?"))
+3362c3380
+<     alert('¶W¥X¶°¤¤½d³ò!!!');	
+---
+>     alert('Out of focus Æ÷Ä¿½º ¾øÀ½!!!');	
+3685c3703
+<    	if (mode == "shared")
+---
+>    	if (mode == "shared" || mode == "radius")
+3698c3716
+<         if (mode == "shared" && orig == "0")
+---
+>         if ((mode == "shared" || mode == "radius") && orig == "0")
+3884c3902
+<   	   inputCtrl(document.form.wan_pppoe_idletime_check, 0); 
+---
+>   	   inputCtrl(document.form.wan_pppoe_idletime_check, 1); 

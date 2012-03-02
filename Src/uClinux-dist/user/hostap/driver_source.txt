@@ -1,0 +1,67 @@
+Host AP (software wireless LAN access point) driver for Intersil Prism2
+
+Driver source code is divided into following files:
+
+hostap.o module:
+
+hostap.[ch]
+
+hostap_ap.[ch]
+	AP management related functions
+
+hostap_ioctl.c
+	ioctl() routines (mostly for Linux wireless extensions support)
+
+hostap_proc.c
+	Generic procfs (/proc/net/hostap/wlan#) related routines
+	(apart from AP specific proc files in hostap_ap.c)
+
+hostap_config.h
+	Common compile time configuration for C preprocessor
+
+hostap_wlan.h
+	HFA384x, IEEE 802.11, and driver structures and definitions
+
+
+hostap_{cs,pci,plx}.o modules:
+
+hostap_hw.c
+	Common hardware dependent code. Low-level access routines for HFA384x
+	and wrappers for frequently used code. Linux netdevice functions.
+
+hostap_download.c
+
+hostap_cs.c
+	Hardware specific routines for PC Card (PCMCIA) version
+
+hostap_pci.c
+	Hardware specific routines for Prism2.5-based native PCI version
+
+hostap_plx.c
+	Hardware specific routines for PLX-based PC Card adapter version
+
+
+crypto modules:
+
+hostap_crypt.[ch]
+	Registration/unregistration code for modularized encryption
+	implementation
+
+hostap_crypt_wep.c
+	Host-based WEP (Wired Equivalent Privacy) implementation
+
+
+
+Goal:
+
+hostap_{ap,ioctl,proc,config,wlan}.[ch] should have no hardware
+version specific code. In addition, they should have as little as
+possible low-level hardware related code.
+
+hostap_hw.c should include all common code shared by different supported
+hardware versions. There should be as little as possible hardware
+version dependent code (i.e., #ifdefs for PRISM2_{PCCARD,PCI,PLX})
+
+hostap_{pccard,pci,plx}.c should have all hardware version specific
+code and as little as possible code that is shared with different
+hardware versions.

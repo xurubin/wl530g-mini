@@ -1,0 +1,789 @@
+/*
+ * Router rc control script
+ *
+ * Copyright 2003, Broadcom Corporation
+ * All Rights Reserved.                
+ *                                     
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Broadcom Corporation;   
+ * the contents of this file may not be disclosed to third parties, copied
+ * or duplicated in any form, in whole or in part, without the prior      
+ * written permission of Broadcom Corporation.                            
+ *
+ * $Id: rc.c,v 1.63 2003/06/02 23:59:08 mhuang Exp $
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <time.h>
+#include <unistd.h>
+#include <errno.h>
+#include <syslog.h>
+#include <signal.h>
+#include <string.h>
+#include <sys/klog.h>
+#include <sys/types.h>
+#include <sys/mount.h>
+#include <sys/reboot.h>
+#include <sys/stat.h>
+#include <sys/sysmacros.h>
+#include <sys/time.h>
+#include <sys/utsname.h>
+#include <sys/wait.h>
+#include <dirent.h>
+
+#include <epivers.h>
+#include <bcmnvram.h>
+#include <mtd.h>
+#include <shutils.h>
+#include <rc.h>
+#include <netconf.h>
+#include <nvparse.h>
+
+#include <rgcfg.h>
+
+static void restore_defaults(void);
+static void sysinit(void);
+static void rc_signal(int sig);
+
+#ifdef ASUS_EXTENSION
+#define MFG_DEV "/dev/mtd3"
+//#define HAVE_MFG_DATA (mfg_data.magic!=0xffff)
+#define HAVE_MFG_DATA 1
+static void handle_led(int sig);
+int control_led(int led, int flag);
+struct mvwlan_mfg_param mfg_data;
+pid_t mvapd_pid=0;	
+#endif
+
+int 
+read_mfg_data(void)
+{
+	FILE *fp;
+
+	fp=fopen(MFG_DEV, "rb");
+
+	if (fp==NULL) return 0;
+	else
+	{
+		fread(&mfg_data, 1, sizeof(struct mvwlan_mfg_param), fp);
+		fclose(fp);
+
+		printf("MFG: magic %x\n", mfg_data.magic);
+		
+		if (mfg_data.magic==0xffff) 
+		{			
+			return 0;		
+		}
+	}
+	return 1;
+}
+
+void
+create_unimac_conf(void)
+{
+	FILE *fp;
+	char tmpmac[32], *mac;
+	int i,j;
+
+	// create unimac.conf
+	fp=fopen("/etc/config/unimac.conf","w");
+	if (fp==NULL)
+	{
+		return;	
+	}	
+
+	if (nvram_invmatch("wan_hwaddr_x",""))
+	{
+		mac = nvram_safe_get("wan_hwaddr_x");
+
+		j=0;
+		for(i=0;i<12;i++)
+		{
+			if (i!=0&&i%2==0) tmpmac[j++]=':';
+			tmpmac[j++] = mac[i];
+		}
+		tmpmac[j]=0;
+	}
+	else tmpmac[0]=0;
+
+	if (HAVE_MFG_DATA) 
+		fprintf(fp, "MFG_FILE=%s\n", MFG_DEV);
+	else fprintf(fp, "MFG_FILE=/etc/mfg_data\n");
+
+
+	if (nvram_match("wan_proto", "disabled"))
+	{	
+		fprintf(fp, "VLANS=1\n");
+		fprintf(fp, "VLAN=LAN\n");
+		fprintf(fp, "PORTS=0,1,2,3,4\n");
+		fclose(fp);
+	}
+	else
+	{
+		fprintf(fp, "VLANS=2\n");
+		fprintf(fp, "VLAN=LAN\n");
+		fprintf(fp, "PORTS=1,2,3,4\n");
+	
+		fprintf(fp, "VLAN=WAN\n");
+		fprintf(fp, "PORTS=0\n");
+		if (strlen(tmpmac)>0)
+			fprintf(fp, "MAC=%s\n", tmpmac);
+	}
+	fclose(fp);
+}
+
+void
+create_hostapd_conf(void)
+{
+#ifdef ASUS
+	FILE *fp;
+	char *tmpstr;
+
+	// create hostapd.conf
+	fp=fopen("/etc/hostapd.conf","w");
+	if (fp==NULL)
+	{
+		return;	
+	}
+
+	if (HAVE_MFG_DATA) fprintf(fp, "manuf_file=%s\n", MFG_DEV);
+	else fprintf(fp, "manuf_file=/etc/mfg_data\n");
+	fprintf(fp, "interface=wlan0\n");
+	fprintf(fp, "logger_syslog=-1\n");
+	fprintf(fp, "logger_syslog_level=2\n");	
+	fprintf(fp, "logger_stdout=-1\n");	
+	fprintf(fp, "logger_stdout_level=2\n");	
+	fprintf(fp, "debug=0\n");
+	fprintf(fp, "dump_file=/tmp/hostapd.dump\n");	
+	fprintf(fp, "daemonize=1\n");
+
+	if (nvram_match("wl_gmode", "1")) //Auto
+	{
+		fprintf(fp, "ap_mode=2\n");
+
+		if (nvram_match("wl_rateset", "12"))
+			fprintf(fp,"basic_rate=1000,2000\n");
+		else if (nvram_match("wl_rateset", "default"))	
+			fprintf(fp,"basic_rate=1000,2000,5500,11000\n");	
+		else	fprintf(fp,"basic_rate=1000,2000,5500,11000,6000,9000,12000,24000,36000,48000,54000\n");		
+		fprintf(fp,"oper_rate=1000,2000,5500,11000,6000,9000,12000,18000,24000,36000,48000,54000\n");		
+	}
+	else if (nvram_match("wl_gmode", "4")) //802.11g
+	{
+		fprintf(fp, "ap_mode=1\n");
+	
+		if (nvram_match("wl_rateset", "12"))
+			fprintf(fp,"basic_rate=1000,2000\n");
+		else if (nvram_match("wl_rateset", "default"))	
+			fprintf(fp,"basic_rate=1000,2000,5500,11000,6000,9000,12000,24000\n");	
+		else	fprintf(fp,"basic_rate=1000,2000,5500,11000,6000,9000,12000,24000,36000,48000,54000\n");	
+		fprintf(fp,"oper_rate=1000,2000,5500,11000,6000,9000,12000,18000,24000,36000,48000,54000\n");	
+	}
+	else //802.11b
+	{
+		fprintf(fp, "ap_mode=0\n");
+	
+		if (nvram_match("wl_rateset", "12"))
+			fprintf(fp,"basic_rate=1000,2000\n");
+		else if (nvram_match("wl_rateset", "default"))	
+			fprintf(fp,"basic_rate=1000,2000,5500,11000\n");	
+		else	
+			fprintf(fp,"basic_rate=1000,2000,5500,11000\n");
+
+
+		fprintf(fp,"oper_rate=1000,2000,5500,11000\n");	
+	
+	}
+
+	if (nvram_match("wl_gmode_protection", "1")) //802.11g Protection
+	{
+		fprintf(fp, "g_protect=1\n");
+	}
+	else
+	{
+		fprintf(fp, "g_protect=0\n");
+	}
+
+	fprintf(fp, "iw_mode=3\n");
+
+	if (nvram_match("wl_rate", "0"))
+		fprintf(fp, "fixed_tx_data_rate=%s\n", nvram_safe_get("wl_rate"));
+	else 
+	{
+		char tmprate[16];
+		int len;
+
+		fprintf(fp, "fixed_tx_data_rate=1\n");
+
+		strcpy(tmprate, nvram_safe_get("wl_rate"));
+		len = strlen(tmprate);
+		tmprate[len-3] = 0;
+
+		if (strcmp(tmprate, "1000") == 0 ||
+			strcmp(tmprate, "2000") == 0 ||
+			strcmp(tmprate, "5500") == 0 ||
+			strcmp(tmprate, "11000") == 0)
+		{
+			fprintf(fp, "fixed_tx_b_rate=%s\n", tmprate);
+			fprintf(fp, "fixed_tx_g_rate=54000\n");
+		}
+		else
+		{
+			fprintf(fp, "fixed_tx_b_rate=11000\n");
+			fprintf(fp, "fixed_tx_g_rate=%s\n", tmprate);
+		}
+	}
+
+
+	fprintf(fp, "ssid=%s\n", nvram_safe_get("wl_ssid")); 	
+	fprintf(fp, "beacon_interval=%s\n", nvram_safe_get("wl_bcn"));
+	fprintf(fp, "dtim_period=%s\n", nvram_safe_get("wl_dtim")); 	
+	fprintf(fp, "rts_threshold=%s\n", nvram_safe_get("wl_rts")); 		
+	fprintf(fp, "fragment_threshold=%s\n", nvram_safe_get("wl_frag")); 	
+	fprintf(fp, "short_retry_limit=7\n"); 		
+	fprintf(fp, "long_retry_limit=4\n");
+	fprintf(fp, "current_tx_power_level=1\n");	
+	fprintf(fp, "short_preamble=0\n"); 			
+	fprintf(fp, "channel=%s\n", nvram_safe_get("wl_channel")); 		
+	fprintf(fp, "hide_ssid=%s\n", nvram_safe_get("wl_closed")); 	
+	fprintf(fp, "minimal_eap=0\n");
+		
+	if (nvram_match("wl_auth_mode","shared"))
+	{
+		fprintf(fp, "auth_algs=2\n"); 		
+	}
+	else if (nvram_match("wl_auth_mode","psk"))
+	{
+		fprintf(fp, "auth_algs=1\n"); 		
+	}
+	else 
+	{
+		fprintf(fp, "auth_algs=3\n");
+	}
+
+	if (nvram_match("wl_auth_mode","open") || nvram_match("wl_auth_mode", "shared"))
+	{
+		if (nvram_match("wl_wep_x","0"))
+		{	
+			fprintf(fp, "privacy_invoked=0\n");
+			fprintf(fp, "exclude_unencrypted=0\n");
+		}
+		else if (nvram_match("wl_wep_x","1"))
+		{	
+			fprintf(fp, "privacy_invoked=1\n");
+			fprintf(fp, "exclude_unencrypted=0\r\n");			
+
+			fprintf(fp, "wep_key_type=hex\n");		
+	
+			fprintf(fp, "wep_key_len=5\n");		
+	
+			fprintf(fp, "wep_default_key1=%s\n", nvram_safe_get("wl_key1")); 	
+
+			fprintf(fp, "wep_default_key2=%s\n", nvram_safe_get("wl_key2")); 	
+
+			fprintf(fp, "wep_default_key3=%s\n", nvram_safe_get("wl_key3")); 	
+
+			fprintf(fp, "wep_default_key4=%s\n", nvram_safe_get("wl_key4"));
+	
+			fprintf(fp, "wep_default_key=%s\n", nvram_safe_get("wl_key")); 	
+
+		}
+		else if (nvram_match("wl_wep_x","2"))
+		{	
+			fprintf(fp, "privacy_invoked=1\n");
+			fprintf(fp, "exclude_unencrypted=0\n");
+
+			fprintf(fp, "wep_key_type=hex\n");		
+	
+			fprintf(fp, "wep_key_len=13\n");		
+			fprintf(fp, "wep_default_key1=%s\n", nvram_safe_get("wl_key1")); 	
+
+			fprintf(fp, "wep_default_key2=%s\n", nvram_safe_get("wl_key2")); 	
+
+			fprintf(fp, "wep_default_key3=%s\n", nvram_safe_get("wl_key3")); 	
+
+			fprintf(fp, "wep_default_key4=%s\n", nvram_safe_get("wl_key4")); 
+	
+			fprintf(fp, "wep_default_key=%s\n", nvram_safe_get("wl_key")); 	
+		}
+
+		fprintf(fp, "wpa_mode=0\n");
+
+	}
+	else // wpa-psk
+	{
+
+		fprintf(fp, "wpa_mode=1\n");
+		fprintf(fp, "wpa_encry=2\n");
+		fprintf(fp, "wpa_passphrase=%s\n", nvram_safe_get("wl_wpa_psk"));
+		fprintf(fp, "wpa_group_rekey_time=%s\n", nvram_safe_get("wl_wpa_gtk_rekey")); 
+	}
+
+
+	if (nvram_match("wl_macmode", "allow"))
+	{	
+		fprintf(fp, "macaddr_acl=1\n");
+		//1, deny unless in accept list 		
+		fprintf(fp, "accept_mac_file=/etc/hostapd.accept\n"); 
+		write_acl_list("/etc/hostapd.accept");	
+	}
+	else if (nvram_match("wl_macmode", "deny"))
+	{	
+		fprintf(fp, "macaddr_acl=0\n"); 		
+		//0, accept unless in deny list
+		fprintf(fp, "deny_mac_file=/etc/hostapd.deny\n");
+		write_acl_list("/etc/hostapd.deny");
+	}
+
+	fclose(fp);
+#endif
+}
+
+void
+start_devices(void)
+{
+	char *mvapd_argv[] = { "mvapd", "/etc/hostapd.conf", NULL };
+
+	read_mfg_data();	
+	create_unimac_conf();
+	eval("rgcfg","-i");
+	
+	create_hostapd_conf();
+	_eval(mvapd_argv, NULL, 0, &mvapd_pid);
+	printf("mvapd pid : %x\n", mvapd_pid);
+	sleep(1);
+}
+
+static void
+restore_defaults(void)
+{
+	extern struct nvram_tuple router_defaults[];
+	
+	struct nvram_tuple linux_overrides[] = {
+		{ "lan_ifname", "br0", 0 },
+		{ "lan_ifnames", "LAN wlan0", 0 },
+		{ "wan_ifname", "WAN", 0 },
+		{ 0, 0, 0 }
+	};
+	struct nvram_tuple *t, *u;
+
+	int restore_defaults, i;
+
+	/* Restore defaults if told to or OS has changed */
+	restore_defaults = !nvram_match("restore_defaults", "0") || nvram_invmatch("os_name", "linux");
+	if (restore_defaults)
+		cprintf("Restoring defaults...");
+
+#ifdef REMOVE
+	/* Delete dynamically generated variables */
+	if (restore_defaults) {
+		char tmp[100], prefix[] = "wlXXXXXXXXXX_";
+		for (i = 0; i < MAX_NVPARSE; i++) {
+			del_filter_client(i);
+			del_forward_port(i);
+			del_autofw_port(i);
+			snprintf(prefix, sizeof(prefix), "wl%d_", i);
+			nvram_unset(strcat_r(prefix, "ifname", tmp));
+		}
+	}
+#endif
+
+	/* Restore defaults */
+	for (t = router_defaults; t->name; t++) {
+		if (restore_defaults || !nvram_get(t->name)) {
+			for (u = linux_overrides; u && u->name; u++) {
+				if (!strcmp(t->name, u->name)) {
+					nvram_set(u->name, u->value);
+					break;
+				}
+			}
+			if (!u || !u->name)
+				nvram_set(t->name, t->value);
+		}
+	}
+
+	/* Always set OS defaults */
+	nvram_set("os_name", "linux");
+	nvram_set("os_version", EPI_VERSION_STR);
+
+	/* Commit values */
+	if (restore_defaults) {
+		//nvram_commit();
+		cprintf("done\n");
+	}
+}
+
+static int noconsole = 0;
+
+static void
+sysinit(void)
+{
+	char buf[PATH_MAX];
+	struct utsname name;
+	struct stat tmp_stat;
+	time_t tm = 0;
+	int ret;
+
+	/* /proc */
+	ret = mount("proc", "/proc", "proc", MS_MGC_VAL, NULL);
+
+	/* /tmp */
+	ret = mount("ramfs", "/mnt/ramfs", "ramfs", MS_MGC_VAL, NULL);
+
+#ifdef REMOVE
+	/* jffs2 */
+	ret = mount("/dev/mtdblock2", "/mnt/jffs2", "jffs2", MS_MGC_VAL, NULL);
+
+	if (ret!=0)
+	{
+		dprintf("can not mount jffs2, create a new one\n");	
+		eval("eraseall", "/dev/mtd2"); 
+		ret = mount("/dev/mtdblock2", "/mnt/jffs2", "jffs2", MS_MGC_VAL, NULL);
+	}
+#endif
+	sleep(1);
+
+#ifdef ASUS	
+	eval("insmod", "/lib/modules/unimac.o");
+	eval("insmod", "/lib/modules/mvwlan.o");
+	eval("insmod", "/lib/modules/nvram_mod.o");
+	eval("insmod", "/lib/modules/splink_led.o");
+
+	mkdir("/mnt/ramfs/tmp", 0777);
+	eval("cp","-dpR","/ramfs/etc","/mnt/ramfs");
+	eval("cp","-dpR","/ramfs/var","/mnt/ramfs");
+#else
+	/* /var */
+	mkdir("/tmp/var", 0777);
+	mkdir("/var/lock", 0777);
+	mkdir("/var/log", 0777);
+	mkdir("/var/run", 0777);
+	mkdir("/var/tmp", 0777);
+#endif
+
+	/* Setup console */
+	if (console_init())
+		noconsole = 1;
+	klogctl(8, NULL, atoi(nvram_safe_get("console_loglevel")));
+
+#ifdef ASUS
+
+#else
+	/* Modules */
+	uname(&name);
+	snprintf(buf, sizeof(buf), "/lib/modules/%s", name.release);
+	if (stat("/proc/modules", &tmp_stat) == 0 &&
+	    stat(buf, &tmp_stat) == 0) {
+		char module[80], *modules, *next;
+		modules = nvram_get("kernel_mods") ? : "et il wl";
+		foreach(module, modules, next)
+			eval("insmod", module);
+	}
+#endif
+
+	/* Set a sane date */
+	stime(&tm);
+
+	dprintf("done\n");
+}
+
+/* States */
+enum {
+	RESTART,
+	STOP,
+	START,
+	TIMER,
+	IDLE,
+};
+static int state = START;
+static int signalled = -1;
+
+/* Signal handling */
+static void
+rc_signal(int sig)
+{
+	if (state == IDLE) {	
+		if (sig == SIGHUP) {
+			dprintf("signalling RESTART\n");
+			signalled = RESTART;
+		}
+		else if (sig == SIGUSR2) {
+			dprintf("signalling START\n");
+			signalled = START;
+		}
+		else if (sig == SIGINT) {
+			dprintf("signalling STOP\n");
+			signalled = STOP;
+		}
+		else if (sig == SIGALRM) {
+			dprintf("signalling TIMER\n");
+			signalled = TIMER;
+		}
+	}
+}
+
+int
+do_timer(void)
+{
+#ifdef ASUS
+	int interval=60;
+	time_t now;
+	struct tm gm, local;
+	struct timezone tz;
+
+	
+	return ;
+
+#ifndef SNAPAP
+	timesync();
+	timecheck();
+	//httpcheck();
+#endif
+#else
+
+	int interval = atoi(nvram_safe_get("timer_interval"));
+	time_t now;
+	struct tm gm, local;
+	struct timezone tz;
+
+	dprintf("%d\n", interval);
+
+	if (interval == 0)
+		return 0;
+	
+	/* Report stats */
+	if (nvram_invmatch("stats_server", "")) {
+		char *stats_argv[] = { "stats", nvram_get("stats_server"), NULL };
+		_eval(stats_argv, NULL, 5, NULL);
+	}
+
+	/* Sync time */
+	start_ntpc();
+#endif	
+
+	/* Update kernel timezone */
+	setenv("TZ", nvram_safe_get("time_zone"), 1);
+	time(&now);
+	gmtime_r(&now, &gm);
+	localtime_r(&now, &local);
+	tz.tz_minuteswest = (mktime(&gm) - mktime(&local)) / 60;
+	settimeofday(NULL, &tz);
+	alarm(interval);
+
+	return 0;
+}
+
+/* Main loop */
+static void
+main_loop(void)
+{
+	sigset_t sigset;
+	pid_t shell_pid = 0;
+	
+	/* Basic initialization */
+	sysinit();
+
+	/* Setup signal handlers */
+	signal_init();
+	signal(SIGHUP, rc_signal);
+	signal(SIGUSR2, rc_signal);
+	signal(SIGINT, rc_signal);
+	signal(SIGALRM, rc_signal);
+#ifdef ASUS_EXTENSION
+	signal(SIGUSR1, handle_led);
+#endif	
+	sigemptyset(&sigset);
+
+	/* Give user a chance to run a shell before bringing up the rest of the system */
+	if (!noconsole)
+		run_shell(1, 0);
+
+#ifdef ASUS
+	/* Copy parameters from flash to files */
+	dprintf("GET PARAMETERS\n");
+	/* Convert deprecated variables */
+	//convert_deprecated();
+	restore_defaults();
+	start_devices();
+#else	
+	/* Restore defaults if necessary */
+	restore_defaults();
+#endif
+
+
+	/* Give user a chance to run a shell before bringing up the rest of the system */
+	if (!noconsole)
+		run_shell(1, 0);
+
+
+	/* Loop forever */
+	for (;;) {
+		switch (state) {
+		case RESTART:
+			dprintf("RESTART\n");
+			/* Fall through */
+		case STOP:
+			dprintf("STOP\n");
+			//stop_services();
+			//stop_wan();
+			//stop_lan();
+			if (state == STOP) {
+				state = IDLE;
+				break;
+			}
+			/* Fall through */
+		case START:
+			dprintf("START\n");
+
+			if (state==START) 
+			{
+				start_lan(TRUE);
+			}
+			else
+			{
+				create_hostapd_conf();
+				if (mvapd_pid!=0) kill(mvapd_pid, SIGHUP);
+				start_lan(FALSE);	
+			}
+			start_services();
+			start_wan();
+
+#ifndef SNAPAP
+			start_sroute();
+#endif				
+			if (state ==START)
+			{		
+				start_led(TRUE);
+			}
+			/* Fall through */
+		case TIMER:
+			//dprintf("TIMER\n");
+			do_timer();
+			/* Fall through */
+		case IDLE:
+			//dprintf("IDLE\n");
+			state = IDLE;
+			/* Wait for user input or state change */
+			while (signalled == -1) {
+				if (!noconsole && (!shell_pid || kill(shell_pid, 0) != 0))
+					shell_pid = run_shell(0, 1);
+				else
+					sigsuspend(&sigset);
+			}
+			state = signalled;
+			signalled = -1;
+			break;
+		default:
+			dprintf("UNKNOWN\n");
+			return;
+		}
+	}
+}
+
+int
+main(int argc, char **argv)
+{
+	char *base = strrchr(argv[0], '/');
+	
+	base = base ? base + 1 : argv[0];
+
+	/* init */
+	if (strstr(base, "init")) {
+		main_loop();
+		return 0;
+	}
+
+	/* Set TZ for all rc programs */
+	setenv("TZ", nvram_safe_get("time_zone"), 1);
+
+	/* ppp */
+	if (strstr(base, "ip-up"))
+		return ipup_main(argc, argv);
+	else if (strstr(base, "ip-down"))
+		return ipdown_main(argc, argv);
+
+	/* udhcpc [ deconfig bound renew ] */
+	else if (strstr(base, "udhcpc"))
+		return udhcpc_main(argc, argv);
+
+	/* stats [ url ] */
+	else if (strstr(base, "stats"))
+		return http_stats(argv[1] ? : nvram_safe_get("stats_server"));
+	/* erase [device] */
+	else if (strstr(base, "erase")) {
+		if (argv[1])
+			return mtd_erase(argv[1]);
+		else {
+			fprintf(stderr, "usage: erase [device]\n");
+			return EINVAL;
+		}
+	}
+
+	/* write [path] [device] */
+	else if (strstr(base, "write")) {
+		if (argc >= 3)
+		{
+			int ret;
+			stop_services();
+			ret = mtd_write(argv[1], argv[2]);
+			control_led(0, 0);
+			return ret; 
+		}
+		else {
+			fprintf(stderr, "usage: write [path] [device]\n");
+			return EINVAL;
+		}
+	}
+	/* hotplug [event] */
+	else if (strstr(base, "hotplug")) {
+		if (argc >= 2) {
+			if (!strcmp(argv[1], "net"))
+				return hotplug_net();
+		} else {
+			fprintf(stderr, "usage: hotplug [event]\n");
+			return EINVAL;
+		}
+	}
+
+	/* rc [stop|start|restart ] */
+	else if (strstr(base, "rc")) {
+		if (argv[1]) {
+			if (strncmp(argv[1], "start", 5) == 0)
+				return kill(1, SIGUSR2);
+			else if (strncmp(argv[1], "stop", 4) == 0)
+				return kill(1, SIGINT);
+			else if (strncmp(argv[1], "restart", 7) == 0)
+				return kill(1, SIGHUP);
+		} else {
+			fprintf(stderr, "usage: rc [start|stop|restart]\n");
+			return EINVAL;
+		}
+	}
+#ifdef ASUS_EXTENSION
+	/* nvram_x [get|set|fget|fset] */
+	else if (strstr(base, "nvram_x")) {
+		if (argc>=2) 
+		{
+			char *arg;
+
+			if (argc>=3) arg=argv[2];
+			else arg=NULL;
+
+			if (strcmp(argv[1], "get") == 0)
+				return nvram_x_get(arg);
+			else if (strcmp(argv[1], "set") == 0)
+				return nvram_x_set(arg);
+			else if (strcmp(argv[1], "fget") == 0)
+				return nvram_x_fget(arg);
+			else if (strcmp(argv[1], "fset") == 0)
+				return nvram_x_fset(arg);
+		} else {
+			fprintf(stderr, "usage: nvram_x [get|set|fget|fset]\n");
+			return EINVAL;
+		}
+	}
+#endif	
+
+	return EINVAL;
+}

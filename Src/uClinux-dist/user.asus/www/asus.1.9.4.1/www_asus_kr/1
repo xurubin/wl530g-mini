@@ -1,0 +1,337 @@
+4c4
+< <meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+---
+> <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+47a48
+>    else if (pid.indexOf("WL550")!=-1) model = 'WL550';
+87a89
+>    else if (pid.indexOf("WL520")!=-1) flash = '2MB';
+93c95
+<    if (confirm(' 이 항목에서 Logout을 원하시면, "OK"를 누르고 이 구성창이 닫히는지 확인 하십시오.'))
+---
+>    if (confirm('If you want to logout this session, please press "OK" and make sure this configuration window is closed.'))
+108,122c110,119
+<     aux1 = appendChild(foldersTree, leafNode("홈"))  
+<     aux1 = appendChild(foldersTree, leafNode("빠른 설정"))                
+<     //if (mode == 'AP')
+<     //{
+<     //      appendChild(aux1, generateDocEntry(0, "Quick Setup", "Basic_Operation_Content.asp#Wireless", "")) 
+<     //}
+<     //else if (mode == 'Gateway')
+<     //{
+<     //      appendChild(aux1, generateDocEntry(0, "Quick Setup", "Basic_Operation_Content.asp#Broadband", "")) 
+<     //}
+<     //else 
+<     //{           
+<     //      appendChild(aux1, generateDocEntry(0, "Quick Setup", "Basic_Operation_Content.asp#WANSetting", ""))                 
+<     //}       
+<     aux1 = appendChild(foldersTree, leafNode("무선"))
+---
+>     aux1 = appendChild(foldersTree, leafNode("Home"))  
+>     aux1 = appendChild(foldersTree, leafNode("Quick Setup"))    
+>     if (isModel() == 'WL550')    
+>     {      
+>           appendChild(aux1, generateDocEntry(0, "t2QWidzard", "Advanced_Wireless_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "t2QNetwork", "Advanced_Wireless_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "t2QDisk", "Advanced_UniqueKey_Content.asp", "")) 
+>     }                
+>     
+>     aux1 = appendChild(foldersTree, leafNode("Wireless"))
+125c122
+<           appendChild(aux1, generateDocEntry(0, "인터페이스", "Advanced_Wireless_Content.asp", ""))
+---
+>           appendChild(aux1, generateDocEntry(0, "Interface", "Advanced_Wireless_Content.asp", ""))
+127c124
+<           appendChild(aux1, generateDocEntry(0, "액세스 컨트롤", "Advanced_ACL_Content.asp",  ""))
+---
+>           appendChild(aux1, generateDocEntry(0, "Access Control", "Advanced_ACL_Content.asp",  ""))
+131,136c128,133
+<           appendChild(aux1, generateDocEntry(0, "인터페이스", "Advanced_Wireless_Content.asp", ""))               
+<           //appendChild(aux1, generateDocEntry(0, "Certificate", "Advanced_WCertificate_Content.asp", ""))
+<           //appendChild(aux1, generateDocEntry(0, "브릿지", "Advanced_WMode_Content.asp", ""))              
+<           appendChild(aux1, generateDocEntry(0, "액세스 컨트롤", "Advanced_ACL_Content.asp",  ""))
+<           //appendChild(aux1, generateDocEntry(0, "RADIUS 설정", "Advanced_WSecurity_Content.asp", ""))
+<           appendChild(aux1, generateDocEntry(0, "고급", "Advanced_WAdvanced_Content.asp", ""))              
+---
+>           appendChild(aux1, generateDocEntry(0, "Interface", "Advanced_Wireless_Content.asp", ""))               
+>           //appendChild(aux1, generateDocEntry(0, "Certificate", "Advanced_WCertificate_Content.asp", ""))          
+>           appendChild(aux1, generateDocEntry(0, "Bridge", "Advanced_WMode_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "Access Control", "Advanced_ACL_Content.asp",  ""))
+>           //appendChild(aux1, generateDocEntry(0, "RADIUS Setting", "Advanced_WSecurity_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "Advanced", "Advanced_WAdvanced_Content.asp", ""))              
+140c137
+<           appendChild(aux1, generateDocEntry(0, "인터페이스", "Advanced_Wireless_Content.asp", ""))               
+---
+>           appendChild(aux1, generateDocEntry(0, "Interface", "Advanced_Wireless_Content.asp", ""))               
+142,145c139,142
+<           //appendChild(aux1, generateDocEntry(0, "브릿지", "Advanced_WMode_Content.asp", ""))              
+<           appendChild(aux1, generateDocEntry(0, "액세스 컨트롤", "Advanced_ACL_Content.asp",  ""))
+<           //appendChild(aux1, generateDocEntry(0, "RADIUS 설정", "Advanced_WSecurity_Content.asp", ""))
+<           appendChild(aux1, generateDocEntry(0, "고급", "Advanced_WAdvanced_Content.asp", ""))              
+---
+>           //appendChild(aux1, generateDocEntry(0, "Bridge", "Advanced_WMode_Content.asp", ""))              
+>           appendChild(aux1, generateDocEntry(0, "Access Control", "Advanced_ACL_Content.asp",  ""))
+>           //appendChild(aux1, generateDocEntry(0, "RADIUS Setting", "Advanced_WSecurity_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "Advanced", "Advanced_WAdvanced_Content.asp", ""))              
+149c146
+<           appendChild(aux1, generateDocEntry(0, "인터페이스", "Advanced_Wireless_Content.asp", ""))               
+---
+>           appendChild(aux1, generateDocEntry(0, "Interface", "Advanced_Wireless_Content.asp", ""))               
+151,153c148,150
+<           appendChild(aux1, generateDocEntry(0, "브릿지", "Advanced_WMode_Content.asp", ""))              
+<           appendChild(aux1, generateDocEntry(0, "액세스 컨트롤", "Advanced_ACL_Content.asp",  ""))          
+<           appendChild(aux1, generateDocEntry(0, "고급", "Advanced_WAdvanced_Content.asp", ""))
+---
+>           appendChild(aux1, generateDocEntry(0, "Bridge", "Advanced_WMode_Content.asp", ""))              
+>           appendChild(aux1, generateDocEntry(0, "Access Control", "Advanced_ACL_Content.asp",  ""))          
+>           appendChild(aux1, generateDocEntry(0, "Advanced", "Advanced_WAdvanced_Content.asp", ""))
+157c154
+<           appendChild(aux1, generateDocEntry(0, "인터페이스", "Advanced_Wireless_Content.asp", ""))               
+---
+>           appendChild(aux1, generateDocEntry(0, "Interface", "Advanced_Wireless_Content.asp", ""))               
+159,162c156,159
+<           appendChild(aux1, generateDocEntry(0, "브릿지", "Advanced_WMode_Content.asp", ""))
+<           appendChild(aux1, generateDocEntry(0, "액세스 컨트롤", "Advanced_ACL_Content.asp",  ""))
+<           appendChild(aux1, generateDocEntry(0, "RADIUS 설정", "Advanced_WSecurity_Content.asp", ""))
+<           appendChild(aux1, generateDocEntry(0, "고급", "Advanced_WAdvanced_Content.asp", ""))
+---
+>           appendChild(aux1, generateDocEntry(0, "Bridge", "Advanced_WMode_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "Access Control", "Advanced_ACL_Content.asp",  ""))
+>           appendChild(aux1, generateDocEntry(0, "RADIUS Setting", "Advanced_WSecurity_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "Advanced", "Advanced_WAdvanced_Content.asp", ""))
+167c164
+<     	   aux1 = appendChild(foldersTree, leafNode("IP 컨피규레이션"))            
+---
+>     	   aux1 = appendChild(foldersTree, leafNode("IP Config"))            
+172c169
+<     	   aux1 = appendChild(foldersTree, leafNode("IP 컨피규레이션"))            
+---
+>     	   aux1 = appendChild(foldersTree, leafNode("IP Config"))            
+174c171
+<            appendChild(aux1, generateDocEntry(0, "DHCP 서버", "Advanced_DHCP_Content.asp", "")) 
+---
+>            appendChild(aux1, generateDocEntry(0, "DHCP Server", "Advanced_DHCP_Content.asp", "")) 
+178c175
+<                       appendChild(aux1, generateDocEntry(0, "라우터", "Advanced_GWStaticRoute_Content.asp", ""))
+---
+>                       appendChild(aux1, generateDocEntry(0, "Route", "Advanced_GWStaticRoute_Content.asp", ""))
+180c177
+<            appendChild(aux1, generateDocEntry(0, "기타", "Advanced_DDNS_Content.asp", ""))
+---
+>            appendChild(aux1, generateDocEntry(0, "Miscellaneous", "Advanced_DDNS_Content.asp", ""))
+184c181
+<               aux1 = appendChild(foldersTree, leafNode("NAT 설정"))   
+---
+>               aux1 = appendChild(foldersTree, leafNode("NAT Setting"))   
+186c183
+<     	      //	appendChild(aux1, generateDocEntry(0, "포트 트리거",  "Advanced_PortMapping_Content.asp", ""))                  
+---
+>     	      //	appendChild(aux1, generateDocEntry(0, "Port Trigger",  "Advanced_PortMapping_Content.asp", ""))                  
+189,191c186,188
+<     	      appendChild(aux1, generateDocEntry(0, "포트 트리거",  "Advanced_PortTrigger_Content.asp", ""))    	      
+<               appendChild(aux1, generateDocEntry(0, "가상서버",  "Advanced_VirtualServer_Content.asp", ""))      
+<               appendChild(aux1, generateDocEntry(0, "가상 DMZ",  "Advanced_Exposed_Content.asp", "")) 
+---
+>     	      appendChild(aux1, generateDocEntry(0, "Port Trigger",  "Advanced_PortTrigger_Content.asp", ""))    	      
+>               appendChild(aux1, generateDocEntry(0, "Virtual Server",  "Advanced_VirtualServer_Content.asp", ""))      
+>               appendChild(aux1, generateDocEntry(0, "Virtual DMZ",  "Advanced_Exposed_Content.asp", "")) 
+195,198c192,195
+<     	      aux1 = appendChild(foldersTree, leafNode("인터넷 방화벽"))    	
+<     	      appendChild(aux1, generateDocEntry(0, "기본 컨피규레이션",  "Advanced_BasicFirewall_Content.asp", ""))    
+<               appendChild(aux1, generateDocEntry(0, "WAN & LAN 필터",  "Advanced_Firewall_Content.asp", ""))  
+<               appendChild(aux1, generateDocEntry(0, " URL 필터",  "Advanced_URLFilter_Content.asp", ""))
+---
+>     	      aux1 = appendChild(foldersTree, leafNode("Internet Firewall"))    	
+>     	      appendChild(aux1, generateDocEntry(0, "Basic Config",  "Advanced_BasicFirewall_Content.asp", ""))    
+>               appendChild(aux1, generateDocEntry(0, "WAN & LAN Filter",  "Advanced_Firewall_Content.asp", ""))  
+>               appendChild(aux1, generateDocEntry(0, " URL Filter",  "Advanced_URLFilter_Content.asp", ""))
+204,208c201,205
+<     	   //   aux1 = appendChild(foldersTree, leafNode("무선 방화벽"))
+<     	   //       appendChild(aux1, generateDocEntry(0, "기본 컨피규레이션",  "Advanced_DMZIP_Content.asp", ""))                           
+<     	   //       appendChild(aux1, generateDocEntry(0, "DHCP 서버", "Advanced_DMZDHCP_Content.asp", ""))
+<     	   //	   appendChild(aux1, generateDocEntry(0, "WLAN & WAN 필터",  "Advanced_DMZDWFilter_Content.asp", ""))                                                                                          
+<     	   //       appendChild(aux1, generateDocEntry(0, "WLAN & LAN 필터",  "Advanced_DMZDLFilter_Content.asp", ""))                                                                                                                            
+---
+>     	   //   aux1 = appendChild(foldersTree, leafNode("Wireless Firewall"))
+>     	   //       appendChild(aux1, generateDocEntry(0, "Basic Config",  "Advanced_DMZIP_Content.asp", ""))                           
+>     	   //       appendChild(aux1, generateDocEntry(0, "DHCP Server", "Advanced_DMZDHCP_Content.asp", ""))
+>     	   //	   appendChild(aux1, generateDocEntry(0, "WLAN & WAN Filter",  "Advanced_DMZDWFilter_Content.asp", ""))                                                                                          
+>     	   //       appendChild(aux1, generateDocEntry(0, "WLAN & LAN Filter",  "Advanced_DMZDLFilter_Content.asp", ""))                                                                                                                            
+212c209
+<     	       appendChild(aux1, generateDocEntry(0, "MAC 필터",  "Advanced_MACFilter_Content.asp", ""))
+---
+>     	       appendChild(aux1, generateDocEntry(0, "MAC Filter",  "Advanced_MACFilter_Content.asp", ""))
+213a211,221
+>      }
+>      
+>      if (isModel() == 'WL550')    
+>      {      
+>       	  aux1 = appendChild(foldersTree, leafNode("t1Share"))          
+>           appendChild(aux1, generateDocEntry(0, "t2ShareBasic", "Advanced_Wireless_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "t2ShareUser", "Advanced_UniqueKey_Content.asp", ""))    
+>           
+>      	  aux1 = appendChild(foldersTree, leafNode("t1Disk"))          
+>           appendChild(aux1, generateDocEntry(0, "t2DiskBasic", "Advanced_Wireless_Content.asp", ""))
+>           appendChild(aux1, generateDocEntry(0, "t2DiskStatus", "Advanced_UniqueKey_Content.asp", ""))                                   
+218,221c226,237
+<     	 aux1 = appendChild(foldersTree, leafNode("USB 어플리케이션"))          
+<            appendChild(aux1, generateDocEntry(0, "FTP 서버", "Advanced_USBStorage_Content.asp", ""))
+<            appendChild(aux1, generateDocEntry(0, "웹 카메라", "Advanced_WebCam_Content.asp", ""))
+<      }      
+---
+>     	   aux1 = appendChild(foldersTree, leafNode("USB Application"))          
+>                       
+>            if (isModel() == 'WL550')
+>            {
+>                 appendChild(aux1, generateDocEntry(0, "FTP Server", "Advanced_USBStorage_Content.asp", ""))
+>            }
+>            else
+>            {
+>            	appendChild(aux1, generateDocEntry(0, "FTP Server", "Advanced_USBStorage_Content.asp", ""))
+>            }
+>            appendChild(aux1, generateDocEntry(0, "Web Camera", "Advanced_WebCam_Content.asp", ""))
+>      }
+225,226c241,242
+<      	 aux1 = appendChild(foldersTree, leafNode("QoS"))          
+<            appendChild(aux1, generateDocEntry(0, "기본 컨피규레이션", "Advanced_QOS_Content.asp", ""))           
+---
+>      	  aux1 = appendChild(foldersTree, leafNode("Bandwidth Management"))          
+>            appendChild(aux1, generateDocEntry(0, "Basic Config", "Advanced_QOS_Content.asp", ""))           
+228,229c244,245
+<     
+<      aux1 = appendChild(foldersTree, leafNode("시스템 설정"))          
+---
+>              
+>      aux1 = appendChild(foldersTree, leafNode("System Setup"))          
+232,236c248,252
+<      	appendChild(aux1, generateDocEntry(0, "작동모드", "Advanced_OperationMode_Content.asp", "")) 
+<      	appendChild(aux1, generateDocEntry(0, "비밀번호 변경", "Advanced_Password_Content.asp",""))
+<      	appendChild(aux1, generateDocEntry(0, "펌웨어 업그레이드", "Advanced_FirmwareUpgrade_Content.asp", ""))
+<      	appendChild(aux1, generateDocEntry(0, "설정관리", "Advanced_SettingBackup_Content.asp", ""))
+<      	appendChild(aux1, generateDocEntry(0, "출고시의 기본설정", "Advanced_FactoryDefault_Content.asp", ""))
+---
+>      	appendChild(aux1, generateDocEntry(0, "Operation Mode", "Advanced_OperationMode_Content.asp", "")) 
+>      	appendChild(aux1, generateDocEntry(0, "Change Password", "Advanced_Password_Content.asp",""))
+>      	appendChild(aux1, generateDocEntry(0, "Firmware Upgrade", "Advanced_FirmwareUpgrade_Content.asp", ""))
+>      	appendChild(aux1, generateDocEntry(0, "Setting Management", "Advanced_SettingBackup_Content.asp", ""))
+>      	appendChild(aux1, generateDocEntry(0, "Factory Default", "Advanced_FactoryDefault_Content.asp", ""))
+240,244c256,260
+<      	//appendChild(aux1, generateDocEntry(0, "작동모드", "Advanced_OperationMode_Content.asp", "")) 
+<      	appendChild(aux1, generateDocEntry(0, "비밀번호 변경", "Advanced_Password_Content.asp",""))
+<      	appendChild(aux1, generateDocEntry(0, "펌웨어 업그레이드", "Advanced_FirmwareUpgrade_Content.asp", ""))
+<      	appendChild(aux1, generateDocEntry(0, "설정관리", "Advanced_SettingBackup_Content.asp", ""))
+<      	appendChild(aux1, generateDocEntry(0, "출고시의 기본설정", "Advanced_FactoryDefault_Content.asp", ""))
+---
+>      	//appendChild(aux1, generateDocEntry(0, "Operation Mode", "Advanced_OperationMode_Content.asp", "")) 
+>      	appendChild(aux1, generateDocEntry(0, "Change Password", "Advanced_Password_Content.asp",""))
+>      	appendChild(aux1, generateDocEntry(0, "Firmware Upgrade", "Advanced_FirmwareUpgrade_Content.asp", ""))
+>      	appendChild(aux1, generateDocEntry(0, "Setting Management", "Advanced_SettingBackup_Content.asp", ""))
+>      	appendChild(aux1, generateDocEntry(0, "Factory Default", "Advanced_FactoryDefault_Content.asp", ""))
+250,253c266,269
+<            aux1 = appendChild(foldersTree, leafNode("상태 & 로그"))
+<            appendChild(aux1,generateDocEntry(0, "상태", "Main_AStatus_Content.asp", ""))
+<            appendChild(aux1,generateDocEntry(0, "무선", "Main_WStatus_Content.asp", ""))
+<            //appendChild(aux1,generateDocEntry(0, "시스템 로그", "Main_LogStatus_Content.asp", ""))
+---
+>            aux1 = appendChild(foldersTree, leafNode("Status & Log"))
+>            appendChild(aux1,generateDocEntry(0, "Status", "Main_AStatus_Content.asp", ""))
+>            appendChild(aux1,generateDocEntry(0, "Wireless", "Main_WStatus_Content.asp", ""))
+>            //appendChild(aux1,generateDocEntry(0, "System Log", "Main_LogStatus_Content.asp", ""))
+257,260c273,276
+<         aux1 = appendChild(foldersTree, leafNode("상태 & 로그"))
+<            appendChild(aux1,generateDocEntry(0, "상태", "Main_GStatus_Content.asp", ""))
+<            appendChild(aux1,generateDocEntry(0, "무선", "Main_WStatus_Content.asp", ""))         
+<            appendChild(aux1,generateDocEntry(0, "DHCP 리스", "Main_DHCPStatus_Content.asp", "")) 
+---
+>         aux1 = appendChild(foldersTree, leafNode("Status & Log"))
+>            appendChild(aux1,generateDocEntry(0, "Status", "Main_GStatus_Content.asp", ""))
+>            appendChild(aux1,generateDocEntry(0, "Wireless", "Main_WStatus_Content.asp", ""))         
+>            appendChild(aux1,generateDocEntry(0, "DHCP Leases", "Main_DHCPStatus_Content.asp", "")) 
+263,265c279,281
+<               appendChild(aux1,generateDocEntry(0, "포트 포워딩", "Main_IPTStatus_Content.asp", ""))                    
+<               appendChild(aux1, generateDocEntry(0, "라우팅 테이블", "Advanced_RouteStatus_Content.asp", ""))              
+<               appendChild(aux1,generateDocEntry(0, "시스템 로그", "Main_LogStatus_Content.asp", ""))
+---
+>               appendChild(aux1,generateDocEntry(0, "Port Forwarding", "Main_IPTStatus_Content.asp", ""))                    
+>               appendChild(aux1, generateDocEntry(0, "Routing Table", "Advanced_RouteStatus_Content.asp", ""))              
+>               appendChild(aux1,generateDocEntry(0, "System Log", "Main_LogStatus_Content.asp", ""))
+275c291
+<     if (folderName == "홈")
+---
+>     if (folderName == "Home")
+291c307
+<     else if (folderName == "빠른 설정")
+---
+>     else if (folderName == "Quick Setup")
+303c319
+<     else if (folderName == "무선")
+---
+>     else if (folderName == "Wireless")
+309c325
+<     else if (folderName == "IP 컨피규레이션" )
+---
+>     else if (folderName == "IP Config" )
+316c332
+<     else if (folderName == "인터넷 방화벽")
+---
+>     else if (folderName == "Internet Firewall")
+320c336
+<     else if (folderName == "무선 방화벽")
+---
+>     else if (folderName == "Wireless Firewall")
+324c340
+<     else if (folderName == "USB 어플리케이션")
+---
+>     else if (folderName == "USB Application")
+329c345
+<     else if (folderName == "QoS")
+---
+>     else if (folderName == "Bandwidth Management")
+334c350
+<     else if (folderName == "라우터")
+---
+>     else if (folderName == "Router")
+338c354
+<     else if (folderName == "NAT 설정")
+---
+>     else if (folderName == "NAT Setting")
+345c361
+<     else if (folderName == "시스템 설정")
+---
+>     else if (folderName == "System Setup")
+352c368
+<     else if (folderName == "상태 & 로그")
+---
+>     else if (folderName == "Status & Log")
+367c383
+<     if (folderName == "빠른 설정")
+---
+>     if (folderName == "Quick Setup")
+450c466
+<     doc.write("<table  width='120' border='0' cellspacing='0' cellpadding='0' height='125'>");
+---
+>     doc.write("<table  width='144' border='0' cellspacing='0' cellpadding='0' height='125'>");
+596c612
+<             if (folderName != '빠른 설정' && folderName != '홈' && folderName != 'Logout' )
+---
+>             if (folderName != 'Quick Setup' && folderName != 'Home' && folderName != 'Logout' )
+601c617
+<             else
+---
+>             else if (isModel() == 'WL550' && folderName == 'Quick Setup')
+602a619,623
+>                foldersNode[0] = 1
+>                foldersNode[1] = 1
+>             }
+>             else
+>             {    
+695c716
+< <frame src="Main_List.asp" marginwidth="10" marginheight="0" name="treeFrame">
+---
+> <frame src="Main_List.asp" marginwidth="10" marginheight="0" name="treeFrame" noresize>
+697,698c718,719
+< <frame src="Title.asp" marginwidth="0" marginheight="0" name="titleFrame" scrolling="no">
+< <frame src="<% urlcache(); %>" name="folderFrame" marginwidth="0" marginheight="0">
+---
+> <frame src="Title.asp" marginwidth="0" marginheight="0" name="titleFrame" scrolling="no" noresize>
+> <frame src="<% urlcache(); %>" name="folderFrame" marginwidth="0" marginheight="0" noresize>

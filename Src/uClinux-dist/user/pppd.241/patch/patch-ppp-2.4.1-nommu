@@ -1,0 +1,399 @@
+Index: chat/Makefile.linux
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/chat/Makefile.linux,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- chat/Makefile.linux	2001/08/30 03:22:38	1.1
++++ chat/Makefile.linux	2001/08/30 18:34:22	1.2
+@@ -6,14 +6,14 @@
+ CDEF4=	-DFNDELAY=O_NDELAY		# Old name value
+ CDEFS=	$(CDEF1) $(CDEF2) $(CDEF3) $(CDEF4)
+ 
+-CFLAGS=	$(CDEFS) $(RPM_OPT_FLAGS)
++CFLAGS+=	$(CDEFS) $(RPM_OPT_FLAGS)
+ 
+ INSTALL= install
+ 
+ all:	chat
+ 
+ chat:	chat.o
+-	$(CC) -o chat chat.o
++	$(CC) $(LDFLAGS) -o chat chat.o $(LDLIBS)
+ 
+ chat.o:	chat.c
+ 	$(CC) -c $(CFLAGS) -o chat.o chat.c
+Index: pppd/Makefile.linux
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/Makefile.linux,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/Makefile.linux	2001/08/30 03:22:38	1.1
++++ pppd/Makefile.linux	2001/08/30 18:35:51	1.2
+@@ -7,15 +7,30 @@
+ BINDIR = $(TOPDIR)/usr/sbin
+ MANDIR = $(TOPDIR)/usr/share/man
+ 
+-PPPDSRCS = main.c magic.c fsm.c lcp.c ipcp.c upap.c chap.c md5.c ccp.c \
+-	   ipxcp.c auth.c options.c sys-linux.c md4.c chap_ms.c cbcp.c \
+-	   demand.c utils.c multilink.c tdb.c tty.c
+-HEADERS =  callout.h pathnames.h patchlevel.h chap.h md5.h chap_ms.h md4.h \
+-	   ipxcp.h cbcp.h tdb.h
++PPPDSRCS = main.c magic.c fsm.c lcp.c ipcp.c upap.c chap.c ccp.c \
++	   auth.c options.c sys-linux.c md4.c chap_ms.c \
++	   demand.c utils.c multilink.c tdb.c tty.c ipxcp.c 
++ifndef UCLINUX
++	PPPDSRCS += md5.c cbcp.c
++endif
++
++HEADERS =  callout.h pathnames.h patchlevel.h chap.h chap_ms.h md4.h \
++	   ipxcp.h tdb.h
++ifndef UCLINUX
++	HEADERS += md5.h cbcp.h
++endif
++
+ MANPAGES = pppd.8
+-PPPDOBJS = main.o magic.o fsm.o lcp.o ipcp.o upap.o chap.o md5.o ccp.o \
+-	   auth.o options.o demand.o utils.o sys-linux.o ipxcp.o multilink.o \
+-	   tdb.o tty.o
++PPPDOBJS = main.o magic.o fsm.o lcp.o ipcp.o upap.o chap.o ccp.o \
++	   auth.o options.o demand.o utils.o sys-linux.o multilink.o \
++	   ipxcp.o tdb.o tty.o
++ifndef UCLINUX
++	PPPDOBJS += md5.o cbcp.o
++endif
++
++ifdef UCLINUX
++	CFLAGS += -DNO_DRAND48
++endif
+ 
+ all: pppd
+ 
+@@ -25,20 +40,29 @@
+ include .depend
+ endif
+ 
+-CC = gcc
++#CC = gcc
+ #
+ COPTS = -Wall $(RPM_OPT_FLAGS)
+ LIBS = -lutil
++
++ifndef LIBDIR
++	LIBDIR = /usr/
++endif
+ 
+-ifneq ($(wildcard /usr/lib/libcrypt.*),)
+-LIBS += -lcrypt
++ifndef LIBCDIR
++	LIBCDIR = /usr/lib/
+ endif
+ 
++# ifneq ($(wildcard $(LIBCDIR)libcrypt.*),)
++# LIBS += -lcrypt
++# endif
++
+ # Uncomment the next 2 lines to include support for Microsoft's
+ # MS-CHAP authentication protocol.
+ CHAPMS=y
+ USE_CRYPT=y
+-ifneq ($(wildcard /usr/lib/libcrypt.*),)
++
++ifneq ($(wildcard $(LIBCDIR)libcrypt.*),)
+ HAVE_CRYPT_H=y
+ endif
+ 
+@@ -48,20 +72,21 @@
+ # doesn't yet.
+ #FILTER=y
+ 
+-HAS_SHADOW=y
+-USE_PAM=y
++#HAS_SHADOW=y
++#USE_PAM=y
+ #HAVE_INET6=y
+ 
+-PLUGIN=y
++#PLUGIN=y
+ 
+ INCLUDE_DIRS= -I../include
+ 
+-COMPILE_FLAGS= -D_linux_=1 -DHAVE_PATHS_H -DIPX_CHANGE -DHAVE_MULTILINK -DHAVE_MMAP
++COMPILE_FLAGS= -D_linux_=1 -DHAVE_PATHS_H -DHAVE_MULTILINK -DIPX_CHANGE
++ifndef UCLINUX
++	COMPILE_FLAGS += -DHAVE_MMAP -DCBCP_SUPPORT
++endif
+ 
+-CFLAGS= $(COPTS) $(COMPILE_FLAGS) $(INCLUDE_DIRS)
++CFLAGS+= $(COPTS) $(COMPILE_FLAGS) $(INCLUDE_DIRS)
+ 
+-COMPILE_FLAGS += -DCBCP_SUPPORT
+-PPPDOBJS += cbcp.o
+ 
+ ifdef CHAPMS
+ CFLAGS   += -DCHAPMS=1
+@@ -69,7 +94,7 @@
+ LIBS     := -ldes $(LIBS)
+ else
+ CFLAGS   += -DUSE_CRYPT=1
+-ifneq ($(wildcard /usr/include/crypt.h),)
++ifneq ($(wildcard $(LIBDIR)include/crypt.h),)
+ CFLAGS   += -DHAVE_CRYPT_H=1
+ endif
+ endif
+@@ -124,7 +149,7 @@
+ 
+ 
+ pppd: $(PPPDOBJS)
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o pppd $(PPPDOBJS) $(LIBS)
++	$(CC) $(CFLAGS) $(LDFLAGS) -o pppd $(PPPDOBJS) $(LIBS) $(LDLIBS)
+ 
+ clean:
+ 	rm -f $(PPPDOBJS) pppd *~ #* core
+Index: pppd/auth.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/auth.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/auth.c	2001/08/30 03:22:38	1.1
++++ pppd/auth.c	2001/08/30 18:35:51	1.2
+@@ -46,7 +46,7 @@
+ #include <sys/socket.h>
+ #include <utmp.h>
+ #include <fcntl.h>
+-#if defined(_PATH_LASTLOG) && defined(_linux_)
++#if defined(_PATH_LASTLOG) && defined(_linux_) && !defined(__embedded__)
+ #include <lastlog.h>
+ #endif
+ 
+@@ -1185,7 +1185,7 @@
+ 	tty += 5;
+     logwtmp(tty, user, remote_name);		/* Add wtmp login entry */
+ 
+-#if defined(_PATH_LASTLOG) && !defined(USE_PAM)
++#if defined(_PATH_LASTLOG) && !defined(USE_PAM) && !defined(__embedded__)
+     if (pw != (struct passwd *)NULL) {
+ 	    struct lastlog ll;
+ 	    int fd;
+Index: pppd/magic.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/magic.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/magic.c	2001/08/30 03:22:38	1.1
++++ pppd/magic.c	2001/08/30 18:35:51	1.2
+@@ -21,6 +21,7 @@
+ 
+ #include <stdio.h>
+ #include <unistd.h>
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/time.h>
+ 
+Index: pppd/main.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/main.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/main.c	2001/08/30 03:22:38	1.1
++++ pppd/main.c	2001/08/30 18:35:51	1.2
+@@ -742,7 +742,11 @@
+ 
+     if (detached)
+ 	return;
++#if !defined(__UCLIBC__) || defined(__UCLIBC_HAS_MMU__)
+     if ((pid = fork()) < 0) {
++#else
++    if ((pid = vfork()) < 0) {
++#endif
+ 	error("Couldn't detach (fork failed: %m)");
+ 	die(1);			/* or just return? */
+     }
+@@ -1349,7 +1353,11 @@
+     int errfd;
+ 
+     ++conn_running;
++#if !defined(__UCLIBC__) || defined(__UCLIBC_HAS_MMU__)
+     pid = fork();
++#else
++    pid = vfork();
++#endif
+ 
+     if (pid < 0) {
+ 	--conn_running;
+@@ -1457,7 +1465,11 @@
+ 	return 0;
+     }
+ 
++#if !defined(__UCLIBC__) || defined(__UCLIBC_HAS_MMU__)
+     pid = fork();
++#else
++    pid = vfork();
++#endif
+     if (pid == -1) {
+ 	error("Failed to create child process for %s: %m", prog);
+ 	return -1;
+Index: pppd/pathnames.h
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/pathnames.h,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/pathnames.h	2001/08/30 03:22:38	1.1
++++ pppd/pathnames.h	2001/08/30 18:35:51	1.2
+@@ -9,7 +9,11 @@
+ 
+ #else /* HAVE_PATHS_H */
+ #ifndef _PATH_VARRUN
+-#define _PATH_VARRUN 	"/etc/ppp/"
++	#ifndef __embedded__
++		#define _PATH_VARRUN 	"/etc/ppp/"
++	#else
++		#define _PATH_VARRUN 	"/var/run/"
++	#endif
+ #endif
+ #define _PATH_DEVNULL	"/dev/null"
+ #endif /* HAVE_PATHS_H */
+@@ -18,37 +22,45 @@
+ #define _ROOT_PATH
+ #endif
+ 
+-#define _PATH_UPAPFILE 	 _ROOT_PATH "/etc/ppp/pap-secrets"
+-#define _PATH_CHAPFILE 	 _ROOT_PATH "/etc/ppp/chap-secrets"
+-#define _PATH_SYSOPTIONS _ROOT_PATH "/etc/ppp/options"
+-#define _PATH_IPUP	 _ROOT_PATH "/etc/ppp/ip-up"
+-#define _PATH_IPDOWN	 _ROOT_PATH "/etc/ppp/ip-down"
+-#define _PATH_AUTHUP	 _ROOT_PATH "/etc/ppp/auth-up"
+-#define _PATH_AUTHDOWN	 _ROOT_PATH "/etc/ppp/auth-down"
+-#define _PATH_TTYOPT	 _ROOT_PATH "/etc/ppp/options."
+-#define _PATH_CONNERRS	 _ROOT_PATH "/etc/ppp/connect-errors"
+-#define _PATH_PEERFILES	 _ROOT_PATH "/etc/ppp/peers/"
+-#define _PATH_RESOLV	 _ROOT_PATH "/etc/ppp/resolv.conf"
++#ifdef __embedded__
++#define _PPP_CONF "/etc/config/"
++#endif
++
++#ifndef _PPP_CONF
++#define _PPP_CONF "/etc/ppp/"
++#endif
++
++#define _PATH_UPAPFILE 	 _ROOT_PATH _PPP_CONF "pap-secrets"
++#define _PATH_CHAPFILE 	 _ROOT_PATH _PPP_CONF "chap-secrets"
++#define _PATH_SYSOPTIONS _ROOT_PATH _PPP_CONF "options"
++#define _PATH_IPUP	 _ROOT_PATH _PPP_CONF "ip-up"
++#define _PATH_IPDOWN	 _ROOT_PATH _PPP_CONF "ip-down"
++#define _PATH_AUTHUP	 _ROOT_PATH _PPP_CONF "auth-up"
++#define _PATH_AUTHDOWN	 _ROOT_PATH _PPP_CONF "auth-down"
++#define _PATH_TTYOPT	 _ROOT_PATH _PPP_CONF "options."
++#define _PATH_CONNERRS	 _ROOT_PATH _PPP_CONF "connect-errors"
++#define _PATH_PEERFILES	 _ROOT_PATH _PPP_CONF "peers/"
++#define _PATH_RESOLV	 _ROOT_PATH _PPP_CONF "resolv.conf"
+ 
+ #define _PATH_USEROPT	 ".ppprc"
+ 
+ #ifdef INET6
+-#define _PATH_IPV6UP     _ROOT_PATH "/etc/ppp/ipv6-up"
+-#define _PATH_IPV6DOWN   _ROOT_PATH "/etc/ppp/ipv6-down"
++#define _PATH_IPV6UP     _ROOT_PATH _PPP_CONF "ipv6-up"
++#define _PATH_IPV6DOWN   _ROOT_PATH _PPP_CONF "ipv6-down"
+ #endif
+ 
+ #ifdef IPX_CHANGE
+-#define _PATH_IPXUP	 _ROOT_PATH "/etc/ppp/ipx-up"
+-#define _PATH_IPXDOWN	 _ROOT_PATH "/etc/ppp/ipx-down"
++#define _PATH_IPXUP	 _ROOT_PATH _PPP_CONF "ipx-up"
++#define _PATH_IPXDOWN	 _ROOT_PATH _PPP_CONF "ipx-down"
+ #endif /* IPX_CHANGE */
+ 
+ #ifdef __STDC__
+ #define _PATH_PPPDB	_ROOT_PATH _PATH_VARRUN "pppd.tdb"
+ #else /* __STDC__ */
+-#ifdef HAVE_PATHS_H
++#if defined(HAVE_PATHS_H) || defined(__embedded__)
+ #define _PATH_PPPDB	"/var/run/pppd.tdb"
+ #else
+-#define _PATH_PPPDB	"/etc/ppp/pppd.tdb"
++#define _PATH_PPPDB	_PPP_CONF "pppd.tdb"
+ #endif
+ #endif /* __STDC__ */
+ 
+Index: pppd/sys-linux.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/sys-linux.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/sys-linux.c	2001/08/30 03:22:38	1.1
++++ pppd/sys-linux.c	2001/08/30 18:35:51	1.2
+@@ -76,7 +76,7 @@
+ 
+ #ifdef IPX_CHANGE
+ #include "ipxcp.h"
+-#if __GLIBC__ >= 2 && \
++#if __GLIBC__ >= 2 && !defined(__UCLIBC__) && \
+     !(defined(__powerpc__) && __GLIBC__ == 2 && __GLIBC_MINOR__ == 0)
+ #include <netipx/ipx.h>
+ #else
+Index: pppd/tty.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppd/tty.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppd/tty.c	2001/08/30 03:22:38	1.1
++++ pppd/tty.c	2001/08/30 18:35:51	1.2
+@@ -829,7 +829,11 @@
+ {
+     int cpid;
+ 
++#if !defined(__UCLIBC__) || defined(__UCLIBC_HAS_MMU__)
+     cpid = fork();
++#else
++    cpid = vfork();
++#endif
+     if (cpid == -1) {
+ 	error("Can't fork process for character shunt: %m");
+ 	return 0;
+Index: pppdump/Makefile.linux
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppdump/Makefile.linux,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppdump/Makefile.linux	2001/08/30 03:22:38	1.1
++++ pppdump/Makefile.linux	2001/08/30 18:36:03	1.2
+@@ -1,4 +1,4 @@
+-CFLAGS= $(RPM_OPT_FLAGS) -I../include/net
++CFLAGS+= $(RPM_OPT_FLAGS) -I../include/net
+ OBJS = pppdump.o bsd-comp.o deflate.o zlib.o
+ 
+ INSTALL= install
+@@ -6,7 +6,7 @@
+ all:	pppdump
+ 
+ pppdump: $(OBJS)
+-	$(CC) -o pppdump $(OBJS)
++	$(CC) $(CFLAGS) $(LDFLAGS) -o pppdump $(OBJS) $(LDLIBS)
+ 
+ clean:
+ 	rm -f pppdump $(OBJS) *~
+Index: pppdump/pppdump.c
+===================================================================
+RCS file: /usr/local/cvsroot/ppp/pppdump/pppdump.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- pppdump/pppdump.c	2001/08/30 03:22:38	1.1
++++ pppdump/pppdump.c	2001/08/30 18:36:03	1.2
+@@ -15,6 +15,7 @@
+  */
+ #include <stdio.h>
+ #include <unistd.h>
++#include <stdlib.h>
+ #include <time.h>
+ #include <sys/types.h>
+ #include "ppp_defs.h"

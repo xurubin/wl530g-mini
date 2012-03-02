@@ -1,0 +1,9 @@
+Tools for Host AP driver
+
+wlansniff:
+	a simple 802.11 frame parser that shows both the Prism2-specific
+	data from the RX frame and parsed contents of the 802.11
+	frame
+
+Host AP driver must be setup to monitoring mode 2 (no Prism2-specific data) or
+3 (with Prism2-specific RX data), e.g., with 'iwpriv wlan0 monitor 3'.

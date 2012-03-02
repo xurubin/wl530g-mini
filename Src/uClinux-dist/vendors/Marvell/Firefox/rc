@@ -1,0 +1,22 @@
+insmod /lib/modules/unimac.o
+hostname Firefox
+/bin/expand /etc/ramfs.img /dev/ram0
+mount -t proc proc /proc
+mount -t ext2 /dev/ram0 /var
+mkdir /var/tmp
+mkdir /var/log
+mkdir /var/run
+mkdir /var/lock
+
+#Making the /etc directory RW
+/bin/expand /etc/ramfs.img /dev/ram1
+cp -r /etc /var
+mount -t ext2 /dev/ram1 /etc
+cp -r /var/etc /
+
+rgcfg -i
+
+/bin/ifconfig LAN 192.168.0.1
+#uncomment next line to make your Firefox board act as a home-gateway.
+source /etc/rc.net
+cat /etc/motd

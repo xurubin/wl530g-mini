@@ -1,0 +1,138 @@
+<head>
+<title>ZVMODELVZ Web Manager</title>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<link rel="stylesheet" type="text/css" href="style.css" media="screen"></link>
+<script language="JavaScript" type="text/javascript" src="overlib.js"></script>
+<script language="JavaScript" type="text/javascript" src="general.js"></script>
+</head>  
+<div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>    
+<body onLoad="load_body()" onunLoad="return unload_body();">
+<form method="GET" name="form" action="apply.cgi">
+<!-- Table for the conntent page -->	    
+<table width="666" border="0" cellpadding="0" cellspacing="0">     	      
+    	
+<input type="hidden" name="current_page" value="Advanced_DDNS_Content.asp"><input type="hidden" name="next_page" value="SaveRestart.asp"><input type="hidden" name="next_host" value=""><input type="hidden" name="sid_list" value="LANHostConfig;"><input type="hidden" name="group_id" value=""><input type="hidden" name="modified" value="0"><input type="hidden" name="action_mode" value=""><input type="hidden" name="first_time" value=""><input type="hidden" name="action_script" value="">
+<tr>
+<td>
+<table width="666" border="1" cellpadding="0" cellspacing="0" bordercolor="E0E0E0">
+<tr class="content_header_tr">
+<td class="content_header_td_title" colspan="2">IP 컨피규레이션 - 기타</td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('만일 UpnP를 활성화하고 있는 경우에는 Windows XP등의 운영 시스템이 자동으로 ZVMODELVZ를 발견합니다. 그리고 운영시스템이 게임, 비디오 컨퍼런스등 여러 종류의 인터넷 어플리케이션에 대하여 자동으로 ZVMODELVZ의 컨피규레이션을 할 수 있도록 합니다.', LEFT);" onMouseOut="return nd();">UpnP를 활성화하겠습니까?
+           </td><td class="content_input_td"><input type="radio" value="1" name="upnp_enable" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'upnp_enable', '1')" <% nvram_match_x("LANHostConfig","upnp_enable", "1", "checked"); %>>Yes</input><input type="radio" value="0" name="upnp_enable" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'upnp_enable', '0')" <% nvram_match_x("LANHostConfig","upnp_enable", "0", "checked"); %>>No</input></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 기능은 ZVMODELVZ의 로그 메시지를 기록하기 위하여 원격서버를 할당할 수 있도록 합니다. 공란으로 두면 시스템이 ZVMODELVZ에만 최대 1024개의 메시지를 기록하게 됩니다.', LEFT);" onMouseOut="return nd();">원격 로그 서버:
+           </td><td class="content_input_td"><input type="text" maxlength="15" class="content_input_fd" size="15" name="log_ipaddr" value="<% nvram_get_x("LANHostConfig","log_ipaddr"); %>" onBlur="return validate_ipaddr(this, 'log_ipaddr')" onKeyPress="return is_ipaddr(this)" onKeyUp="change_ipaddr(this)"></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 필드항목은 사용자가 위치한 지역의 시간영역을 표시합니다.', LEFT);" onMouseOut="return nd();">시간영역:
+           </td><td class="content_input_td"><select name="time_zone" class="content_input_fd" onChange="return change_common(this, 'LANHostConfig', 'time_zone')"><option class="content_input_fd" value="UCT11" <% nvram_match_x("LANHostConfig","time_zone", "UCT11","selected"); %>>(GMT-11:00) Midway Island, Samoa</option><option class="content_input_fd" value="UCT10" <% nvram_match_x("LANHostConfig","time_zone", "UCT10","selected"); %>>(GMT-10:00) Hawaii</option><option class="content_input_fd" value="NAST9NADT" <% nvram_match_x("LANHostConfig","time_zone", "NAST9NADT","selected"); %>>(GMT-09:00) Alaska</option><option class="content_input_fd" value="PST8PDT" <% nvram_match_x("LANHostConfig","time_zone", "PST8PDT","selected"); %>>(GMT-08:00) Pacific Time</option><option class="content_input_fd" value="MST7MDT" <% nvram_match_x("LANHostConfig","time_zone", "MST7MDT","selected"); %>>(GMT-07:00) Mountain Time</option><option class="content_input_fd" value="MST7" <% nvram_match_x("LANHostConfig","time_zone", "MST7","selected"); %>>(GMT-07:00) Arizona</option><option class="content_input_fd" value="CST6CDT" <% nvram_match_x("LANHostConfig","time_zone", "CST6CDT","selected"); %>>(GMT-06:00) Central Time</option><option class="content_input_fd" value="UCT6" <% nvram_match_x("LANHostConfig","time_zone", "UCT6","selected"); %>>(GMT-06:00) Middle America</option><option class="content_input_fd" value="UCT5" <% nvram_match_x("LANHostConfig","time_zone", "UCT5","selected"); %>>(GMT-05:00) Indiana East, Colombia</option><option class="content_input_fd" value="EST5EDT" <% nvram_match_x("LANHostConfig","time_zone", "EST5EDT","selected"); %>>(GMT-05:00) Eastern Time</option><option class="content_input_fd" value="AST4ADT" <% nvram_match_x("LANHostConfig","time_zone", "AST4ADT","selected"); %>>(GMT-04:00) Atlantic Time, Brazil West</option><option class="content_input_fd" value="UCT4" <% nvram_match_x("LANHostConfig","time_zone", "UCT4","selected"); %>>(GMT-04:00) Bolivia, Venezuela</option><option class="content_input_fd" value="UCT3" <% nvram_match_x("LANHostConfig","time_zone", "UCT3","selected"); %>>(GMT-03:00) Guyana</option><option class="content_input_fd" value="EBST3EBDT" <% nvram_match_x("LANHostConfig","time_zone", "EBST3EBDT","selected"); %>>(GMT-03:00) Brazil East, Greenland</option><option class="content_input_fd" value="NORO2" <% nvram_match_x("LANHostConfig","time_zone", "NORO2","selected"); %>>(GMT-02:00) Mid-Atlantic</option><option class="content_input_fd" value="UCT0" <% nvram_match_x("LANHostConfig","time_zone", "UCT0","selected"); %>>(GMT) Gambia, Liberia, Morocco</option><option class="content_input_fd" value="GMT0BST" <% nvram_match_x("LANHostConfig","time_zone", "GMT0BST","selected"); %>>(GMT) England</option><option class="content_input_fd" value="MET-1METDST" <% nvram_match_x("LANHostConfig","time_zone", "MET-1METDST","selected"); %>>(GMT+01:00) Netherland, France, Italy</option><option class="content_input_fd" value="MEZ-1MESZ" <% nvram_match_x("LANHostConfig","time_zone", "MEZ-1MESZ","selected"); %>>(GMT+01:00) Germany</option><option class="content_input_fd" value="UCT-1" <% nvram_match_x("LANHostConfig","time_zone", "UCT-1","selected"); %>>(GMT+01:00) Tunisia</option><option class="content_input_fd" value="EET-2EETDST" <% nvram_match_x("LANHostConfig","time_zone", "EET-2EETDST","selected"); %>>(GMT+02:00) Greece, Ukraine, Turkey</option><option class="content_input_fd" value="SAST-2" <% nvram_match_x("LANHostConfig","time_zone", "SAST-2","selected"); %>>(GMT+02:00) South Africa</option><option class="content_input_fd" value="IST-3IDT" <% nvram_match_x("LANHostConfig","time_zone", "IST-3IDT","selected"); %>>(GMT+03:00) Iraq, Jordan, Kuwait</option><option class="content_input_fd" value="MSK-3MSD" <% nvram_match_x("LANHostConfig","time_zone", "MSK-3MSD","selected"); %>>(GMT+03:00) Moscow Winter Time</option><option class="content_input_fd" value="UCT-4" <% nvram_match_x("LANHostConfig","time_zone", "UCT-4","selected"); %>>(GMT+04:00) Armenia</option><option class="content_input_fd" value="UCT-5" <% nvram_match_x("LANHostConfig","time_zone", "UCT-5","selected"); %>>(GMT+05:00) Pakistan, Russia</option><option class="content_input_fd" value="UCT-6" <% nvram_match_x("LANHostConfig","time_zone", "UCT-6","selected"); %>>(GMT+06:00) Bangladesh, Russia</option><option class="content_input_fd" value="UCT-7" <% nvram_match_x("LANHostConfig","time_zone", "UCT-7","selected"); %>>(GMT+07:00) Thailand, Russia</option><option class="content_input_fd" value="CST-8" <% nvram_match_x("LANHostConfig","time_zone", "CST-8","selected"); %>>(GMT+08:00) China Coast, Hong Kong</option><option class="content_input_fd" value="CCT-8" <% nvram_match_x("LANHostConfig","time_zone", "CCT-8","selected"); %>>(GMT+08:00) Taipei</option><option class="content_input_fd" value="SST-8" <% nvram_match_x("LANHostConfig","time_zone", "SST-8","selected"); %>>(GMT+08:00) Singapore</option><option class="content_input_fd" value="WAS-8WAD" <% nvram_match_x("LANHostConfig","time_zone", "WAS-8WAD","selected"); %>>(GMT+08:00) Australia West</option><option class="content_input_fd" value="JST-9" <% nvram_match_x("LANHostConfig","time_zone", "JST-9","selected"); %>>(GMT+09:00) Japan, Korea</option><option class="content_input_fd" value="KST-9KDT" <% nvram_match_x("LANHostConfig","time_zone", "KST-9KDT","selected"); %>>(GMT+09:00) Korean</option><option class="content_input_fd" value="UCT-10" <% nvram_match_x("LANHostConfig","time_zone", "UCT-10","selected"); %>>(GMT+10:00) Guam, Russia</option><option class="content_input_fd" value="EST-10EDT" <% nvram_match_x("LANHostConfig","time_zone", "EST-10EDT","selected"); %>>(GMT+10:00) Australia</option><option class="content_input_fd" value="UCT-11" <% nvram_match_x("LANHostConfig","time_zone", "UCT-11","selected"); %>>(GMT+11:00) Solomon Islands</option><option class="content_input_fd" value="UCT-12" <% nvram_match_x("LANHostConfig","time_zone", "UCT-12","selected"); %>>(GMT+12:00) Fiji</option><option class="content_input_fd" value="NZST-12NZDT" <% nvram_match_x("LANHostConfig","time_zone", "NZST-12NZDT","selected"); %>>(GMT+12:00) New Zealand</option></select></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('시스템 시간을 싱크로나이징하기 위하여 사용되는 NTP 서버', LEFT);" onMouseOut="return nd();">NTP 서버
+           </td><td class="content_input_td"><input type="text" maxlength="256" class="content_input_fd" size="32" name="ntp_server0" value="<% nvram_get_x("LANHostConfig","ntp_server0"); %>" onKeyPress="return is_string(this)" onBlur="validate_string(this)"><a href="javascript:openLink('x_NTPServer1')" class="content_input_link" name="x_NTPServer1_link">NTP 링크
+             </a></td>
+</tr>
+<tr class="content_section_header_tr">
+<td class="content_section_header_td" colspan="2">DDNS 설정
+            </td>
+</tr>
+<tr>
+<td class="content_desc_td" colspan="2">유동DNS (DDNS)는 고정 IP주소가 아니더라도 서버가 특정한 이름을 갖고 인터넷으로 연결될 수 있도록 합니다. 현재 몇몇 DDNS 클라이언트는 ZVMODELVZ에 내재되어 있습니다. 아래의 무료 트라이얼을 클릭하여 무료 트라이얼 계정을 오픈할 수 있습니다.
+         </td>
+</tr>
+<tr>
+<td class="content_header_td">DDNS 클라이언트를 활성화하겠습니까?
+           </td><td class="content_input_td"><input type="radio" value="1" name="ddns_enable_x" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'ddns_enable_x', '1')" <% nvram_match_x("LANHostConfig","ddns_enable_x", "1", "checked"); %>>Yes</input><input type="radio" value="0" name="ddns_enable_x" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'ddns_enable_x', '0')" <% nvram_match_x("LANHostConfig","ddns_enable_x", "0", "checked"); %>>No</input></td>
+</tr>
+<tr>
+<td class="content_header_td">서버:
+           </td><td class="content_input_td"><select name="ddns_server_x" class="content_input_fd" onChange="return change_common(this, 'LANHostConfig', 'ddns_server_x')"><option class="content_input_fd" value="WWW.DYNDNS.ORG" <% nvram_match_x("LANHostConfig","ddns_server_x", "WWW.DYNDNS.ORG","selected"); %>>WWW.DYNDNS.ORG</option><option class="content_input_fd" value="WWW.DYNDNS.ORG(CUSTOM)" <% nvram_match_x("LANHostConfig","ddns_server_x", "WWW.DYNDNS.ORG(CUSTOM)","selected"); %>>WWW.DYNDNS.ORG(CUSTOM)</option><option class="content_input_fd" value="WWW.DYNDNS.ORG(STATIC)" <% nvram_match_x("LANHostConfig","ddns_server_x", "WWW.DYNDNS.ORG(STATIC)","selected"); %>>WWW.DYNDNS.ORG(STATIC)</option><option class="content_input_fd" value="WWW.TZO.COM" <% nvram_match_x("LANHostConfig","ddns_server_x", "WWW.TZO.COM","selected"); %>>WWW.TZO.COM</option><option class="content_input_fd" value="WWW.ZONEEDIT.COM" <% nvram_match_x("LANHostConfig","ddns_server_x", "WWW.ZONEEDIT.COM","selected"); %>>WWW.ZONEEDIT.COM</option></select><a href="javascript:openLink('x_DDNSServer')" class="content_input_link" name="x_DDNSServer_link">무료 트라이얼
+             </a></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 필드항목은 유동 DNS 서비스 로그인을 식별하기 위하여 사용합니다.', LEFT);" onMouseOut="return nd();">사용자 이름 또는 이메일 주소:
+           </td><td class="content_input_td"><input type="text" maxlength="32" class="content_input_fd" size="32" name="ddns_username_x" value="<% nvram_get_x("LANHostConfig","ddns_username_x"); %>" onKeyPress="return is_string(this)" onBlur="validate_string(this)"></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 필드항목은 유동 DNS 서비스 로그인을 위한 비밀번호로 사용합니다.', LEFT);" onMouseOut="return nd();">비밀번호 또는DDNS 키:
+           </td><td class="content_input_td"><input type="password" maxlength="64" class="content_input_fd" size="32" name="ddns_passwd_x" value="<% nvram_get_x("LANHostConfig","ddns_passwd_x"); %>" onBlur="validate_string(this)"></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 필드항목은 유동 DNS 서비스 등록과 공시 호스트 이름을 나타냅니다.', LEFT);" onMouseOut="return nd();">호스트 이름:
+           </td><td class="content_input_td"><input type="text" maxlength="32" class="content_input_fd" size="32" name="ddns_hostname_x" value="<% nvram_get_x("LANHostConfig","ddns_hostname_x"); %>" onKeyPress="return is_string(this)" onBlur="validate_string(this)"></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('본 필드항목은 와일드카드를 가진 도메인 이름이 사용자의 IP주소로도 제한될 지의 여부를 결정합니다.', LEFT);" onMouseOut="return nd();">와일드카드를 활성화하겠습니까?
+           </td><td class="content_input_td"><input type="radio" value="1" name="ddns_wildcard_x" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'ddns_wildcard_x', '1')" <% nvram_match_x("LANHostConfig","ddns_wildcard_x", "1", "checked"); %>>Yes</input><input type="radio" value="0" name="ddns_wildcard_x" class="content_input_fd" onClick="return change_common_radio(this, 'LANHostConfig', 'ddns_wildcard_x', '0')" <% nvram_match_x("LANHostConfig","ddns_wildcard_x", "0", "checked"); %>>No</input></td>
+</tr>
+<tr>
+<td class="content_header_td" onMouseOver="return overlib('이 버튼으로 DDNS  데이터베이스를 수동 업데이트할 수 있습니다. 자동DDNS 업데이트가 실패한 경우만 이용 가능합니다. 시스템 로그에서 DDNS 업데이트의 현재상태를 알 수 있습니다.', LEFT);" onMouseOut="return nd();">수동 업데이트:
+           </td><td class="content_input_td"><input type="hidden" maxlength="15" class="content_input_fd_ro" size="12" name="" value="<% nvram_get_f("ddns.log","DDNSStatus"); %>"><input type="submit" maxlength="15" class="content_input_fd_ro" onClick="return onSubmitApply('ddnsclient')" size="12" name="LANHostConfig_x_DDNSStatus_button" value="업데이트"></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<table width="666" border="2" cellpadding="0" cellspacing="0" bordercolor="E0E0E0"></table>
+</td>
+</tr>
+<tr>
+<td>
+<table width="666" border="2" cellpadding="0" cellspacing="0" bordercolor="E0E0E0"></table>
+</td>
+</tr>
+<tr>
+<td>
+<table width="666" border="2" cellpadding="0" cellspacing="0" bordercolor="E0E0E0"></table>
+</td>
+</tr>
+<tr>
+<td>		
+<table width="666" border="1" cellpadding="0" cellspacing="0" bordercolor="B0B0B0">
+<tr bgcolor="#CCCCCC"><td colspan="3"><font face="arial" size="2"><b>&nbsp</b></font></td></tr>
+<tr bgcolor="#FFFFFF">  
+   <td id ="Confirm" height="25" width="34%">  
+   <div align="center"><font face="Arial"> <input class=inputSubmit onMouseOut=buttonOut(this) onMouseOver="buttonOver(this)" onClick="onSubmitCtrl(this, ' Restore ')" type="submit" value=" 복구 " name="action"></font></div> 
+   </td>  
+   <td height="25" width="33%">  
+   <div align="center"><font face="Arial"> <input class=inputSubmit onMouseOut=buttonOut(this) onMouseOver="buttonOver(this)" onClick="onSubmitCtrl(this, ' Finish ')" type="submit" value=" 마침 " name="action"></font></div> 
+   </td>
+   <td height="25" width="33%">  
+   <div align="center"><font face="Arial"> <input class=inputSubmit onMouseOut=buttonOut(this) onMouseOver="buttonOver(this)" onClick="onSubmitCtrl(this, ' Apply ')" type="submit" value=" 적용 " name="action"></font></div> 
+   </td>    
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td>
+<table width="666" border="1" cellpadding="0" cellspacing="0" bordercolor="B0B0B0">
+<tr>
+    <td colspan="2" width="616" height="25" bgcolor="#FFBB00"></td> 
+</tr>                   
+<tr bgcolor="#FFFFFF">
+    <td class="content_header_td_15" align="left">복구: </td>
+    <td class="content_input_td_padding" align="left">상기 설정을 취소하고 설정복구를 유효화합니다.</td>
+</tr>
+<tr bgcolor="#FFFFFF">
+    <td class="content_header_td_15" align="left">마침: </td>
+    <td class="content_input_td_padding" align="left">모든 설정을 확인하고 ZVMODELVZ를 지금 다시 시작합니다.</td>
+</tr>
+<tr bgcolor="#FFFFFF">
+    <td class="content_header_td_15" align="left">적용: </td>
+    <td class="content_input_td_padding" align="left">상기설정을 확인하고 계속합니다.</td>
+</tr>
+</table>
+</td>
+</tr>
+
+</table>
+</form>
+</body>

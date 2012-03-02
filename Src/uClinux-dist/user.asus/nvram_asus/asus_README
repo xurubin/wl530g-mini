@@ -1,0 +1,6 @@
+* Directory Content
+  nvram control, nvram, for Marvell solution on uClinux platform
+
+* How to generate image
+  1. make to generate nvram_mod.o
+  2. arm-elf-gcc nvram_test.c -o nvram -Wl,-elf2flt="" to generate nvram

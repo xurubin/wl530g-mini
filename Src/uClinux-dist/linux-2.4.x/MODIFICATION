@@ -1,0 +1,4 @@
+1. drivers/mtd/map/libertas.c
+2. net/ipv4/netfilter/ipt_time.c, *autofw*
+3. arch/armnommu/mm/proc-arm946.S
+4. arch/armnommu/boot/compressed/linux.lds.in

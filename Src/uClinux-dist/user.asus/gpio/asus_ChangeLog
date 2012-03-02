@@ -1,0 +1,42 @@
+2002/04/17 12:00 by JY Weng
+ 1. Modification:
+	- modify from 20030415
+	- for bugrst(GPIO3)
+		- set init state to low
+
+2002/04/15 17:00 by JY Weng
+ 1. Modification:
+	- modify from 20030317
+	- for bugrst(GPIO3)
+	- when resetting to default, 11A and 11B not blinking
+
+2002/03/17 18:00 by JY Weng
+ 1. Modification:
+	- modify from 20030122
+	- for power and 11b setting differences(GPIO0 and GPIO3)
+
+2002/01/22 18:00 by Chen-I Shen
+ 1. Modification: 
+	- Reset until watchdog delivering pid second times
+	- Stop blink light after 5 seconds	    
+
+2002/11/26 16:00 by Chen-I Shen
+ 1. Modification: reduce interference from interrupt
+2002/11/13 19:00 by Chen-I Shen
+ 1. Modification: Interrupt will be disabled while user press button during system booting up
+ 2. Bug fixed: error detection on some critical time
+
+2002/11/04 10:00 by Chen-I Shen
+ For WL600 H/W
+ 1. version: v.01 (updated from v0.1 of WL500)
+ 2. Conditional compile for WL600(But no test for backward compatible to WL500)
+ 3. Detect reset to defalut by polling or interrupt(selected by conditional compile)
+	and send signal to user space handler
+2002/04/18 13:20 by Chia-Ming Chang
+ For new H/W (v1.3) with different GPIO definition of LAN
+ 1. version: v0.1 (updated from kernel source v1.3 2002040315)
+ 2. Conditional compile for different Hardware version
+ 3. LAN algorithm with 4 pots of Ether_Switch
+    -- Polling algorithm to check connection state because tx/rx also
+       generate interrupt to CPU.
+

@@ -1,0 +1,36 @@
+#
+# milli_httpd Makefile
+#
+# Copyright (C) 2001 Broadcom Corporation
+#
+# $Id: Makefile,v 1.2 2003/11/17 13:34:10 Cheni_Shen Exp $
+#
+
+CFLAGS	+= -I. -Wall -Dlinux -DNO_PARALLEL #-DWL300g
+#CFLAGS	+= -g -DDEBUG
+#CFLAGS	+= -s -O2 
+#LDFLAGS	+= -L$(TOP)/nvram
+INSTALLDIR = /root/broadcom/target
+CC = mipsel-linux-gcc
+STRIP = mipsel-linux-strip
+
+vpath %.c $(TOP)/shared
+
+all: infosvr
+
+clean:
+	rm -f *.o *~ infosvr
+
+install: all
+# Neo
+#	install -d $(INSTALLDIR)/usr/sbin
+#	install httpd $(INSTALLDIR)/usr/sbin
+#	$(STRIP) $(INSTALLDIR)/usr/sbin/httpd
+
+	install -d $(INSTALLDIR)/sbin
+	$(STRIP) infosvr
+	install infosvr $(INSTALLDIR)/sbin
+
+infosvr: ./infosvr.o 
+	$(CC) -o $@ $^ $(LDFLAGS)
+

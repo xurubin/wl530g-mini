@@ -1,0 +1,232 @@
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/kernel'
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/kernel'
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/usl'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/usl'
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/cli'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/cli'
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/plugins'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/plugins'
+make[1]: Entering directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/pppd'
+gcc -o pppol2tp.so -shared -g -isystem ../kernel/include -I.. -I/usr/include/pppd  -fPIC -D_linux_=1 pppol2tp.c ../l2tp_event_rpc_xdr.o ../l2tp_event_rpc_client.o
+pppol2tp.c:25:18: pppd.h: No such file or directory
+pppol2tp.c:26:23: pathnames.h: No such file or directory
+pppol2tp.c:27:17: fsm.h: No such file or directory
+pppol2tp.c:28:17: lcp.h: No such file or directory
+pppol2tp.c:29:17: ccp.h: No such file or directory
+pppol2tp.c:30:18: ipcp.h: No such file or directory
+pppol2tp.c:50: `VERSION' undeclared here (not in a function)
+pppol2tp.c:56: parse error before "pppol2tp_lns_mode"
+pppol2tp.c:56: warning: data definition has no type or storage class
+pppol2tp.c:57: parse error before "pppol2tp_recv_seq"
+pppol2tp.c:57: warning: data definition has no type or storage class
+pppol2tp.c:58: parse error before "pppol2tp_send_seq"
+pppol2tp.c:58: warning: data definition has no type or storage class
+pppol2tp.c:72: parse error before "pppol2tp_options"
+pppol2tp.c:73: warning: braces around scalar initializer
+pppol2tp.c:73: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:73: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:73: `o_special' undeclared here (not in a function)
+pppol2tp.c:73: warning: excess elements in scalar initializer
+pppol2tp.c:73: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:73: warning: excess elements in scalar initializer
+pppol2tp.c:73: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:74: warning: excess elements in scalar initializer
+pppol2tp.c:74: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:74: `OPT_DEVNAM' undeclared here (not in a function)
+pppol2tp.c:74: `OPT_A2STRVAL' undeclared here (not in a function)
+pppol2tp.c:74: warning: excess elements in scalar initializer
+pppol2tp.c:74: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:75: warning: excess elements in scalar initializer
+pppol2tp.c:75: warning: (near initialization for `pppol2tp_options[0]')
+pppol2tp.c:76: warning: braces around scalar initializer
+pppol2tp.c:76: warning: (near initialization for `pppol2tp_options[1]')
+pppol2tp.c:76: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:76: `o_bool' undeclared here (not in a function)
+pppol2tp.c:76: warning: excess elements in scalar initializer
+pppol2tp.c:76: warning: (near initialization for `pppol2tp_options[1]')
+pppol2tp.c:76: warning: excess elements in scalar initializer
+pppol2tp.c:76: warning: (near initialization for `pppol2tp_options[1]')
+pppol2tp.c:77: warning: excess elements in scalar initializer
+pppol2tp.c:77: warning: (near initialization for `pppol2tp_options[1]')
+pppol2tp.c:78: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:78: `OPRIO_CFGFILE' undeclared here (not in a function)
+pppol2tp.c:78: warning: excess elements in scalar initializer
+pppol2tp.c:78: warning: (near initialization for `pppol2tp_options[1]')
+pppol2tp.c:79: warning: braces around scalar initializer
+pppol2tp.c:79: warning: (near initialization for `pppol2tp_options[2]')
+pppol2tp.c:79: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:79: `o_bool' undeclared here (not in a function)
+pppol2tp.c:79: warning: excess elements in scalar initializer
+pppol2tp.c:79: warning: (near initialization for `pppol2tp_options[2]')
+pppol2tp.c:79: warning: excess elements in scalar initializer
+pppol2tp.c:79: warning: (near initialization for `pppol2tp_options[2]')
+pppol2tp.c:80: warning: excess elements in scalar initializer
+pppol2tp.c:80: warning: (near initialization for `pppol2tp_options[2]')
+pppol2tp.c:81: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:81: `OPRIO_CFGFILE' undeclared here (not in a function)
+pppol2tp.c:81: warning: excess elements in scalar initializer
+pppol2tp.c:81: warning: (near initialization for `pppol2tp_options[2]')
+pppol2tp.c:82: warning: braces around scalar initializer
+pppol2tp.c:82: warning: (near initialization for `pppol2tp_options[3]')
+pppol2tp.c:82: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:82: `o_bool' undeclared here (not in a function)
+pppol2tp.c:82: warning: excess elements in scalar initializer
+pppol2tp.c:82: warning: (near initialization for `pppol2tp_options[3]')
+pppol2tp.c:82: warning: excess elements in scalar initializer
+pppol2tp.c:82: warning: (near initialization for `pppol2tp_options[3]')
+pppol2tp.c:83: warning: excess elements in scalar initializer
+pppol2tp.c:83: warning: (near initialization for `pppol2tp_options[3]')
+pppol2tp.c:84: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:84: `OPRIO_CFGFILE' undeclared here (not in a function)
+pppol2tp.c:84: warning: excess elements in scalar initializer
+pppol2tp.c:84: warning: (near initialization for `pppol2tp_options[3]')
+pppol2tp.c:85: warning: braces around scalar initializer
+pppol2tp.c:85: warning: (near initialization for `pppol2tp_options[4]')
+pppol2tp.c:85: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:85: `o_int' undeclared here (not in a function)
+pppol2tp.c:85: warning: excess elements in scalar initializer
+pppol2tp.c:85: warning: (near initialization for `pppol2tp_options[4]')
+pppol2tp.c:85: warning: excess elements in scalar initializer
+pppol2tp.c:85: warning: (near initialization for `pppol2tp_options[4]')
+pppol2tp.c:86: warning: excess elements in scalar initializer
+pppol2tp.c:86: warning: (near initialization for `pppol2tp_options[4]')
+pppol2tp.c:87: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:87: warning: excess elements in scalar initializer
+pppol2tp.c:87: warning: (near initialization for `pppol2tp_options[4]')
+pppol2tp.c:88: warning: braces around scalar initializer
+pppol2tp.c:88: warning: (near initialization for `pppol2tp_options[5]')
+pppol2tp.c:88: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:88: `o_int' undeclared here (not in a function)
+pppol2tp.c:88: warning: excess elements in scalar initializer
+pppol2tp.c:88: warning: (near initialization for `pppol2tp_options[5]')
+pppol2tp.c:88: warning: excess elements in scalar initializer
+pppol2tp.c:88: warning: (near initialization for `pppol2tp_options[5]')
+pppol2tp.c:89: warning: excess elements in scalar initializer
+pppol2tp.c:89: warning: (near initialization for `pppol2tp_options[5]')
+pppol2tp.c:90: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:90: warning: excess elements in scalar initializer
+pppol2tp.c:90: warning: (near initialization for `pppol2tp_options[5]')
+pppol2tp.c:91: warning: braces around scalar initializer
+pppol2tp.c:91: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:91: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:91: `o_string' undeclared here (not in a function)
+pppol2tp.c:91: warning: excess elements in scalar initializer
+pppol2tp.c:91: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:91: warning: excess elements in scalar initializer
+pppol2tp.c:91: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:92: warning: excess elements in scalar initializer
+pppol2tp.c:92: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:93: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:93: `OPT_PRIV' undeclared here (not in a function)
+pppol2tp.c:93: `OPT_STATIC' undeclared here (not in a function)
+pppol2tp.c:93: warning: excess elements in scalar initializer
+pppol2tp.c:93: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:93: warning: excess elements in scalar initializer
+pppol2tp.c:93: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:93: warning: excess elements in scalar initializer
+pppol2tp.c:93: warning: (near initialization for `pppol2tp_options[6]')
+pppol2tp.c:94: warning: braces around scalar initializer
+pppol2tp.c:94: warning: (near initialization for `pppol2tp_options[7]')
+pppol2tp.c:94: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:94: `o_int' undeclared here (not in a function)
+pppol2tp.c:94: warning: excess elements in scalar initializer
+pppol2tp.c:94: warning: (near initialization for `pppol2tp_options[7]')
+pppol2tp.c:94: warning: excess elements in scalar initializer
+pppol2tp.c:94: warning: (near initialization for `pppol2tp_options[7]')
+pppol2tp.c:95: warning: excess elements in scalar initializer
+pppol2tp.c:95: warning: (near initialization for `pppol2tp_options[7]')
+pppol2tp.c:96: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:96: warning: excess elements in scalar initializer
+pppol2tp.c:96: warning: (near initialization for `pppol2tp_options[7]')
+pppol2tp.c:97: warning: braces around scalar initializer
+pppol2tp.c:97: warning: (near initialization for `pppol2tp_options[8]')
+pppol2tp.c:97: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:97: `o_int' undeclared here (not in a function)
+pppol2tp.c:97: warning: excess elements in scalar initializer
+pppol2tp.c:97: warning: (near initialization for `pppol2tp_options[8]')
+pppol2tp.c:97: warning: excess elements in scalar initializer
+pppol2tp.c:97: warning: (near initialization for `pppol2tp_options[8]')
+pppol2tp.c:98: warning: excess elements in scalar initializer
+pppol2tp.c:98: warning: (near initialization for `pppol2tp_options[8]')
+pppol2tp.c:99: `OPT_PRIO' undeclared here (not in a function)
+pppol2tp.c:99: warning: excess elements in scalar initializer
+pppol2tp.c:99: warning: (near initialization for `pppol2tp_options[8]')
+pppol2tp.c:100: warning: braces around scalar initializer
+pppol2tp.c:100: warning: (near initialization for `pppol2tp_options[9]')
+pppol2tp.c:100: warning: initialization makes integer from pointer without a cast
+pppol2tp.c:101: warning: data definition has no type or storage class
+pppol2tp.c: In function `setdevname_pppol2tp':
+pppol2tp.c:136: `modem' undeclared (first use in this function)
+pppol2tp.c:136: (Each undeclared identifier is reported only once
+pppol2tp.c:136: for each function it appears in.)
+pppol2tp.c:138: `lcp_allowoptions' undeclared (first use in this function)
+pppol2tp.c:139: `lcp_wantoptions' undeclared (first use in this function)
+pppol2tp.c:144: `ccp_allowoptions' undeclared (first use in this function)
+pppol2tp.c:145: `ccp_wantoptions' undeclared (first use in this function)
+pppol2tp.c:147: `ipcp_allowoptions' undeclared (first use in this function)
+pppol2tp.c:148: `ipcp_wantoptions' undeclared (first use in this function)
+pppol2tp.c:153: `the_channel' undeclared (first use in this function)
+pppol2tp.c: In function `send_config_pppol2tp':
+pppol2tp.c:195: `ifname' undeclared (first use in this function)
+pppol2tp.c:200: `ifunit' undeclared (first use in this function)
+pppol2tp.c:206: `lcp_allowoptions' undeclared (first use in this function)
+pppol2tp.c: In function `recv_config_pppol2tp':
+pppol2tp.c:253: `lcp_allowoptions' undeclared (first use in this function)
+pppol2tp.c:257: `ifunit' undeclared (first use in this function)
+pppol2tp.c: In function `pppol2tp_lcp_snoop':
+pppol2tp.c:332: syntax error before "got_send_accm"
+pppol2tp.c:333: syntax error before "got_recv_accm"
+pppol2tp.c:336: syntax error before "snooping"
+pppol2tp.c:365: `snooping' undeclared (first use in this function)
+pppol2tp.c:382: `CONFACK' undeclared (first use in this function)
+pppol2tp.c:382: `CONFREJ' undeclared (first use in this function)
+pppol2tp.c:408: `CI_ASYNCMAP' undeclared (first use in this function)
+pppol2tp.c:417: `got_recv_accm' undeclared (first use in this function)
+pppol2tp.c:418: `got_send_accm' undeclared (first use in this function)
+pppol2tp.c: In function `pppol2tp_check_options':
+pppol2tp.c:473: `snoop_recv_hook' undeclared (first use in this function)
+pppol2tp.c:474: `snoop_send_hook' undeclared (first use in this function)
+pppol2tp.c: At top level:
+pppol2tp.c:504: variable `pppol2tp_channel' has initializer but incomplete type
+pppol2tp.c:505: unknown field `options' specified in initializer
+pppol2tp.c:505: warning: excess elements in struct initializer
+pppol2tp.c:505: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:506: unknown field `process_extra_options' specified in initializer
+pppol2tp.c:506: warning: excess elements in struct initializer
+pppol2tp.c:506: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:507: unknown field `check_options' specified in initializer
+pppol2tp.c:507: warning: excess elements in struct initializer
+pppol2tp.c:507: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:508: unknown field `connect' specified in initializer
+pppol2tp.c:508: warning: excess elements in struct initializer
+pppol2tp.c:508: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:509: unknown field `disconnect' specified in initializer
+pppol2tp.c:509: warning: excess elements in struct initializer
+pppol2tp.c:509: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:510: unknown field `establish_ppp' specified in initializer
+pppol2tp.c:510: `generic_establish_ppp' undeclared here (not in a function)
+pppol2tp.c:510: warning: excess elements in struct initializer
+pppol2tp.c:510: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:511: unknown field `disestablish_ppp' specified in initializer
+pppol2tp.c:511: `generic_disestablish_ppp' undeclared here (not in a function)
+pppol2tp.c:511: warning: excess elements in struct initializer
+pppol2tp.c:511: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:512: unknown field `send_config' specified in initializer
+pppol2tp.c:512: warning: excess elements in struct initializer
+pppol2tp.c:512: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:513: unknown field `recv_config' specified in initializer
+pppol2tp.c:513: warning: excess elements in struct initializer
+pppol2tp.c:513: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:514: unknown field `close' specified in initializer
+pppol2tp.c:514: warning: excess elements in struct initializer
+pppol2tp.c:514: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:515: unknown field `cleanup' specified in initializer
+pppol2tp.c:516: warning: excess elements in struct initializer
+pppol2tp.c:516: warning: (near initialization for `pppol2tp_channel')
+pppol2tp.c:504: storage size of `pppol2tp_channel' isn't known
+make[1]: *** [pppol2tp.so] Error 1
+make[1]: Leaving directory `/Marvell/Src/uClinux-dist/user/pppd/pppd/plugins/openl2tp/pppd'
+make: *** [subdirs-all] Error 1

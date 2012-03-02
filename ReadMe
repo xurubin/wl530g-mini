@@ -1,0 +1,33 @@
+* Setup Environment and Toolchain
+
+	On Linux host(log in with root account), please do the following to the environment and toolchain ready on the Linux host.
+		
+	#cd\
+
+	#tar xvfz GPL_x.x.x.x.tar.gz on 
+	  
+
+	#sh /Marvell/Tools/arm-elf-tools-=20030314.sh
+
+	The installation will overwrite some files/directories under /usr/local and its sub-directories(especially /usr/local/arm-elf), so please back up those directories if needed.
+
+* Building uClinux kernel and applications
+
+	Generate kernel and original applications
+
+	#cd /Marvell/Src/uClinux-dist
+	#make
+	#cp /Marvell/Src/uClinux-dist/linux-2.4.x/arch/armnommu/boot/zImage /Marvell/Src/uClinux-dist/filesystem
+
+
+	Generate ASUS related applications
+
+	#cd /Marvell/Src/uClinux-dist/user.asus/${APP}
+	#make
+	#cp ${APP} /Marvell/Src/uClinux-dist/filesystem/target/bin/.
+	
+
+	Generate images
+	#cd /Marvell/Src/uClinux-dist/filesystem
+	#make images-WL530g   
+
