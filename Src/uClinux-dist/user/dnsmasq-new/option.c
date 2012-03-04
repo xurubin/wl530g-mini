@@ -2834,7 +2834,7 @@ static void read_file(char *file, FILE *f, int hard_opt)
   
   while (fgets(buff, MAXDNAME, f))
     {
-      int white, i, option; ;
+      int white, i, option;
       char *errmess, *p, *arg, *start;
       size_t len;
 

@@ -596,7 +596,7 @@ struct tftp_file {
   off_t size;
   dev_t dev;
   ino_t inode;
-  char filename[];
+  char filename[0];
 };
 
 struct tftp_transfer {

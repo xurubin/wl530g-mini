@@ -611,7 +611,7 @@ static ssize_t tftp_err(int err, char *packet, char *message, char *file)
 {
   struct errmess {
     unsigned short op, err;
-    char message[];
+    char message[0];
   } *mess = (struct errmess *)packet;
   ssize_t ret = 4;
   char *errstr = strerror(errno);
@@ -638,7 +638,7 @@ static ssize_t get_block(char *packet, struct tftp_transfer *transfer)
       char *p;
       struct oackmess {
 	unsigned short op;
-	char data[];
+	char data[0];
       } *mess = (struct oackmess *)packet;
       
       p = mess->data;
@@ -661,7 +661,7 @@ static ssize_t get_block(char *packet, struct tftp_transfer *transfer)
       /* send data packet */
       struct datamess {
 	unsigned short op, block;
-	unsigned char data[];
+	unsigned char data[0];
       } *mess = (struct datamess *)packet;
       
       size_t size = transfer->file->size - transfer->offset; 

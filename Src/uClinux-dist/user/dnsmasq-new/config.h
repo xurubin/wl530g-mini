@@ -280,7 +280,7 @@ NOTES:
 #endif
 
 /* Can't do scripts without fork */
-#ifdef NOFORK
+#ifdef NO_FORK
 #  undef HAVE_SCRIPT
 #endif
 
