@@ -32,15 +32,32 @@ do_echo(argc, argv)
 	char	**argv;
 {
 	BOOL	first;
-
+	FILE* fout = stdout;
+	
+	if (argc >= 2 && 
+			( (!strcmp(argv[argc-2],  ">")) ||
+			  (!strcmp(argv[argc-2], ">>")) ) 
+		)
+	{
+		fout = fopen(argv[argc-1], argv[argc-2][1] =='>' ? "a" : "w");
+		if (!fout)
+		{
+			fprintf(stderr, "Cannot open file %s\n", argv[argc-1]);
+			return;
+		}
+		argc -= 2;
+	}
 	first = TRUE;
 	while (argc-- > 1) {
 		if (!first)
-			fputc(' ', stdout);
+			fputc(' ', fout);
 		first = FALSE;
-		fputs(*++argv, stdout);
+		fputs(*++argv, fout);
 	}
-	fputc('\n', stdout);
+	fputc('\n', fout);
+	
+	if (fout != stdout)
+		fclose(fout);
 }
 
 

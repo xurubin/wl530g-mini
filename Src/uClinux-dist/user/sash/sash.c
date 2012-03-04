@@ -180,7 +180,9 @@ CMDTAB	cmdtab[] = {
 */
 	"ps",		"",			do_ps,
 	1,		MAXARGS,
-
+	
+	"diag_led",		"[1/0]",			do_diag_led,
+	2,		2,
 /*	"reboot",	"",			do_reboot,
 	1,		MAXARGS,
 */
@@ -1097,4 +1099,26 @@ catchchild()
 	write(STDOUT, buf, strlen(buf));
 }
 
+static void do_diag_led(int argc, char **argv)
+{
+	FILE	*fp;
+	char	*on_off;
+	int		buf;
+
+	on_off = argv[1];
+	if (on_off[0] != '0' && on_off[0] != '1')
+	{
+		printf("Use 1/0 as argument.\n");
+		return;
+	}
+	fp = fopen("/dev/gpio/diag_led", "w");
+	if (fp == NULL) {
+		printf("Cannot open device /dev/gpio/diag_led.\n");
+		return;
+	}
+
+	buf = (on_off[0] == '1');
+	fwrite(&buf, sizeof(buf), 1, fp);
+	fclose(fp);
+}
 /* END CODE */
