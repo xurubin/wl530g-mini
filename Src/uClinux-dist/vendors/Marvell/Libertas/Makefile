@@ -70,11 +70,12 @@ clean:
 
 romfs:
 	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
+
 	for i in $(ROMFS_DIRS); do \
-		echo $(ROMFSDIR)/dev/$$i | sed 's/,/\t/g' | xargs mknod; \
+		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
 	for i in $(DEVICES); do \
-		touch $(ROMFSDIR)/dev/@$$i; \
+		echo $(ROMFSDIR)/dev/$$i | sed 's/,/\t/g' | xargs mknod; \
 	done
 	$(ROMFSINST) -s /var/tmp /tmp
 	$(ROMFSINST) -s /bin /sbin
