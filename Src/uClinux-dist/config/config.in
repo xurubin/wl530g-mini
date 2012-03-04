@@ -250,6 +250,7 @@ bool 'dhcrelay (ISC)'		CONFIG_USER_DHCP_ISC_RELAY_DHCRELAY
 bool 'diald'			CONFIG_USER_DIALD_DIALD
 bool 'discard'			CONFIG_USER_DISCARD_DISCARD
 bool 'dnsmasq'			CONFIG_USER_DNSMASQ_DNSMASQ
+bool 'dnsmasq-new'             CONFIG_USER_DNSMASQ_NEW
 bool 'ethattach'		CONFIG_USER_ETHATTACH_ETHATTACH
 bool 'ez-ipupdate'		CONFIG_USER_EZIPUPDATE_EZIPUPDATE
 bool 'ftp'			CONFIG_USER_FTP_FTP_FTP
@@ -1060,6 +1061,8 @@ comment 'Marvell AP32 Configuration'
 bool 'rgcfg'		CONFIG_USER_MRVL_RGCFG
 bool 'mvapd'		CONFIG_USER_MRVL_AP_DAEMON
 bool 'mvmfgd'		CONFIG_USER_MRVL_AP_MFG_DAEMON
+bool 'GPIO device driver'      CONFIG_USER_GPIO
+
 endmenu
 
 #############################################################################

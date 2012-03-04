@@ -11,12 +11,20 @@
 * This program may be distributed according to the terms of the GNU
 * General Public License, version 2 or (at your option) any later version.
 *
+* LIC: GPL
+*
 ***********************************************************************/
 
 static char const RCSID[] =
-"$Id: common.c,v 1.15 2000/12/11 13:15:58 dfs Exp $";
+"$Id$";
+/* For vsnprintf prototype */
+#define _ISOC99_SOURCE 1
+
+/* For seteuid prototype */
+#define _BSD_SOURCE 1
 
 #include "pppoe.h"
+
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
@@ -25,10 +33,20 @@ static char const RCSID[] =
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#include <sys/types.h>
+#include <pwd.h>
+
+/* Are we running SUID or SGID? */
+int IsSetID = 0;
+
+static uid_t saved_uid = -2;
+static uid_t saved_gid = -2;
 
 /**********************************************************************
 *%FUNCTION: parsePacket
@@ -43,7 +61,7 @@ static char const RCSID[] =
 * "func" is passed the additional argument "extra".
 ***********************************************************************/
 int
-parsePacket(struct PPPoEPacket *packet, ParseFunc *func, void *extra)
+parsePacket(PPPoEPacket *packet, ParseFunc *func, void *extra)
 {
     UINT16_t len = ntohs(packet->length);
     unsigned char *curTag;
@@ -86,6 +104,140 @@ parsePacket(struct PPPoEPacket *packet, ParseFunc *func, void *extra)
 }
 
 /**********************************************************************
+*%FUNCTION: findTag
+*%ARGUMENTS:
+* packet -- the PPPoE discovery packet to parse
+* type -- the type of the tag to look for
+* tag -- will be filled in with tag contents
+*%RETURNS:
+* A pointer to the tag if one of the specified type is found; NULL
+* otherwise.
+*%DESCRIPTION:
+* Looks for a specific tag type.
+***********************************************************************/
+unsigned char *
+findTag(PPPoEPacket *packet, UINT16_t type, PPPoETag *tag)
+{
+    UINT16_t len = ntohs(packet->length);
+    unsigned char *curTag;
+    UINT16_t tagType, tagLen;
+
+    if (packet->ver != 1) {
+	syslog(LOG_ERR, "Invalid PPPoE version (%d)", (int) packet->ver);
+	return NULL;
+    }
+    if (packet->type != 1) {
+	syslog(LOG_ERR, "Invalid PPPoE type (%d)", (int) packet->type);
+	return NULL;
+    }
+
+    /* Do some sanity checks on packet */
+    if (len > ETH_DATA_LEN - 6) { /* 6-byte overhead for PPPoE header */
+	syslog(LOG_ERR, "Invalid PPPoE packet length (%u)", len);
+	return NULL;
+    }
+
+    /* Step through the tags */
+    curTag = packet->payload;
+    while(curTag - packet->payload < len) {
+	/* Alignment is not guaranteed, so do this by hand... */
+	tagType = (((UINT16_t) curTag[0]) << 8) +
+	    (UINT16_t) curTag[1];
+	tagLen = (((UINT16_t) curTag[2]) << 8) +
+	    (UINT16_t) curTag[3];
+	if (tagType == TAG_END_OF_LIST) {
+	    return NULL;
+	}
+	if ((curTag - packet->payload) + tagLen + TAG_HDR_SIZE > len) {
+	    syslog(LOG_ERR, "Invalid PPPoE tag length (%u)", tagLen);
+	    return NULL;
+	}
+	if (tagType == type) {
+	    memcpy(tag, curTag, tagLen + TAG_HDR_SIZE);
+	    return curTag;
+	}
+	curTag = curTag + TAG_HDR_SIZE + tagLen;
+    }
+    return NULL;
+}
+
+/**********************************************************************
+*%FUNCTION: switchToRealID
+*%ARGUMENTS:
+* None
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Sets effective user-ID and group-ID to real ones.  Aborts on failure
+***********************************************************************/
+void
+switchToRealID (void) {
+    if (IsSetID) {
+	if (saved_uid < 0) saved_uid = geteuid();
+	if (saved_gid < 0) saved_gid = getegid();
+	if (setegid(getgid()) < 0) {
+	    printErr("setgid failed");
+	    exit(EXIT_FAILURE);
+	}
+	if (seteuid(getuid()) < 0) {
+	    printErr("seteuid failed");
+	    exit(EXIT_FAILURE);
+	}
+    }
+}
+
+/**********************************************************************
+*%FUNCTION: switchToEffectiveID
+*%ARGUMENTS:
+* None
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Sets effective user-ID and group-ID back to saved gid/uid
+***********************************************************************/
+void
+switchToEffectiveID (void) {
+    if (IsSetID) {
+	if (setegid(saved_gid) < 0) {
+	    printErr("setgid failed");
+	    exit(EXIT_FAILURE);
+	}
+	if (seteuid(saved_uid) < 0) {
+	    printErr("seteuid failed");
+	    exit(EXIT_FAILURE);
+	}
+    }
+}
+
+/**********************************************************************
+*%FUNCTION: dropPrivs
+*%ARGUMENTS:
+* None
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* If effective ID is root, try to become "nobody".  If that fails and
+* we're SUID, switch to real user-ID
+***********************************************************************/
+void
+dropPrivs(void)
+{
+    struct passwd *pw = NULL;
+    int ok = 0;
+    if (geteuid() == 0) {
+	pw = getpwnam("nobody");
+	if (pw) {
+	    if (setgid(pw->pw_gid) < 0) ok++;
+	    if (setuid(pw->pw_uid) < 0) ok++;
+	}
+    }
+    if (ok < 2 && IsSetID) {
+	setegid(getgid());
+	seteuid(getuid());
+    }
+}
+
+/**********************************************************************
 *%FUNCTION: printErr
 *%ARGUMENTS:
 * str -- error message
@@ -114,7 +266,7 @@ strDup(char const *str)
 {
     char *copy = malloc(strlen(str)+1);
     if (!copy) {
-	fatal("strdup failed");
+	rp_fatal("strdup failed");
     }
     strcpy(copy, str);
     return copy;
@@ -133,6 +285,8 @@ computeTCPChecksum(unsigned char *ipHdr, unsigned char *tcpHdr)
 {
     UINT32_t sum = 0;
     UINT16_t count = ipHdr[2] * 256 + ipHdr[3];
+    UINT16_t tmp;
+
     unsigned char *addr = tcpHdr;
     unsigned char pseudoHeader[12];
 
@@ -155,18 +309,19 @@ computeTCPChecksum(unsigned char *ipHdr, unsigned char *tcpHdr)
 
     /* Checksum the TCP header and data */
     while (count > 1) {
-	sum += * (UINT16_t *) addr;
-	addr += 2;
-	count -= 2;
+	memcpy(&tmp, addr, sizeof(tmp));
+	sum += (UINT32_t) tmp;
+	addr += sizeof(tmp);
+	count -= sizeof(tmp);
     }
     if (count > 0) {
-	sum += *addr;
+	sum += (unsigned char) *addr;
     }
 
     while(sum >> 16) {
 	sum = (sum & 0xffff) + (sum >> 16);
     }
-    return (UINT16_t) (~sum & 0xFFFF);
+    return (UINT16_t) ((~sum) & 0xFFFF);
 }
 
 /**********************************************************************
@@ -181,7 +336,7 @@ computeTCPChecksum(unsigned char *ipHdr, unsigned char *tcpHdr)
 * Clamps MSS option if TCP SYN flag is set.
 ***********************************************************************/
 void
-clampMSS(struct PPPoEPacket *packet, char const *dir, int clampMss)
+clampMSS(PPPoEPacket *packet, char const *dir, int clampMss)
 {
     unsigned char *tcpHdr;
     unsigned char *ipHdr;
@@ -190,21 +345,38 @@ clampMSS(struct PPPoEPacket *packet, char const *dir, int clampMss)
     unsigned char *mssopt = NULL;
     UINT16_t csum;
 
-    int len;
+    int len, minlen;
 
-    /* Is it IPv4? */
-    if (packet->payload[0] != 0x00 ||
-	packet->payload[1] != 0x21) {
-	/* Nope, ignore it */
-	return;
+    /* check PPP protocol type */
+    if (packet->payload[0] & 0x01) {
+        /* 8 bit protocol type */
+
+        /* Is it IPv4? */
+        if (packet->payload[0] != 0x21) {
+            /* Nope, ignore it */
+            return;
+        }
+
+        ipHdr = packet->payload + 1;
+	minlen = 41;
+    } else {
+        /* 16 bit protocol type */
+
+        /* Is it IPv4? */
+        if (packet->payload[0] != 0x00 ||
+            packet->payload[1] != 0x21) {
+            /* Nope, ignore it */
+            return;
+        }
+
+        ipHdr = packet->payload + 2;
+	minlen = 42;
     }
-
-    ipHdr = packet->payload + 2;
 
     /* Is it too short? */
     len = (int) ntohs(packet->length);
-    if (len < 42) {
-	/* 20 byte IP header; 20 byte TCP header; 2 byte PPP protocol */
+    if (len < minlen) {
+	/* 20 byte IP header; 20 byte TCP header; at least 1 or 2 byte PPP protocol */
 	return;
     }
 
@@ -303,4 +475,174 @@ clampMSS(struct PPPoEPacket *packet, char const *dir, int clampMss)
     tcpHdr[17] = 0;
     csum = computeTCPChecksum(ipHdr, tcpHdr);
     (* (UINT16_t *) (tcpHdr+16)) = csum;
+}
+
+/***********************************************************************
+*%FUNCTION: sendPADT
+*%ARGUMENTS:
+* conn -- PPPoE connection
+* msg -- if non-NULL, extra error message to include in PADT packet.
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Sends a PADT packet
+***********************************************************************/
+void
+sendPADT(PPPoEConnection *conn, char const *msg)
+{
+    PPPoEPacket packet;
+    unsigned char *cursor = packet.payload;
+
+    UINT16_t plen = 0;
+
+    /* Do nothing if no session established yet */
+    if (!conn->session) return;
+
+    /* Do nothing if no discovery socket */
+    if (conn->discoverySocket < 0) return;
+
+    memcpy(packet.ethHdr.h_dest, conn->peerEth, ETH_ALEN);
+    memcpy(packet.ethHdr.h_source, conn->myEth, ETH_ALEN);
+
+    packet.ethHdr.h_proto = htons(Eth_PPPOE_Discovery);
+    packet.ver = 1;
+    packet.type = 1;
+    packet.code = CODE_PADT;
+    packet.session = conn->session;
+
+    /* Reset Session to zero so there is no possibility of
+       recursive calls to this function by any signal handler */
+    conn->session = 0;
+
+    /* If we're using Host-Uniq, copy it over */
+    if (conn->useHostUniq) {
+	PPPoETag hostUniq;
+	pid_t pid = getpid();
+	hostUniq.type = htons(TAG_HOST_UNIQ);
+	hostUniq.length = htons(sizeof(pid));
+	memcpy(hostUniq.payload, &pid, sizeof(pid));
+	memcpy(cursor, &hostUniq, sizeof(pid) + TAG_HDR_SIZE);
+	cursor += sizeof(pid) + TAG_HDR_SIZE;
+	plen += sizeof(pid) + TAG_HDR_SIZE;
+    }
+
+    /* Copy error message */
+    if (msg) {
+	PPPoETag err;
+	size_t elen = strlen(msg);
+	err.type = htons(TAG_GENERIC_ERROR);
+	err.length = htons(elen);
+	strcpy((char *) err.payload, msg);
+	memcpy(cursor, &err, elen + TAG_HDR_SIZE);
+	cursor += elen + TAG_HDR_SIZE;
+	plen += elen + TAG_HDR_SIZE;
+    }
+
+    /* Copy cookie and relay-ID if needed */
+    if (conn->cookie.type) {
+	CHECK_ROOM(cursor, packet.payload,
+		   ntohs(conn->cookie.length) + TAG_HDR_SIZE);
+	memcpy(cursor, &conn->cookie, ntohs(conn->cookie.length) + TAG_HDR_SIZE);
+	cursor += ntohs(conn->cookie.length) + TAG_HDR_SIZE;
+	plen += ntohs(conn->cookie.length) + TAG_HDR_SIZE;
+    }
+
+    if (conn->relayId.type) {
+	CHECK_ROOM(cursor, packet.payload,
+		   ntohs(conn->relayId.length) + TAG_HDR_SIZE);
+	memcpy(cursor, &conn->relayId, ntohs(conn->relayId.length) + TAG_HDR_SIZE);
+	cursor += ntohs(conn->relayId.length) + TAG_HDR_SIZE;
+	plen += ntohs(conn->relayId.length) + TAG_HDR_SIZE;
+    }
+
+    packet.length = htons(plen);
+    sendPacket(conn, conn->discoverySocket, &packet, (int) (plen + HDR_SIZE));
+#ifdef DEBUGGING_ENABLED
+    if (conn->debugFile) {
+	dumpPacket(conn->debugFile, &packet, "SENT");
+	fprintf(conn->debugFile, "\n");
+	fflush(conn->debugFile);
+    }
+#endif
+    syslog(LOG_INFO,"Sent PADT");
+}
+
+/***********************************************************************
+*%FUNCTION: sendPADTf
+*%ARGUMENTS:
+* conn -- PPPoE connection
+* msg -- printf-style format string
+* args -- arguments for msg
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Sends a PADT packet with a formatted message
+***********************************************************************/
+void
+sendPADTf(PPPoEConnection *conn, char const *fmt, ...)
+{
+    char msg[512];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    msg[511] = 0;
+
+    sendPADT(conn, msg);
+}
+
+/**********************************************************************
+*%FUNCTION: pktLogErrs
+*%ARGUMENTS:
+* pkt -- packet type (a string)
+* type -- tag type
+* len -- tag length
+* data -- tag data
+* extra -- extra user data
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Logs error tags
+***********************************************************************/
+void
+pktLogErrs(char const *pkt,
+	   UINT16_t type, UINT16_t len, unsigned char *data,
+	   void *extra)
+{
+    char const *str;
+    char const *fmt = "%s: %s: %.*s";
+    switch(type) {
+    case TAG_SERVICE_NAME_ERROR:
+	str = "Service-Name-Error";
+	break;
+    case TAG_AC_SYSTEM_ERROR:
+	str = "System-Error";
+	break;
+    default:
+	str = "Generic-Error";
+    }
+
+    syslog(LOG_ERR, fmt, pkt, str, (int) len, data);
+    fprintf(stderr, fmt, pkt, str, (int) len, data);
+    fprintf(stderr, "\n");
+}
+
+/**********************************************************************
+*%FUNCTION: parseLogErrs
+*%ARGUMENTS:
+* type -- tag type
+* len -- tag length
+* data -- tag data
+* extra -- extra user data
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Picks error tags out of a packet and logs them.
+***********************************************************************/
+void
+parseLogErrs(UINT16_t type, UINT16_t len, unsigned char *data,
+	     void *extra)
+{
+    pktLogErrs("PADT", type, len, data, extra);
 }
