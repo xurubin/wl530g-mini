@@ -126,9 +126,9 @@ endif
 ifneq ($(wildcard /usr/include/crypt.h),)
 CFLAGS   += -DHAVE_CRYPT_H=1
 endif
-ifneq ($(wildcard /usr/lib/libcrypt.*),)
+## ifneq ($(wildcard /usr/lib/libcrypt.*),)
 LIBS	+= -lcrypt
-endif
+## endif
 
 ifdef NEEDDES
 ifndef USE_CRYPT
@@ -227,7 +227,7 @@ install-devel:
 	$(INSTALL) -c -m 644 $(HEADERS) $(INCDIR)/pppd
 
 romfs:
-	#$(ROMFSINST) /bin/$(EXEC)
+	$(ROMFSINST) /bin/pppd
 
 clean:
 	rm -f $(PPPDOBJS) $(EXTRACLEAN) $(TARGETS) *~ #* core

@@ -1523,6 +1523,14 @@ device_script(program, in, out, dont_wait)
     int errfd;
     int fd;
 
+	char* argvs[16];
+	int argv_cnt;
+	char buf[64];
+	char *p;
+	
+	FILE* fpid;
+	int pppoe_pid;
+	
     ++conn_running;
     pid = safe_fork();
 
@@ -1598,9 +1606,42 @@ device_script(program, in, out, dont_wait)
 	exit(1);
     }
     setgid(getgid());
+	
+	/****
+	***** rx201 : No need to use these patches here, as this pppd is statically linked with a rp-pppoe plugin
+	****/
+	// rx201 : Kill existing rp-pppoe if the pid file exists.
+	fpid = fopen("/tmp/pppoe.pid", "r");
+	if (fpid)
+	{
+		fscanf(fpid, "%lu", &pppoe_pid);
+		kill(pppoe_pid, 9);
+		fclose(fpid);
+	}
+	
+	// rx201 : eliminate the use of /bin/sh to run the program in order to save RAM,
+	// so we need to parse program into argument lists and invoke execv() directly.
+	argv_cnt = 0;
+	strncpy(buf, program, sizeof(buf) - 1);
+	buf[sizeof(buf)-1] = '\0';
+	p = buf;
+	while (*p)
+	{
+		while (*p == ' ') *p++ = '\0';
+		argvs[argv_cnt++] = p;
+		while ( (*p) && ( *p != ' ') ) p++;
+	}
+	argvs[argv_cnt] = NULL;
+	
+    execv(argvs[0], argvs);
+    syslog(LOG_NOTICE, "execv %s: %d", argvs[0], getpid());
+    error("could not exec tty script: %m");
+	// rx201
+	/*
     execl("/bin/sh", "sh", "-c", program, (char *)0);
     syslog(LOG_NOTICE, "exec b/in/sh: %d", getpid());
     error("could not exec /bin/sh: %m");
+	*/
     exit(99);
     /* NOTREACHED */
 }

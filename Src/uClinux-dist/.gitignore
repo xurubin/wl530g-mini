@@ -2,3 +2,5 @@
 .tmpconfig.h
 autoconf.h
 .oldconfig
+*.gdb
+

@@ -21,7 +21,7 @@
 #define _PATH_UPAPFILE 	 _ROOT_PATH "/ppp/pap-secrets"
 #define _PATH_CHAPFILE 	 _ROOT_PATH "/ppp/chap-secrets"
 #define _PATH_SRPFILE 	 _ROOT_PATH "/ppp/srp-secrets"
-#define _PATH_SYSOPTIONS _ROOT_PATH "/ppp/options"
+#define _PATH_SYSOPTIONS "/etc/config/pppd-options" //_ROOT_PATH "/ppp/options"
 #define _PATH_IPUP	 _ROOT_PATH "/ppp/ip-up"
 #define _PATH_IPDOWN	 _ROOT_PATH "/ppp/ip-down"
 #define _PATH_AUTHUP	 _ROOT_PATH "/ppp/auth-up"
