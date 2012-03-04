@@ -66,7 +66,7 @@
 #include <linux/blkpg.h>
 
 /* The RAM disk size is now a parameter */
-#define NUM_RAMDISKS 16		/* This cannot be overridden (yet) */ 
+#define NUM_RAMDISKS 2		/* This cannot be overridden (yet) */ 
 
 #ifdef CONFIG_BLK_DEV_INITRD
 static int initrd_users;
