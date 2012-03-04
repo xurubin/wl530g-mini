@@ -1,3 +1,4 @@
+#/*--rx201_wbr204-*/
 #
 # For a description of the syntax of this configuration file,
 # see Documentation/kbuild/config-language.txt.
@@ -93,13 +94,35 @@ fi
 bool 'Set flash/sdram size and base addr' CONFIG_SET_MEM_PARAM
 if [ "$CONFIG_SET_MEM_PARAM" = "y" ]; then
    hex '(S)DRAM Base Address' DRAM_BASE 0xd0000000
-   hex '(S)DRAM Size ' DRAM_SIZE 0xfd6000
-   hex 'FLASH Base Address ' FLASH_MEM_BASE 0xffc00000
-   hex 'FLASH Size ' FLASH_SIZE 0x400000
-   hex 'ROMFS Address in FLASH ' FLASH_ROMFS_BASE 0xffca0000
+   hex '(S)DRAM Size ' DRAM_SIZE 0x7c0000
+   hex 'FLASH Base Address ' FLASH_MEM_BASE 0xfff00000
+   hex 'FLASH Size ' FLASH_SIZE 0x100000
+   hex 'ROMFS Address in FLASH ' FLASH_ROMFS_BASE 0xfff90000
    if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
       hex 'JFFS2 Address in FLASH ' FLASH_JFFS2_BASE 0xfff80000
    fi
+else
+   if [ "$CONFIG_LIBERTAS_AP22" = "y" ]; then
+      define_hex DRAM_BASE 0xd0000000
+      define_hex DRAM_SIZE 0x7c0000
+      define_hex FLASH_MEM_BASE 0xfff00000
+      define_hex FLASH_SIZE 0x100000
+      define_hex FLASH_ROMFS_BASE 0xfff90000
+   fi
+   if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
+      define_hex DRAM_BASE 0xd0000000
+      if [ "$CONFIG_8M_MEM" = "y" ]; then
+         define_hex DRAM_SIZE 0x7C0000
+      fi
+      if [ "$CONFIG_16M_MEM" = "y" ]; then
+         define_hex DRAM_SIZE 0xfC0000
+      fi
+      define_hex FLASH_MEM_BASE 0xffc00000
+      define_hex FLASH_SIZE 0x400000
+      define_hex FLASH_ROMFS_BASE 0xffca0000
+      define_hex FLASH_JFFS2_BASE 0xfff80000
+   fi
+
 fi
 
 choice 'Kernel executes from' \
@@ -116,26 +139,6 @@ if [ "$CONFIG_ARCH_LIBERTAS" = "y" ]; then
    define_bool CONFIG_CPU_WITH_CACHE y
    define_bool CONFIG_CPU_WITH_MCR_INSTRUCTION y
    define_bool CONFIG_CMDLINE_BOOL y
-   if [ "$CONFIG_LIBERTAS_AP22" = "y" ]; then
-      define_hex DRAM_BASE 0xd0000000
-      define_hex DRAM_SIZE 0x7d6000
-      define_hex FLASH_MEM_BASE 0xffe00000
-      define_hex FLASH_SIZE 0x200000
-      define_hex FLASH_ROMFS_BASE 0xffea0000
-   fi
-   if [ "$CONFIG_LIBERTAS_AP32" = "y" ]; then
-      define_hex DRAM_BASE 0xd0000000
-      if [ "$CONFIG_8M_MEM" = "y" ]; then
-         define_hex DRAM_SIZE 0x7C0000
-      fi
-      if [ "$CONFIG_16M_MEM" = "y" ]; then
-         define_hex DRAM_SIZE 0xfC0000
-      fi
-      define_hex FLASH_MEM_BASE 0xffc00000
-      define_hex FLASH_SIZE 0x400000
-      define_hex FLASH_ROMFS_BASE 0xffca0000
-      define_hex FLASH_JFFS2_BASE 0xfff80000
-   fi
 fi
 
 if [ "$CONFIG_ARCH_FIREFOX" = "y" ]; then

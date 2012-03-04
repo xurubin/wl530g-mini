@@ -1,0 +1,4 @@
+.config.old
+.menuconfig.log
+autoconf.h
+config.tk

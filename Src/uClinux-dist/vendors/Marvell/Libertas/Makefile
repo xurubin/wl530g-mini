@@ -24,6 +24,13 @@ ifdef CONFIG_16M_MEM
 MEMSIZE=16M
 endif
 
+ifndef CLOCK
+CLOCK=160MHZ
+endif
+ifndef MEMSIZE
+MEMSIZE=8M
+endif
+
 DEVICES = \
 	tty,c,5,0      console,c,5,1      cua0,c,5,64      cua1,c,5,65  \
 	\
@@ -64,7 +71,7 @@ clean:
 romfs:
 	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
 	for i in $(ROMFS_DIRS); do \
-		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
+		echo $(ROMFSDIR)/dev/$$i | sed 's/,/\t/g' | xargs mknod; \
 	done
 	for i in $(DEVICES); do \
 		touch $(ROMFSDIR)/dev/@$$i; \
@@ -93,10 +100,8 @@ romfs:
 	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
 	./mkfs.jffs2 -r $(ROOTDIR)/romfs/etc -o jffs2.img
 	$(ROMFSINST) /etc/jffs2.img
+	$(ROMFSINST) mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
 	$(ROMFSINST) /etc/updateapd
-	rm -rf mvwlan.o
-	cp mvwlan-$(MEMSIZE)-$(CLOCK).o mvwlan.o
-	$(ROMFSINST) /lib/modules/mvwlan.o
 	$(ROMFSINST) /bin/mvmfgd
 	$(ROMFSINST) /bin/mvapd
 
