@@ -1,3 +1,4 @@
+/*--rx201_wbr204-*/
 /*
  *	libertas.c - mapper for Marvell Libertas AP-32 board.
  *
@@ -24,8 +25,8 @@
 
 
 #define NAME         "Marvell Libertas AP-32"
-#define WINDOW_ADDR  0xFFC00000
-#define WINDOW_SIZE  0x00400000
+#define WINDOW_ADDR  0xFFF00000
+#define WINDOW_SIZE  0x00100000
 #define BUSWIDTH     2
 #define SUCCESS      0
 
@@ -50,6 +51,7 @@ struct map_info libertas_map = {
  */
  
 static struct mtd_partition libertas_partitions[] = {
+/*
 	{
 		name: "Libertas AP-32 compressed kernel",
 #ifdef PROTECTION
@@ -57,32 +59,48 @@ static struct mtd_partition libertas_partitions[] = {
 		offset: 0x00000000,
 		mask_flags: MTD_WRITEABLE
 #else
-		size:   0x00380000,
+		size:   0x000A0000,
 		offset: 0x00000000
 #endif
 
 	},
 	{
-		name: "Libertas AP-32 romfs root file system",
+		name: "Libertas AP-32 cramfs root file system",
 #ifdef PROTECTION
 		size:   0x002E0000,
 		offset: 0x000A0000,
 		mask_flags: MTD_WRITEABLE
 #else
-		size:   0x002E0000,
+		size:   0x00040000,
 		offset: 0x000A0000
 #endif
 	},
+*/
 	{
-		name: "Libertas AP-32 jffs2 file system",
-		size:   0x00050000,
-		offset: 0x00380000,
+		name: "Libertas AP-32 compressed kernel",
+		size:   0x00068000,
+		offset: 0x00008000
 	},
 	{
-		name: "Libertas AP-32 manufacture data",
+		name: "Libertas AP-32 squashfs root file system",
+		size:   0x00080000,
+		offset: 0x00070000
+	},
+	{
+		name: "Libertas AP-32 JFFS2 storage",
+		size:   0x00004000,
+		offset: 0x00004000,
+	},
+	{
+		name: "Libertas AP-32 xz decompressor",
+		size:   0x00004000,
+		offset: 0x00000000
+	},
+	{
+		name: "Libertas AP-32 master bootloader",
 		size:   0x00010000,
-		offset: 0x003D0000,
-	}
+		offset: 0x000F0000,
+	}	
 };
 
 

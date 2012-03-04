@@ -14,7 +14,7 @@ SECTIONS
   . = LOAD_ADDR;
   _load_addr = .;
 
-  . = TEXT_START + 0x20;
+  . = TEXT_START;
   _text = .;
 
   .text : {
@@ -27,9 +27,11 @@ SECTIONS
     *(.rodata.*)
     *(.glue_7)
     *(.glue_7t)
-    input_data = .;
-    piggy.o
-    input_data_end = .;
+/*	
+ *  input_data = .;
+ *  piggy.o
+ *  input_data_end = .;
+ */
     . = ALIGN(4);
   }
 

@@ -95,10 +95,6 @@
 		.align
 start:
 		.type	start,#function
-		.rept	8
-		mov	r0, r0
-		.endr
-
 		b	1f
 		.word	0x016f2818		@ Magic numbers to help the loader
 		.word	start			@ absolute load/run zImage address
@@ -191,7 +187,7 @@ rom2ram_copy_loop:
 		mrc	p15, 0, r6, c0, c0	@ get processor ID
 		bl	cache_on
 
-#ifdef CONFIG_LIBERTAS_AP32
+#ifdef CONFIG_ARCH_LIBERTAS
 		bl	mpu_regions_set
 #endif
 #endif
@@ -582,7 +578,7 @@ memdump:	mov	r12, r0
 		mov	pc, r10
 #endif
 
-#ifdef CONFIG_LIBERTAS_AP32
+#ifdef CONFIG_ARCH_LIBERTAS
 
 		.align 5
 mpu_regions_set:
@@ -595,7 +591,8 @@ mpu_regions_set:
  * region 1 - make flash to be cachable to speed up the
  *          - speed of decompression of kernel
  */
-
+ /* Skip the regions since the bootloader has already done so */
+#if 0 
 /* TODO - close this into a nice loop instead of this silly chain */
 	/* Define the regions */
 	adr	r0, REGION0
@@ -641,7 +638,7 @@ mpu_regions_set:
 	mcr	p15, 0, r0, c5, c0, 2
 	/* instructions access permissions */
 	mcr	p15, 0, r0, c5, c0, 3
-
+#endif
 	/* enable PU */
 	/* read current state, and turn on I+D caches and the PU */
 	mrc	p15, 0, r0, c1, c0, 0

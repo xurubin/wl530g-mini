@@ -25,6 +25,7 @@ obj-$(CONFIG_CRC32)     += crc32.o
 
 subdir-$(CONFIG_ZLIB_INFLATE) += zlib_inflate
 subdir-$(CONFIG_ZLIB_DEFLATE) += zlib_deflate
+subdir-$(CONFIG_XZ_DEC) += xz
 
 include $(TOPDIR)/drivers/net/Makefile.lib
 include $(TOPDIR)/drivers/usb/Makefile.lib

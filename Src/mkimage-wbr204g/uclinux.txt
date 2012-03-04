@@ -1,0 +1,3 @@
+d0020000 linux.text
+d013e000 linux.data
+d0020000 eip

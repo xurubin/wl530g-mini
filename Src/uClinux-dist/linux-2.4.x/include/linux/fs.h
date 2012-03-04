@@ -975,6 +975,7 @@ struct super_operations {
 #define I_LOCK			8
 #define I_FREEING		16
 #define I_CLEAR			32
+#define I_NEW           64
 
 #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
 
@@ -1404,12 +1405,49 @@ extern void force_delete(struct inode *);
 extern struct inode * igrab(struct inode *);
 extern struct inode * ilookup(struct super_block *, unsigned long);
 extern ino_t iunique(struct super_block *, ino_t);
+extern void unlock_new_inode(struct inode *);
 
 typedef int (*find_inode_t)(struct inode *, unsigned long, void *);
-extern struct inode * iget4(struct super_block *, unsigned long, find_inode_t, void *);
-static inline struct inode *iget(struct super_block *sb, unsigned long ino)
+//extern struct inode * iget4(struct super_block *, unsigned long, find_inode_t, void *);
+extern struct inode * iget4_locked(struct super_block *, unsigned long,
+                                  find_inode_t, void *);
+
+static inline struct inode *iget4(struct super_block *sb, unsigned long ino,
+                                 find_inode_t find_actor, void *opaque)
 {
-	return iget4(sb, ino, NULL, NULL);
+       struct inode *inode = iget4_locked(sb, ino, find_actor, opaque);
+
+       if (inode && (inode->i_state & I_NEW)) {
+               /*
+                * reiserfs-specific kludge that is expected to go away ASAP.
+                */
+               if (sb->s_op->read_inode2)
+                       sb->s_op->read_inode2(inode, opaque);
+               else
+                       sb->s_op->read_inode(inode);
+               unlock_new_inode(inode);
+       }
+
+       return inode;
+}
+
+ static inline struct inode *iget(struct super_block *sb, unsigned long ino)
+ {
+	//return iget4(sb, ino, NULL, NULL);
+     struct inode *inode = iget4_locked(sb, ino, NULL, NULL);
+
+       if (inode && (inode->i_state & I_NEW)) {
+               sb->s_op->read_inode(inode);
+               unlock_new_inode(inode);
+       }
+
+       return inode;
+}
+
+static inline struct inode *iget_locked(struct super_block *sb, unsigned long 
+ino)
+{
+       return iget4_locked(sb, ino, NULL, NULL);
 }
 
 extern void clear_inode(struct inode *);

@@ -154,6 +154,8 @@ EXPORT_SYMBOL(igrab);
 EXPORT_SYMBOL(iunique);
 EXPORT_SYMBOL(ilookup);
 EXPORT_SYMBOL(iget4);
+EXPORT_SYMBOL(iget4_locked);
+EXPORT_SYMBOL(unlock_new_inode);
 EXPORT_SYMBOL(iput);
 EXPORT_SYMBOL(inode_init_once);
 EXPORT_SYMBOL(force_delete);

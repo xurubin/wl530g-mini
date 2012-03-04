@@ -10,7 +10,7 @@
 HEAD		 = head.o
 OBJS		 = misc.o
 
-CFLAGS		 = $(CPPFLAGS) -O2 -DSTDC_HEADERS $(CFLAGS_PROC) -msoft-float -D__linux__
+CFLAGS		 = $(CPPFLAGS) -O3 -DSTDC_HEADERS $(CFLAGS_PROC) -msoft-float -D__linux__ -D__KERNEL__ -fno-strict-aliasing -fPIC
 
 FONTC		 = $(TOPDIR)/drivers/video/font_acorn_8x8.c
 ZLDFLAGS	 = -p -X -T $(LINUX).lds
@@ -69,17 +69,18 @@ endif
 
 all:		$(LINUX)
 
-$(LINUX):	$(HEAD) $(OBJS) piggy.o $(LINUX).lds
-		$(LD) $(ZLDFLAGS) $(HEAD) $(OBJS) piggy.o -o $(LINUX)
+$(LINUX):	$(HEAD) $(OBJS) piggy.rom $(LINUX).lds
+		$(LD) $(ZLDFLAGS) $(HEAD) $(OBJS) -o $(LINUX)
 
 $(HEAD): 	$(HEAD:.o=.S)
 		$(CC) $(AFLAGS) -traditional -c $(HEAD:.o=.S)
 
-piggy.o:	$(SYSTEM)
+piggy.xz:	$(SYSTEM) 
 		$(OBJCOPY) -O binary -R .note -R .comment -S $(SYSTEM) piggy
-		gzip $(GZFLAGS) < piggy > piggy.gz
-		$(LD) -r -o $@ -b binary piggy.gz
-		rm -f piggy piggy.gz
+		xz -c --check=crc32 --arm --lzma2=,dict=32MiB piggy >piggy.xz
+
+piggy.rom:	piggy.xz
+		python add_hdr.py $< $@
 
 font.o:		$(FONTC)
 		$(CC) $(CFLAGS) -Dstatic= -c -o $@ $(FONTC)
@@ -91,7 +92,7 @@ clean:;		rm -f $(LINUX) core piggy* $(LINUX).lds
 
 .PHONY:	$(LINUX).lds clean
 
-misc.o: misc.c $(TOPDIR)/include/asm/arch/uncompress.h $(TOPDIR)/lib/inflate.c
+misc.o: misc.c $(TOPDIR)/include/asm/arch/uncompress.h
 
 %.o: %.S
 	$(CC) $(AFLAGS) $(EXTRA_AFLAGS) $(AFLAGS_$@) -c -o $@ $<

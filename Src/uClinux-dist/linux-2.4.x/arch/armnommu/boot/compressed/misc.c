@@ -164,9 +164,6 @@ static void error(char *m);
 static void gzip_mark(void **);
 static void gzip_release(void **);
 
-extern char input_data[];
-extern char input_data_end[];
-
 static uch *output_data;
 static ulg output_ptr;
 static ulg bytes_out;
@@ -183,9 +180,10 @@ extern int end;
 static ulg free_mem_ptr;
 static ulg free_mem_ptr_end;
 
-#define HEAP_SIZE 0x2000
+#define HEAP_SIZE 0x400000
 
-#include "../../../../lib/inflate.c"
+#include "../../../../lib/decompress_unxz.c"
+#include "ashldi3.c"
 
 #ifdef CONFIG_SERIAL_ATMEL_CONSOLE
 static void puts(const char *s)
@@ -245,6 +243,7 @@ static void gzip_release(void **ptr)
  * Fill the input buffer. This is called only when the buffer is empty
  * and at least one byte is really needed.
  */
+/*
 int fill_inbuf(void)
 {
 	if (insize != 0)
@@ -256,11 +255,12 @@ int fill_inbuf(void)
 	inptr = 1;
 	return inbuf[0];
 }
-
+*/
 /* ===========================================================================
  * Write the output window window[0..outcnt-1] and update crc and bytes_out.
  * (Used for the decompressed data only.)
  */
+ /*
 void flush_window(void)
 {
 	ulg c = crc;
@@ -279,7 +279,7 @@ void flush_window(void)
 	outcnt = 0;
 	puts(".");
 }
-
+*/
 static void error(char *x)
 {
 	int ptr;
@@ -301,13 +301,19 @@ decompress_kernel(ulg output_start, ulg free_mem_ptr_p, ulg free_mem_ptr_end_p,
 	free_mem_ptr		= free_mem_ptr_p;
 	free_mem_ptr_end	= free_mem_ptr_end_p;
 	__machine_arch_type	= arch_id;
-
+	
 	proc_decomp_setup();
 	arch_decomp_setup();
 
-	makecrc();
+	//makecrc();
 	puts("Uncompressing Linux...");
-	gunzip();
+	#define KERNEL_XZ_OFFSET 0xFFF08000
+	output_ptr = unxz(KERNEL_XZ_OFFSET + 4, *((int*)KERNEL_XZ_OFFSET), NULL, NULL, output_data, NULL, error);
+	if (output_ptr == -1)
+	{
+		error("unxz failed.");
+		return 0;
+	}
 	puts(" done, booting the kernel.\n");
 	return output_ptr;
 }

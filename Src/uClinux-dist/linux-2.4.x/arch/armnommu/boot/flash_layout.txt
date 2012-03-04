@@ -1,0 +1,5 @@
+0x00000000-0x00004000 : "Libertas AP-32 xz decompressor"		code.bin == (build.exe uclinux.txt) <-- zImage
+0x00004000-0x00008000 : "Libertas AP-32 JFFS2 storage"			null
+0x00008000-0x00070000 : "Libertas AP-32 uclinux Kernel"			piggy.rom == 4-byte Length + $(xz piggy)
+0x00070000-0x000f0000 : "Libertas AP-32 squashfs root file system"	squashfs.bin
+0x000f0000-0x00100000 : "Libertas AP-32 master bootloader"		null
