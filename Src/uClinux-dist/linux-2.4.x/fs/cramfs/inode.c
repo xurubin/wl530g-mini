@@ -27,6 +27,7 @@
 #include <asm/semaphore.h>
 
 #include <asm/uaccess.h>
+#include <linux/zutil.h>
 
 #define CRAMFS_SB_MAGIC u.cramfs_sb.magic
 #define CRAMFS_SB_SIZE u.cramfs_sb.size
@@ -116,8 +117,8 @@ static int next_buffer;
  */
 static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned int len)
 {
-	struct buffer_head * bh_array[BLKS_PER_BUF];
-	struct buffer_head * read_array[BLKS_PER_BUF];
+	struct address_space *mapping = sb->s_bdev->bd_inode->i_mapping;
+	struct page *pages[BLKS_PER_BUF];
 	unsigned i, blocknr, buffer, unread;
 	unsigned long devsize;
 	int major, minor;
@@ -144,7 +145,7 @@ static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned i
 		return read_buffers[i] + blk_offset;
 	}
 
-	devsize = ~0UL;
+	devsize = mapping->host->i_size >> PAGE_CACHE_SHIFT;
 	major = MAJOR(sb->s_dev);
 	minor = MINOR(sb->s_dev);
 
@@ -154,26 +155,31 @@ static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned i
 	/* Ok, read in BLKS_PER_BUF pages completely first. */
 	unread = 0;
 	for (i = 0; i < BLKS_PER_BUF; i++) {
-		struct buffer_head *bh;
+		struct page *page = NULL;
 
-		bh = NULL;
 		if (blocknr + i < devsize) {
-			bh = sb_getblk(sb, blocknr + i);
-			if (!buffer_uptodate(bh))
-				read_array[unread++] = bh;
+			page = read_cache_page(mapping, blocknr + i,
+				(filler_t *)mapping->a_ops->readpage,
+				NULL);
+			/* synchronous error? */
+			if (IS_ERR(page))
+				page = NULL;
 		}
-		bh_array[i] = bh;
+		pages[i] = page;
 	}
 
-	if (unread) {
-		ll_rw_block(READ, unread, read_array);
-		do {
-			unread--;
-			wait_on_buffer(read_array[unread]);
-		} while (unread);
+	for (i = 0; i < BLKS_PER_BUF; i++) {
+		struct page *page = pages[i];
+		if (page) {
+			wait_on_page(page);
+			if (!Page_Uptodate(page)) {
+				/* asynchronous error */
+				page_cache_release(page);
+				pages[i] = NULL;
+			}
+		}
 	}
-
-	/* Ok, copy them to the staging area without sleeping. */
+		
 	buffer = next_buffer;
 	next_buffer = NEXT_BUFFER(buffer);
 	buffer_blocknr[buffer] = blocknr;
@@ -181,10 +187,11 @@ static void *cramfs_read(struct super_block *sb, unsigned int offset, unsigned i
 
 	data = read_buffers[buffer];
 	for (i = 0; i < BLKS_PER_BUF; i++) {
-		struct buffer_head * bh = bh_array[i];
-		if (bh) {
-			memcpy(data, bh->b_data, PAGE_CACHE_SIZE);
-			brelse(bh);
+		struct page *page = pages[i];
+		if (page) {
+			memcpy(data, kmap(page), PAGE_CACHE_SIZE);
+			kunmap(page);
+			page_cache_release(page);
 		} else
 			memset(data, 0, PAGE_CACHE_SIZE);
 		data += PAGE_CACHE_SIZE;
@@ -199,11 +206,6 @@ static struct super_block * cramfs_read_super(struct super_block *sb, void *data
 	struct cramfs_super super;
 	unsigned long root_offset;
 	struct super_block * retval = NULL;
-
-	sb->s_blocksize = PAGE_CACHE_SIZE;
-	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
-	if (get_hardsect_size(sb->s_dev) >= sb->s_blocksize)
-		set_blocksize(sb->s_dev, sb->s_blocksize);
 
 	/* Invalidate the read buffers on mount: think disk change.. */
 	for (i = 0; i < READ_BUFFERS; i++)
@@ -419,8 +421,35 @@ static int cramfs_readpage(struct file *file, struct page * page)
 				 compr_len);
 			up(&read_mutex);
 		}
+
+		/*
+		 * This is an error condition.  It means we have read a block from
+		 * cramfs that couldn't be expanded.
+		 */
+		if (bytes_filled == -1) {
+			if (cramfs_ratelimit()) {
+				const char *name;
+				int len;
+				int i;
+				if (file && file->f_dentry) {
+					name = file->f_dentry->d_name.name;
+					len = file->f_dentry->d_name.len;
+				} else {
+					name = "";
+					len = 0;
+				}
+				printk("Error decompressing file:  %x %d %d %s\n",
+						zlib_adler32(0,
+							cramfs_read(sb, start_offset, compr_len),
+							compr_len),
+						start_offset, compr_len, len ? name : "");
+			}
+			bytes_filled = 0;
+		}
 	} else
 		pgdata = kmap(page);
+
+
 	memset(pgdata + bytes_filled, 0, PAGE_CACHE_SIZE - bytes_filled);
 	kunmap(page);
 	flush_dcache_page(page);
@@ -466,6 +495,38 @@ static void __exit exit_cramfs_fs(void)
 	cramfs_uncompress_exit();
 	unregister_filesystem(&cramfs_fs_type);
 }
+
+
+int cramfs_ratelimit(void) 
+{
+	static spinlock_t ratelimit_lock = SPIN_LOCK_UNLOCKED;
+	static unsigned long toks = 10*5*HZ;
+	static unsigned long last_msg; 
+	static int missed;
+	unsigned long flags;
+	unsigned long now = jiffies;
+	int cramfs_msg_burst = 10*5*HZ;
+	int cramfs_msg_cost = 5*HZ;
+
+	spin_lock_irqsave(&ratelimit_lock, flags);
+	toks += now - last_msg;
+	last_msg = now;
+	if (toks > cramfs_msg_burst)
+		toks = cramfs_msg_burst;
+	if (toks >= cramfs_msg_cost) {
+		int lost = missed;
+		missed = 0;
+		toks -= cramfs_msg_cost;
+		spin_unlock_irqrestore(&ratelimit_lock, flags);
+		if (lost)
+			printk(KERN_WARNING "CRAMFS: %d messages suppressed.\n", lost);
+		return 1;
+	}
+	missed++;
+	spin_unlock_irqrestore(&ratelimit_lock, flags);
+	return 0;
+}
+
 
 module_init(init_cramfs_fs)
 module_exit(exit_cramfs_fs)
