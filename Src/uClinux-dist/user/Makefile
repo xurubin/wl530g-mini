@@ -71,6 +71,7 @@ dir_$(CONFIG_USER_DHCPD_DHCPD)              += dhcpd
 dir_$(CONFIG_USER_DIALD_DIALD)              += diald
 dir_$(CONFIG_USER_DISCARD_DISCARD)          += discard
 dir_$(CONFIG_USER_DNSMASQ_DNSMASQ)          += dnsmasq
+dir_$(CONFIG_USER_DNSMASQ_NEW)              += dnsmasq-new
 dir_$(CONFIG_USER_E2FSPROGS_E2FSCK_E2FSCK)  += e2fsprogs
 dir_$(CONFIG_USER_E2FSPROGS_MISC_BADBLOCKS) += e2fsprogs
 dir_$(CONFIG_USER_E2FSPROGS_MISC_CHATTR)    += e2fsprogs
