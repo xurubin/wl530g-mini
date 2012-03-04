@@ -11,10 +11,12 @@
 * This program may be distributed according to the terms of the GNU
 * General Public License, version 2 or (at your option) any later version.
 *
+* LIC: GPL
+*
 ***********************************************************************/
 
 static char const RCSID[] =
-"$Id: ppp.c,v 1.7 2000/09/18 00:39:32 dfs Exp $";
+"$Id$";
 
 #include "pppoe.h"
 
@@ -34,7 +36,17 @@ static char const RCSID[] =
 #include <unistd.h>
 #endif
 
-UINT16_t fcstab[256] = {
+#ifdef HAVE_N_HDLC
+#ifndef N_HDLC
+#include <linux/termios.h>
+#endif
+#endif
+
+static int PPPState;
+static int PPPPacketSize;
+static unsigned char PPPXorValue;
+
+static UINT16_t const fcstab[256] = {
     0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
     0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
     0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,
@@ -72,6 +84,7 @@ UINT16_t fcstab[256] = {
 /**********************************************************************
 *%FUNCTION: syncReadFromPPP
 *%ARGUMENTS:
+* conn -- PPPoEConnection structure
 * packet -- buffer in which to place PPPoE packet
 *%RETURNS:
 * Nothing
@@ -79,9 +92,8 @@ UINT16_t fcstab[256] = {
 * Reads from a synchronous PPP device and builds and transmits a PPPoE
 * packet
 ***********************************************************************/
-
 void
-syncReadFromPPP(struct PPPoEPacket *packet)
+syncReadFromPPP(PPPoEConnection *conn, PPPoEPacket *packet)
 {
     int r;
 #ifndef HAVE_N_HDLC
@@ -105,21 +117,21 @@ syncReadFromPPP(struct PPPoEPacket *packet)
     if (r < 0) {
 	/* Catch the Linux "select" bug */
 	if (errno == EAGAIN) {
-	    fatal("Linux select bug hit!  This message is harmless, but please ask the Linux kernel developers to fix it.");
+	    rp_fatal("Linux select bug hit!  This message is harmless, but please ask the Linux kernel developers to fix it.");
 	}
 	fatalSys("read (syncReadFromPPP)");
     }
     if (r == 0) {
 	syslog(LOG_INFO, "end-of-file in syncReadFromPPP");
-	sendPADT();
+	sendPADT(conn, "RP-PPPoE: EOF in syncReadFromPPP");
 	exit(0);
     }
 
     if (r < 2) {
-	fatal("too few characters read from PPP (syncReadFromPPP)");
+	rp_fatal("too few characters read from PPP (syncReadFromPPP)");
     }
-    
-    sendSessionPacket(packet, r-2);
+
+    sendSessionPacket(conn, packet, r-2);
 }
 
 /**********************************************************************
@@ -134,15 +146,15 @@ syncReadFromPPP(struct PPPoEPacket *packet)
 void
 initPPP(void)
 {
-#if 0
     PPPState = STATE_WAITFOR_FRAME_ADDR;
     PPPPacketSize = 0;
     PPPXorValue = 0;
-#endif
+
 }
 /**********************************************************************
 *%FUNCTION: asyncReadFromPPP
 *%ARGUMENTS:
+* conn -- PPPoEConnection structure
 * packet -- buffer in which to place PPPoE packet
 *%RETURNS:
 * Nothing
@@ -150,13 +162,8 @@ initPPP(void)
 * Reads from an async PPP device and builds a PPPoE packet to transmit
 ***********************************************************************/
 void
-asyncReadFromPPP(struct PPPoEPacket *packet)
+asyncReadFromPPP(PPPoEConnection *conn, PPPoEPacket *packet)
 {
-    /* Globals that define the current settings of the state machine */
-    static unsigned char  PPPState = STATE_WAITFOR_FRAME_ADDR;
-    static unsigned short PPPPacketSize = 0;
-    static unsigned char  PPPXorValue = 0;
-
     unsigned char buf[READ_CHUNK];
     unsigned char *ptr = buf;
     unsigned char c;
@@ -170,18 +177,12 @@ asyncReadFromPPP(struct PPPoEPacket *packet)
 
     if (r == 0) {
 	syslog(LOG_INFO, "end-of-file in asyncReadFromPPP");
-	sendPADT();
+	sendPADT(conn, "RP-PPPoE: EOF in asyncReadFromPPP");
 	exit(0);
     }
 
     while(r) {
-	switch(PPPState) {
-	default:
-	    syslog(LOG_ERR, "Asynch PPPState corrupted 0x%x resetting", PPPState);
-	    PPPState = STATE_WAITFOR_FRAME_ADDR;
-	    break;
-
-	case STATE_WAITFOR_FRAME_ADDR:
+	if (PPPState == STATE_WAITFOR_FRAME_ADDR) {
 	    while(r) {
 		--r;
 		if (*ptr++ == FRAME_ADDR) {
@@ -189,52 +190,49 @@ asyncReadFromPPP(struct PPPoEPacket *packet)
 		    break;
 		}
 	    }
-	    break;
+	}
 
-	case STATE_DROP_PROTO:
-	    while(r) {
-		--r;
-		if (*ptr++ == (FRAME_CTRL ^ FRAME_ENC)) {
-		    PPPState = STATE_BUILDING_PACKET;
-		    break;
-		}
+	/* Still waiting... */
+	if (PPPState == STATE_WAITFOR_FRAME_ADDR) return;
+
+	while(r && PPPState == STATE_DROP_PROTO) {
+	    --r;
+	    if (*ptr++ == (FRAME_CTRL ^ FRAME_ENC)) {
+		PPPState = STATE_BUILDING_PACKET;
 	    }
-	    break;
+	}
 
-	case STATE_BUILDING_PACKET:
-	    /* Start building frame */
-	    while(r && PPPState == STATE_BUILDING_PACKET) {
-		--r;
-		c = *ptr++;
-		switch(c) {
-		case FRAME_ESC:
-		    PPPXorValue = FRAME_ENC;
-		    break;
-		case FRAME_FLAG:
-		    if (PPPPacketSize < 2) {
-			fatal("Packet too short from PPP (asyncReadFromPPP)");
-		    }
-		    sendSessionPacket(packet, PPPPacketSize-2);
+	if (PPPState == STATE_DROP_PROTO) return;
+
+	/* Start building frame */
+	while(r && PPPState == STATE_BUILDING_PACKET) {
+	    --r;
+	    c = *ptr++;
+	    switch(c) {
+	    case FRAME_ESC:
+		PPPXorValue = FRAME_ENC;
+		break;
+	    case FRAME_FLAG:
+		if (PPPPacketSize < 2) {
+		    rp_fatal("Packet too short from PPP (asyncReadFromPPP)");
+		}
+		sendSessionPacket(conn, packet, PPPPacketSize-2);
+		PPPPacketSize = 0;
+		PPPXorValue = 0;
+		PPPState = STATE_WAITFOR_FRAME_ADDR;
+		break;
+	    default:
+		if (PPPPacketSize >= ETH_DATA_LEN - 4) {
+		    syslog(LOG_ERR, "Packet too big!  Check MTU on PPP interface");
 		    PPPPacketSize = 0;
 		    PPPXorValue = 0;
 		    PPPState = STATE_WAITFOR_FRAME_ADDR;
-		    goto process_more;
-		default:
-		    if (PPPPacketSize >= ETH_DATA_LEN - 4) {
-			syslog(LOG_ERR, "Packet too big!  Check MTU on PPP interface");
-			PPPPacketSize = 0;
-			PPPXorValue = 0;
-			PPPState = STATE_WAITFOR_FRAME_ADDR;
-			goto process_more;
-		    } else {
-			packet->payload[PPPPacketSize++] = c ^ PPPXorValue;
-			PPPXorValue = 0;
-		    }
+		} else {
+		    packet->payload[PPPPacketSize++] = c ^ PPPXorValue;
+		    PPPXorValue = 0;
 		}
 	    }
 	}
-process_more:
-	;
     }
 }
 
@@ -250,13 +248,12 @@ process_more:
 * Updates the PPP FCS.
 ***********************************************************************/
 UINT16_t
-pppFCS16(UINT16_t fcs, 
-	 unsigned char * cp, 
+pppFCS16(UINT16_t fcs,
+	 unsigned char * cp,
 	 int len)
 {
     while (len--)
 	fcs = (fcs >> 8) ^ fcstab[(fcs ^ *cp++) & 0xff];
-    
+
     return (fcs);
 }
-

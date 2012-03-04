@@ -1,18 +1,20 @@
 /***********************************************************************
 *
-* pppoe.c 
+* pppoe.c
 *
 * Implementation of user-space PPPoE redirector for Linux.
 *
-* Copyright (C) 2000 by Roaring Penguin Software Inc.
+* Copyright (C) 2000-2006 by Roaring Penguin Software Inc.
 *
 * This program may be distributed according to the terms of the GNU
 * General Public License, version 2 or (at your option) any later version.
 *
+* LIC: GPL
+*
 ***********************************************************************/
 
 static char const RCSID[] =
-"$Id: pppoe.c,v 1.1.1.1 2000/11/17 05:28:42 davidm Exp $";
+"$Id$";
 
 #include "pppoe.h"
 
@@ -47,659 +49,61 @@ static char const RCSID[] =
 
 #include <signal.h>
 
+#ifdef HAVE_N_HDLC
+#ifndef N_HDLC
+#include <linux/termios.h>
+#endif
+#endif
+
 /* Default interface if no -I option given */
 #define DEFAULT_IF "eth0"
 
-int DiscoveryState;
-int DiscoverySocket = -1;
-int SessionSocket = -1;
-
-unsigned char BroadcastAddr[ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-unsigned char MyEthAddr[ETH_ALEN];	/* Source hardware address */
-unsigned char PeerEthAddr[ETH_ALEN];	/* Destination hardware address */
-UINT16_t Session = 0;
-
-char *IfName = NULL;		/* Interface name */
-char *ServiceName = NULL;	/* Desired service name */
-char *DesiredACName = NULL;	/* Desired access concentrator */
-extern UINT16_t Session;	/* Identifier for our session */
-int Synchronous = 0;		/* True if using Sync PPP encapsulation */
-FILE *DebugFile = NULL;		/* File for dumping debug output */
-int optPrintACNames = 0;	/* Only print access concentrator names */
-int NumPADOPacketsReceived = 0;	/* Number of PADO packets received */
+/* Global variables -- options */
 int optInactivityTimeout = 0;	/* Inactivity timeout */
-int optUseHostUnique = 0;       /* Use Host-Unique tag for multiple sessions */
-int optClampMSS = 0;		/* Clamp MSS to this value */
-int optSkipDiscovery = 0;	/* Skip discovery phase */
-int optKillSession = 0;		/* Kill a session by sending PADT */
-int optSkipSession = 0;         /* Perform discovery, print session info
+int optClampMSS          = 0;	/* Clamp MSS to this value */
+int optSkipSession       = 0;	/* Perform discovery, print session info
 				   and exit */
-struct PPPoETag cookie;		/* We have to send this if we get it */
-struct PPPoETag relayId;	/* Ditto */
+int optFloodDiscovery    = 0;   /* Flood server with discovery requests.
+				   USED FOR STRESS-TESTING ONLY.  DO NOT
+				   USE THE -F OPTION AGAINST A REAL ISP */
 
-#define CHECK_ROOM(cursor, start, len) \
-do {\
-    if (((cursor)-(start))+(len) > MAX_PPPOE_PAYLOAD) { \
-        syslog(LOG_ERR, "Would create too-long packet"); \
-        return; \
-    } \
-} while(0)
+PPPoEConnection *Connection = NULL; /* Must be global -- used
+				       in signal handler */
 
-/**********************************************************************
-*%FUNCTION: parseForHostUniq
-*%ARGUMENTS:
-* type -- tag type
-* len -- tag length
-* data -- tag data.
-* extra -- user-supplied pointer.  This is assumed to be a pointer to int.
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* If a HostUnique tag is found which matches our PID, sets *extra to 1.
-***********************************************************************/
-void
-parseForHostUniq(UINT16_t type, UINT16_t len, unsigned char *data,
-		 void *extra)
-{
-    int *val = (int *) extra;
-    if (type == TAG_HOST_UNIQ && len == sizeof(pid_t)) {
-	pid_t tmp;
-	memcpy(&tmp, data, len);
-	if (tmp == getpid()) {
-	    *val = 1;
-	}
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: packetIsForMe
-*%ARGUMENTS:
-* packet -- a received PPPoE packet
-*%RETURNS:
-* 1 if packet is for this PPPoE daemon; 0 otherwise.
-*%DESCRIPTION:
-* If we are using the Host-Unique tag, verifies that packet contains
-* our unique identifier.
-***********************************************************************/
-int
-packetIsForMe(struct PPPoEPacket *packet)
-{
-    int forMe = 0;
-
-    /* If we're not using the Host-Unique tag, then accept the packet */
-    if (!optUseHostUnique) return 1;
-
-    parsePacket(packet, parseForHostUniq, &forMe);
-    return forMe;
-}
-
-/**********************************************************************
-*%FUNCTION: parsePADOTags
-*%ARGUMENTS:
-* type -- tag type
-* len -- tag length
-* data -- tag data
-* extra -- extra user data.  Should point to a PacketCriteria structure
-*          which gets filled in according to selected AC name and service
-*          name.
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Picks interesting tags out of a PADO packet
-***********************************************************************/
-void
-parsePADOTags(UINT16_t type, UINT16_t len, unsigned char *data,
-	      void *extra)
-{
-    struct PacketCriteria *pc = (struct PacketCriteria *) extra;
-    int i;
-
-    switch(type) {
-    case TAG_AC_NAME:
-	if (optPrintACNames) {
-	    printf("Access-Concentrator: %.*s\n", (int) len, data);
-	}
-	if (DesiredACName && len == strlen(DesiredACName) &&
-	    !strncmp((char *) data, DesiredACName, len)) {
-	    pc->acNameOK = 1;
-	}
-	break;
-    case TAG_SERVICE_NAME:
-	if (optPrintACNames && len > 0) {
-	    printf("       Service-Name: %.*s\n", (int) len, data);
-	}
-	if (ServiceName && len == strlen(ServiceName) &&
-	    !strncmp((char *) data, ServiceName, len)) {
-	    pc->serviceNameOK = 1;
-	}
-	break;
-    case TAG_AC_COOKIE:
-	if (optPrintACNames) {
-	    printf("Got a cookie:");
-	    /* Print first 20 bytes of cookie */
-	    for (i=0; i<len && i < 20; i++) {
-		printf(" %02x", (unsigned) data[i]);
-	    }
-	    if (i < len) printf("...");
-	    printf("\n");
-	}
-	cookie.type = htons(type);
-	cookie.length = htons(len);
-	memcpy(cookie.payload, data, len);
-	break;
-    case TAG_RELAY_SESSION_ID:
-	if (optPrintACNames) {
-	    printf("Got a Relay-ID\n");
-	}
-	relayId.type = htons(type);
-	relayId.length = htons(len);
-	memcpy(relayId.payload, data, len);
-	break;
-    case TAG_SERVICE_NAME_ERROR:
-	if (optPrintACNames) {
-	    printf("Got a Service-Name-Error tag: %.*s\n", (int) len, data);
-	} else {
-	    syslog(LOG_ERR, "PADO: Service-Name-Error: %.*s", (int) len, data);
-	    exit(1);
-	}
-	break;
-    case TAG_AC_SYSTEM_ERROR:
-	if (optPrintACNames) {
-	    printf("Got a System-Error tag: %.*s\n", (int) len, data);
-	} else {
-	    syslog(LOG_ERR, "PADO: System-Error: %.*s", (int) len, data);
-	    exit(1);
-	}
-	break;
-    case TAG_GENERIC_ERROR:
-	if (optPrintACNames) {
-	    printf("Got a Generic-Error tag: %.*s\n", (int) len, data);
-	} else {
-	    syslog(LOG_ERR, "PADO: Generic-Error: %.*s", (int) len, data);
-	    exit(1);
-	}
-	break;
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: parseLogErrs
-*%ARGUMENTS:
-* type -- tag type
-* len -- tag length
-* data -- tag data
-* extra -- extra user data
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Picks error tags out of a packet and logs them.
-***********************************************************************/
-void
-parseLogErrs(UINT16_t type, UINT16_t len, unsigned char *data,
-	     void *extra)
-{
-    switch(type) {
-    case TAG_SERVICE_NAME_ERROR:
-	syslog(LOG_ERR, "PADT: Service-Name-Error: %.*s", (int) len, data);
-	break;
-    case TAG_AC_SYSTEM_ERROR:
-	syslog(LOG_ERR, "PADT: System-Error: %.*s", (int) len, data);
-	break;
-    case TAG_GENERIC_ERROR:
-	syslog(LOG_ERR, "PADT: Generic-Error: %.*s", (int) len, data);
-	break;
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: parsePADSTags
-*%ARGUMENTS:
-* type -- tag type
-* len -- tag length
-* data -- tag data
-* extra -- extra user data
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Picks interesting tags out of a PADS packet
-***********************************************************************/
-void
-parsePADSTags(UINT16_t type, UINT16_t len, unsigned char *data,
-	      void *extra)
-{
-    switch(type) {
-    case TAG_SERVICE_NAME:
-	syslog(LOG_DEBUG, "PADS: Service-Name: '%.*s'", (int) len, data);
-	break;
-    case TAG_SERVICE_NAME_ERROR:
-	syslog(LOG_ERR, "PADS: Service-Name-Error: %.*s", (int) len, data);
-	exit(1);
-    case TAG_AC_SYSTEM_ERROR:
-	syslog(LOG_ERR, "PADS: System-Error: %.*s", (int) len, data);
-	exit(1);
-    case TAG_GENERIC_ERROR:
-	syslog(LOG_ERR, "PADS: Generic-Error: %.*s", (int) len, data);
-	exit(1);
-    case TAG_RELAY_SESSION_ID:
-	relayId.type = htons(type);
-	relayId.length = htons(len);
-	memcpy(relayId.payload, data, len);
-	break;
-    }
-}
-
-/***********************************************************************
-*%FUNCTION: sendPADI
-*%ARGUMENTS:
-* None
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Sends a PADI packet
-***********************************************************************/
-void
-sendPADI(void)
-{
-    struct PPPoEPacket packet;
-    unsigned char *cursor = packet.payload;
-    struct PPPoETag *svc = (struct PPPoETag *) (&packet.payload);
-    UINT16_t namelen = 0;
-    UINT16_t plen;
-
-    if (ServiceName) {
-	namelen = (UINT16_t) strlen(ServiceName);
-    }
-    plen = TAG_HDR_SIZE + namelen;
-    CHECK_ROOM(cursor, packet.payload, plen);
-
-    memcpy(packet.ethHdr.h_dest, BroadcastAddr, ETH_ALEN);
-    memcpy(packet.ethHdr.h_source, MyEthAddr, ETH_ALEN);
-
-    packet.ethHdr.h_proto = htons(Eth_PPPOE_Discovery);
-    packet.ver = 1;
-    packet.type = 1;
-    packet.code = CODE_PADI;
-    packet.session = 0;
-
-    svc->type = TAG_SERVICE_NAME;
-    svc->length = htons(namelen);
-    CHECK_ROOM(cursor, packet.payload, namelen+TAG_HDR_SIZE);
-
-    if (ServiceName) {
-	memcpy(svc->payload, ServiceName, strlen(ServiceName));
-    }
-    cursor += namelen + TAG_HDR_SIZE;
-
-    /* If we're using Host-Uniq, copy it over */
-    if (optUseHostUnique) {
-	struct PPPoETag hostUniq;
-	pid_t pid = getpid();
-	hostUniq.type = htons(TAG_HOST_UNIQ);
-	hostUniq.length = htons(sizeof(pid));
-	memcpy(hostUniq.payload, &pid, sizeof(pid));
-	CHECK_ROOM(cursor, packet.payload, sizeof(pid) + TAG_HDR_SIZE);
-	memcpy(cursor, &hostUniq, sizeof(pid) + TAG_HDR_SIZE);
-	cursor += sizeof(pid) + TAG_HDR_SIZE;
-	plen += sizeof(pid) + TAG_HDR_SIZE;
-    }
-
-    packet.length = htons(plen);
-
-    sendPacket(DiscoverySocket, &packet, (int) (plen + HDR_SIZE));
-    if (DebugFile) {
-	fprintf(DebugFile, "SENT ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: waitForPADO
-*%ARGUMENTS:
-* timeout -- how long to wait (in seconds)
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Waits for a PADO packet and copies useful information
-***********************************************************************/
-void
-waitForPADO(int timeout)
-{
-    fd_set readable;
-    int r;
-    struct timeval tv;
-    struct PPPoEPacket packet;
-    int len;
-
-    struct PacketCriteria pc;
-    pc.acNameOK      = (DesiredACName)    ? 0 : 1;
-    pc.serviceNameOK = (ServiceName)      ? 0 : 1;
-	
-    do {
-	if (BPF_BUFFER_IS_EMPTY) {
-	    tv.tv_sec = timeout;
-	    tv.tv_usec = 0;
-	
-	    FD_ZERO(&readable);
-	    FD_SET(DiscoverySocket, &readable);
-
-	    while(1) {
-		r = select(DiscoverySocket+1, &readable, NULL, NULL, &tv);
-		if (r >= 0 || errno != EINTR) break;
-	    }
-	    if (r < 0) {
-		fatalSys("select (waitForPADO)");
-	    }
-	    if (r == 0) return;        /* Timed out */
-	}
-	
-	/* Get the packet */
-	receivePacket(DiscoverySocket, &packet, &len);
-
-	/* Check length */
-	if (ntohs(packet.length) + HDR_SIZE > len) {
-	    syslog(LOG_ERR, "Bogus PPPoE length field");
-	    continue;
-	}
-
-#ifdef USE_BPF
-	/* If it's not a Discovery packet, loop again */
-	if (etherType(&packet) != Eth_PPPOE_Discovery) continue;
-#endif
-
-	if (DebugFile) {
-	    fprintf(DebugFile, "RCVD ");
-	    dumpPacket(DebugFile, &packet);
-	    fprintf(DebugFile, "\n");
-	    fflush(DebugFile);
-	}
-	/* If it's not for us, loop again */
-	if (!packetIsForMe(&packet)) continue;
-
-	if (packet.code == CODE_PADO) {
-	    NumPADOPacketsReceived++;
-	    if (optPrintACNames) {
-		printf("--------------------------------------------------\n");
-	    }
-	    parsePacket(&packet, parsePADOTags, &pc);
-	    if (pc.acNameOK && pc.serviceNameOK) {
-		memcpy(PeerEthAddr, packet.ethHdr.h_source, ETH_ALEN);
-		if (optPrintACNames) {
-		    printf("AC-Ethernet-Address: %02x:%02x:%02x:%02x:%02x:%02x\n",
-			   (unsigned) PeerEthAddr[0], 
-			   (unsigned) PeerEthAddr[1],
-			   (unsigned) PeerEthAddr[2],
-			   (unsigned) PeerEthAddr[3],
-			   (unsigned) PeerEthAddr[4],
-			   (unsigned) PeerEthAddr[5]);
-		    continue;
-		}
-		DiscoveryState = STATE_RECEIVED_PADO;
-		break;
-	    }
-	}
-    } while (DiscoveryState != STATE_RECEIVED_PADO);
-}
-
-/***********************************************************************
-*%FUNCTION: sendPADR
-*%ARGUMENTS:
-* None
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Sends a PADR packet
-***********************************************************************/
-void
-sendPADR(void)
-{
-    struct PPPoEPacket packet;
-    struct PPPoETag *svc = (struct PPPoETag *) packet.payload;
-    unsigned char *cursor = packet.payload;
-
-    UINT16_t namelen = 0;
-    UINT16_t plen;
-
-    if (ServiceName) {
-	namelen = (UINT16_t) strlen(ServiceName);
-    }
-    plen = TAG_HDR_SIZE + namelen;
-    CHECK_ROOM(cursor, packet.payload, plen);
-
-    memcpy(packet.ethHdr.h_dest, PeerEthAddr, ETH_ALEN);
-    memcpy(packet.ethHdr.h_source, MyEthAddr, ETH_ALEN);
-
-    packet.ethHdr.h_proto = htons(Eth_PPPOE_Discovery);
-    packet.ver = 1;
-    packet.type = 1;
-    packet.code = CODE_PADR;
-    packet.session = 0;
-
-    svc->type = TAG_SERVICE_NAME;
-    svc->length = htons(namelen);
-    if (ServiceName) {
-	memcpy(svc->payload, ServiceName, namelen);
-    }
-    cursor += namelen + TAG_HDR_SIZE;
-
-    /* If we're using Host-Uniq, copy it over */
-    if (optUseHostUnique) {
-	struct PPPoETag hostUniq;
-	pid_t pid = getpid();
-	hostUniq.type = htons(TAG_HOST_UNIQ);
-	hostUniq.length = htons(sizeof(pid));
-	memcpy(hostUniq.payload, &pid, sizeof(pid));
-	CHECK_ROOM(cursor, packet.payload, sizeof(pid)+TAG_HDR_SIZE);
-	memcpy(cursor, &hostUniq, sizeof(pid) + TAG_HDR_SIZE);
-	cursor += sizeof(pid) + TAG_HDR_SIZE;
-	plen += sizeof(pid) + TAG_HDR_SIZE;
-    }
-
-    /* Copy cookie and relay-ID if needed */
-    if (cookie.type) {
-	CHECK_ROOM(cursor, packet.payload,
-		   ntohs(cookie.length) + TAG_HDR_SIZE);
-	memcpy(cursor, &cookie, ntohs(cookie.length) + TAG_HDR_SIZE);
-	cursor += ntohs(cookie.length) + TAG_HDR_SIZE;
-	plen += ntohs(cookie.length) + TAG_HDR_SIZE;
-    }
-
-    if (relayId.type) {
-	CHECK_ROOM(cursor, packet.payload,
-		   ntohs(relayId.length) + TAG_HDR_SIZE);
-	memcpy(cursor, &relayId, ntohs(relayId.length) + TAG_HDR_SIZE);
-	cursor += ntohs(relayId.length) + TAG_HDR_SIZE;
-	plen += ntohs(relayId.length) + TAG_HDR_SIZE;
-    }
-
-    packet.length = htons(plen);
-    sendPacket(DiscoverySocket, &packet, (int) (plen + HDR_SIZE));
-    if (DebugFile) {
-	fprintf(DebugFile, "SENT ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: waitForPADS
-*%ARGUMENTS:
-* timeout -- how long to wait (in seconds)
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Waits for a PADS packet and copies useful information
-***********************************************************************/
-void
-waitForPADS(int timeout)
-{
-    fd_set readable;
-    int r;
-    struct timeval tv;
-    struct PPPoEPacket packet;
-    int len;
-
-    do {
-	if (BPF_BUFFER_IS_EMPTY) {
-	    tv.tv_sec = timeout;
-	    tv.tv_usec = 0;
-	    
-	    FD_ZERO(&readable);
-	    FD_SET(DiscoverySocket, &readable);
-	    
-	    while(1) {
-		r = select(DiscoverySocket+1, &readable, NULL, NULL, &tv);
-		if (r >= 0 || errno != EINTR) break;
-	    }
-	    if (r < 0) {
-		fatalSys("select (waitForPADS)");
-	    }
-	    if (r == 0) return;
-	}
-
-	/* Get the packet */
-	receivePacket(DiscoverySocket, &packet, &len);
-
-	/* Check length */
-	if (ntohs(packet.length) + HDR_SIZE > len) {
-	    syslog(LOG_ERR, "Bogus PPPoE length field");
-	    continue;
-	}
-
-#ifdef USE_BPF
-	/* If it's not a Discovery packet, loop again */
-	if (etherType(&packet) != Eth_PPPOE_Discovery) continue;
-#endif
-	if (DebugFile) {
-	    fprintf(DebugFile, "RCVD ");
-	    dumpPacket(DebugFile, &packet);
-	    fprintf(DebugFile, "\n");
-	    fflush(DebugFile);
-	}
-
-	/* If it's not from the AC, it's not for me */
-	if (memcmp(packet.ethHdr.h_source, PeerEthAddr, ETH_ALEN)) continue;
-
-	/* If it's not for us, loop again */
-	if (!packetIsForMe(&packet)) continue;
-
-	/* Is it PADS?  */
-	if (packet.code == CODE_PADS) {
-	    /* Parse for goodies */
-	    parsePacket(&packet, parsePADSTags, NULL);
-	    DiscoveryState = STATE_SESSION;
-	    break;
-	}
-    } while (DiscoveryState != STATE_SESSION);
-
-    /* Don't bother with ntohs; we'll just end up converting it back... */
-    Session = packet.session;
-
-    syslog(LOG_DEBUG, "PPP session is %d", (int) ntohs(Session));
-
-    /* RFC 2516 says session id MUST NOT be zero */
-    if (ntohs(Session) == 0) {
-	syslog(LOG_ERR, "Access concentrator used a session value of zero -- the AC is violating RFC 2516");
-    }
-}
-
-/**********************************************************************
-*%FUNCTION: discovery
-*%ARGUMENTS:
-* None
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Performs the PPPoE discovery phase
-***********************************************************************/
-void
-discovery(void)
-{
-    int padiAttempts = 0;
-    int padrAttempts = 0;
-    int timeout = PADI_TIMEOUT;
-    DiscoverySocket = openInterface(IfName, Eth_PPPOE_Discovery, MyEthAddr);
-
-    /* Skip discovery? */
-    if (optSkipDiscovery) {
-	DiscoveryState = STATE_SESSION;
-	if (optKillSession) {
-	    sendPADT();
-	    exit(0);
-	}
-	return;
-    }
-
-    do {
-	padiAttempts++;
-	if (padiAttempts > MAX_PADI_ATTEMPTS) {
-	    fatal("Timeout waiting for PADO packets");
-	}
-	sendPADI();
-	DiscoveryState = STATE_SENT_PADI;
-	waitForPADO(timeout);
-
-	/* If we're just probing for access concentrators, don't do
-	   exponential backoff.  This reduces the time for an unsuccessful
-	   probe to 15 seconds. */
-	if (!optPrintACNames) {
-	    timeout *= 2;
-	}
-	if (optPrintACNames && NumPADOPacketsReceived) {
-	    break;
-	}
-    } while (DiscoveryState == STATE_SENT_PADI);
-
-    /* If we're only printing access concentrator names, we're done */
-    if (optPrintACNames) {
-	printf("--------------------------------------------------\n");
-	exit(0);
-    }
-
-    timeout = PADI_TIMEOUT;
-    do {
-	padrAttempts++;
-	if (padrAttempts > MAX_PADI_ATTEMPTS) {
-	    fatal("Timeout waiting for PADS packets");
-	}
-	sendPADR();
-	DiscoveryState = STATE_SENT_PADR;
-	waitForPADS(timeout);
-	timeout *= 2;
-    } while (DiscoveryState == STATE_SENT_PADR);
-
-    /* We're done. */
-    DiscoveryState = STATE_SESSION;
-    return;
-}
-
+int persist = 0; 		/* We are not a pppd plugin */
 /***********************************************************************
 *%FUNCTION: sendSessionPacket
 *%ARGUMENTS:
+* conn -- PPPoE connection
 * packet -- the packet to send
-# len -- length of data to send
+* len -- length of data to send
 *%RETURNS:
 * Nothing
 *%DESCRIPTION:
 * Transmits a session packet to the peer.
 ***********************************************************************/
 void
-sendSessionPacket(struct PPPoEPacket *packet, int len)
+sendSessionPacket(PPPoEConnection *conn, PPPoEPacket *packet, int len)
 {
     packet->length = htons(len);
     if (optClampMSS) {
 	clampMSS(packet, "outgoing", optClampMSS);
     }
-    sendPacket(SessionSocket, packet, len + HDR_SIZE);
-    if (DebugFile) {
-	fprintf(DebugFile, "SENT ");
-	dumpPacket(DebugFile, packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
+    if (sendPacket(conn, conn->sessionSocket, packet, len + HDR_SIZE) < 0) {
+	if (errno == ENOBUFS) {
+	    /* No buffer space is a transient error */
+	    return;
+	}
+	exit(EXIT_FAILURE);
     }
+#ifdef DEBUGGING_ENABLED
+    if (conn->debugFile) {
+	dumpPacket(conn->debugFile, packet, "SENT");
+	fprintf(conn->debugFile, "\n");
+	fflush(conn->debugFile);
+    }
+#endif
+
 }
 
 #ifdef USE_BPF
@@ -719,124 +123,141 @@ sendSessionPacket(struct PPPoEPacket *packet, int len)
 * have already read the packet and determined it to be a discovery
 * packet before passing it here.
 ***********************************************************************/
-void
-sessionDiscoveryPacket(struct PPPoEPacket *packet)
+static void
+sessionDiscoveryPacket(PPPoEPacket *packet)
 {
     /* Sanity check */
     if (packet->code != CODE_PADT) {
-	syslog(LOG_DEBUG, "Got discovery packet (code %d) during session",
-	       (int) packet->code);
 	return;
     }
 
     /* It's a PADT, all right.  Is it for us? */
-    if (packet->session != Session) {
+    if (packet->session != Connection->session) {
 	/* Nope, ignore it */
+	return;
+    }
+    if (memcmp(packet->ethHdr.h_dest, Connection->myEth, ETH_ALEN)) {
+	return;
+    }
+
+    if (memcmp(packet->ethHdr.h_source, Connection->peerEth, ETH_ALEN)) {
 	return;
     }
 
     syslog(LOG_INFO,
-	   "Session terminated -- received PADT from access concentrator");
+	   "Session %d terminated -- received PADT from peer",
+	   (int) ntohs(packet->session));
     parsePacket(packet, parseLogErrs, NULL);
-    exit(0);
+    sendPADT(Connection, "Received PADT from peer");
+    exit(EXIT_SUCCESS);
 }
 #else
 /**********************************************************************
 *%FUNCTION: sessionDiscoveryPacket
 *%ARGUMENTS:
-* None
+* conn -- PPPoE connection
 *%RETURNS:
 * Nothing
 *%DESCRIPTION:
 * We got a discovery packet during the session stage.  This most likely
 * means a PADT.
 ***********************************************************************/
-void
-sessionDiscoveryPacket(void)
+static void
+sessionDiscoveryPacket(PPPoEConnection *conn)
 {
-    struct PPPoEPacket packet;
+    PPPoEPacket packet;
     int len;
 
-    receivePacket(DiscoverySocket, &packet, &len);
-
-    /* Check length */
-    if (ntohs(packet.length) + HDR_SIZE > len) {
-	syslog(LOG_ERR, "Bogus PPPoE length field");
+    if (receivePacket(conn->discoverySocket, &packet, &len) < 0) {
 	return;
     }
 
-    if (DebugFile) {
-	fprintf(DebugFile, "RCVD ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
+    /* Check length */
+    if (ntohs(packet.length) + HDR_SIZE > len) {
+	syslog(LOG_ERR, "Bogus PPPoE length field (%u)",
+	       (unsigned int) ntohs(packet.length));
+	return;
     }
 
-    /* Sanity check */
     if (packet.code != CODE_PADT) {
-	syslog(LOG_DEBUG, "Got discovery packet (code %d) during session",
-	       (int) packet.code);
+	/* Not PADT; ignore it */
 	return;
     }
 
     /* It's a PADT, all right.  Is it for us? */
-    if (packet.session != Session) {
+    if (packet.session != conn->session) {
 	/* Nope, ignore it */
 	return;
     }
 
+    if (memcmp(packet.ethHdr.h_dest, conn->myEth, ETH_ALEN)) {
+	return;
+    }
+
+    if (memcmp(packet.ethHdr.h_source, conn->peerEth, ETH_ALEN)) {
+	return;
+    }
+#ifdef DEBUGGING_ENABLED
+    if (conn->debugFile) {
+	dumpPacket(conn->debugFile, &packet, "RCVD");
+	fprintf(conn->debugFile, "\n");
+	fflush(conn->debugFile);
+    }
+#endif
     syslog(LOG_INFO,
-	   "Session terminated -- received PADT from peer");
+	   "Session %d terminated -- received PADT from peer",
+	   (int) ntohs(packet.session));
     parsePacket(&packet, parseLogErrs, NULL);
-    exit(0);
+    sendPADT(conn, "Received PADT from peer");
+    exit(EXIT_SUCCESS);
 }
 #endif /* USE_BPF */
 
 /**********************************************************************
 *%FUNCTION: session
 *%ARGUMENTS:
-* None
+* conn -- PPPoE connection info
 *%RETURNS:
 * Nothing
 *%DESCRIPTION:
 * Handles the "session" phase of PPPoE
 ***********************************************************************/
 void
-session(void)
+session(PPPoEConnection *conn)
 {
     fd_set readable;
-    struct PPPoEPacket packet;
+    PPPoEPacket packet;
     struct timeval tv;
     struct timeval *tvp = NULL;
     int maxFD = 0;
     int r;
 
-    /* Open a session socket */
-    SessionSocket = openInterface(IfName, Eth_PPPOE_Session, NULL);
+    /* Drop privileges */
+    dropPrivs();
 
     /* Prepare for select() */
-    if (SessionSocket > maxFD) maxFD = SessionSocket;
-    if (DiscoverySocket > maxFD) maxFD = DiscoverySocket;
+    if (conn->sessionSocket > maxFD)   maxFD = conn->sessionSocket;
+    if (conn->discoverySocket > maxFD) maxFD = conn->discoverySocket;
     maxFD++;
 
     /* Fill in the constant fields of the packet to save time */
-    memcpy(packet.ethHdr.h_dest, PeerEthAddr, ETH_ALEN);
-    memcpy(packet.ethHdr.h_source, MyEthAddr, ETH_ALEN);
+    memcpy(packet.ethHdr.h_dest, conn->peerEth, ETH_ALEN);
+    memcpy(packet.ethHdr.h_source, conn->myEth, ETH_ALEN);
     packet.ethHdr.h_proto = htons(Eth_PPPOE_Session);
     packet.ver = 1;
     packet.type = 1;
     packet.code = CODE_SESS;
-    packet.session = Session;
+    packet.session = conn->session;
 
     initPPP();
 
 #ifdef USE_BPF
     /* check for buffered session data */
     while (BPF_BUFFER_HAS_DATA) {
-	if (Synchronous) {
-	    syncReadFromEth(SessionSocket, optClampMSS);
+	if (conn->synchronous) {
+	    syncReadFromEth(conn, conn->sessionSocket, optClampMSS);
 	} else {
-	    asyncReadFromEth(SessionSocket, optClampMSS);
+	    asyncReadFromEth(conn, conn->sessionSocket, optClampMSS);
 	}
     }
 #endif
@@ -849,8 +270,10 @@ session(void)
 	}
 	FD_ZERO(&readable);
 	FD_SET(0, &readable);     /* ppp packets come from stdin */
-	FD_SET(DiscoverySocket, &readable);
-	FD_SET(SessionSocket, &readable);
+	if (conn->discoverySocket >= 0) {
+	    FD_SET(conn->discoverySocket, &readable);
+	}
+	FD_SET(conn->sessionSocket, &readable);
 	while(1) {
 	    r = select(maxFD, &readable, NULL, NULL, tvp);
 	    if (r >= 0 || errno != EINTR) break;
@@ -859,114 +282,44 @@ session(void)
 	    fatalSys("select (session)");
 	}
 	if (r == 0) { /* Inactivity timeout */
-	    syslog(LOG_ERR, "Inactivity timeout... something wicked happened");
-	    sendPADT();
-	    exit(1);
+	    syslog(LOG_ERR, "Inactivity timeout... something wicked happened on session %d",
+		   (int) ntohs(conn->session));
+	    sendPADT(conn, "RP-PPPoE: Inactivity timeout");
+	    exit(EXIT_FAILURE);
 	}
 
 	/* Handle ready sockets */
 	if (FD_ISSET(0, &readable)) {
-	    if (Synchronous) {
-		syncReadFromPPP(&packet);
+	    if (conn->synchronous) {
+		syncReadFromPPP(conn, &packet);
 	    } else {
-		asyncReadFromPPP(&packet);
+		asyncReadFromPPP(conn, &packet);
 	    }
 	}
 
-	if (FD_ISSET(SessionSocket, &readable)) {
+	if (FD_ISSET(conn->sessionSocket, &readable)) {
 	    do {
-		if (Synchronous) {
-		    syncReadFromEth(SessionSocket, optClampMSS);
+		if (conn->synchronous) {
+		    syncReadFromEth(conn, conn->sessionSocket, optClampMSS);
 		} else {
-		    asyncReadFromEth(SessionSocket, optClampMSS);
+		    asyncReadFromEth(conn, conn->sessionSocket, optClampMSS);
 		}
 	    } while (BPF_BUFFER_HAS_DATA);
 	}
 
-#ifndef USE_BPF	
+#ifndef USE_BPF
 	/* BSD uses a single socket, see *syncReadFromEth() */
 	/* for calls to sessionDiscoveryPacket() */
-	if (FD_ISSET(DiscoverySocket, &readable)) {
-	    sessionDiscoveryPacket();
+	if (conn->discoverySocket >= 0) {
+	    if (FD_ISSET(conn->discoverySocket, &readable)) {
+		sessionDiscoveryPacket(conn);
+	    }
 	}
 #endif
 
     }
 }
 
-
-/***********************************************************************
-*%FUNCTION: sendPADT
-*%ARGUMENTS:
-* None
-*%RETURNS:
-* Nothing
-*%DESCRIPTION:
-* Sends a PADT packet
-***********************************************************************/
-void
-sendPADT(void)
-{
-    struct PPPoEPacket packet;
-    unsigned char *cursor = packet.payload;
-
-    UINT16_t plen = 0;
-
-    /* Do nothing if no session established yet */
-    if (!Session) return;
-
-    memcpy(packet.ethHdr.h_dest, PeerEthAddr, ETH_ALEN);
-    memcpy(packet.ethHdr.h_source, MyEthAddr, ETH_ALEN);
-
-    packet.ethHdr.h_proto = htons(Eth_PPPOE_Discovery);
-    packet.ver = 1;
-    packet.type = 1;
-    packet.code = CODE_PADT;
-    packet.session = Session;
-
-    /* Reset Session to zero so there is no possibility of
-       recursive calls to this function by any signal handler */
-    Session = 0;
-
-    /* If we're using Host-Uniq, copy it over */
-    if (optUseHostUnique) {
-	struct PPPoETag hostUniq;
-	pid_t pid = getpid();
-	hostUniq.type = htons(TAG_HOST_UNIQ);
-	hostUniq.length = htons(sizeof(pid));
-	memcpy(hostUniq.payload, &pid, sizeof(pid));
-	memcpy(cursor, &hostUniq, sizeof(pid) + TAG_HDR_SIZE);
-	cursor += sizeof(pid) + TAG_HDR_SIZE;
-	plen += sizeof(pid) + TAG_HDR_SIZE;
-    }
-
-    /* Copy cookie and relay-ID if needed */
-    if (cookie.type) {
-	CHECK_ROOM(cursor, packet.payload,
-		   ntohs(cookie.length) + TAG_HDR_SIZE);
-	memcpy(cursor, &cookie, ntohs(cookie.length) + TAG_HDR_SIZE);
-	cursor += ntohs(cookie.length) + TAG_HDR_SIZE;
-	plen += ntohs(cookie.length) + TAG_HDR_SIZE;
-    }
-
-    if (relayId.type) {
-	CHECK_ROOM(cursor, packet.payload,
-		   ntohs(relayId.length) + TAG_HDR_SIZE);
-	memcpy(cursor, &relayId, ntohs(relayId.length) + TAG_HDR_SIZE);
-	cursor += ntohs(relayId.length) + TAG_HDR_SIZE;
-	plen += ntohs(relayId.length) + TAG_HDR_SIZE;
-    }
-
-    packet.length = htons(plen);
-    sendPacket(DiscoverySocket, &packet, (int) (plen + HDR_SIZE));
-    if (DebugFile) {
-	fprintf(DebugFile, "SENT ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
-    }
-    syslog(LOG_INFO,"Sent PADT");
-}
 
 /***********************************************************************
 *%FUNCTION: sigPADT
@@ -978,13 +331,13 @@ sendPADT(void)
 * If an established session exists send PADT to terminate from session
 *  from our end
 ***********************************************************************/
-
-void
+static void
 sigPADT(int src)
 {
-  syslog(LOG_DEBUG,"Received signal %d.",(int)src);
-  sendPADT();
-  exit(0);
+  syslog(LOG_DEBUG,"Received signal %d on session %d.",
+	 (int)src, (int) ntohs(Connection->session));
+  sendPADTf(Connection, "RP-PPPoE: Received signal %d", src);
+  exit(EXIT_SUCCESS);
 }
 
 /**********************************************************************
@@ -1007,27 +360,32 @@ usage(char const *argv0)
     fprintf(stderr, "   -I if_name     -- Specify interface (default %s.)\n",
 	    DEFAULT_IF);
 #endif
-    fprintf(stderr, "   -T timeout     -- Specify inactivity timeout in seconds.\n");
+#ifdef DEBUGGING_ENABLED
     fprintf(stderr, "   -D filename    -- Log debugging information in filename.\n");
-    fprintf(stderr, "   -V             -- Print version and exit.\n");
-    fprintf(stderr, "   -A             -- Print access concentrator names and exit.\n");
-    fprintf(stderr, "   -S name        -- Set desired service name.\n");
-    fprintf(stderr, "   -C name        -- Set desired access concentrator name.\n");
-    fprintf(stderr, "   -U             -- Use Host-Unique to allow multiple PPPoE sessions.\n");
-    fprintf(stderr, "   -s             -- Use synchronous PPP encapsulation.\n");
-    fprintf(stderr, "   -m MSS         -- Clamp incoming and outgoing MSS options.\n");
-    fprintf(stderr, "   -p pidfile     -- Write process-ID to pidfile.\n");
-    fprintf(stderr, "   -e sess:mac    -- Skip discovery phase; use existing session.\n");
-    fprintf(stderr, "   -k             -- Kill a session with PADT (requires -e)\n");
-    fprintf(stderr, "   -d             -- Perform discovery, print session info and exit.\n");
-    fprintf(stderr, "   -f disc:sess   -- Set Ethernet frame types (hex).\n");
-    fprintf(stderr, "   -h             -- Print usage information.\n\n");
-    fprintf(stderr, "PPPoE Version %s, Copyright (C) 2000 Roaring Penguin Software Inc.\n", VERSION);
-    fprintf(stderr, "PPPoE comes with ABSOLUTELY NO WARRANTY.\n");
-    fprintf(stderr, "This is free software, and you are welcome to redistribute it under the terms\n");
-    fprintf(stderr, "of the GNU General Public License, version 2 or any later version.\n");
-    fprintf(stderr, "http://www.roaringpenguin.com\n");
-    exit(0);
+#endif
+    fprintf(stderr,
+	    "   -T timeout     -- Specify inactivity timeout in seconds.\n"
+	    "   -t timeout     -- Initial timeout for discovery packets in seconds\n"
+	    "   -V             -- Print version and exit.\n"
+	    "   -A             -- Print access concentrator names and exit.\n"
+	    "   -S name        -- Set desired service name.\n"
+	    "   -C name        -- Set desired access concentrator name.\n"
+	    "   -U             -- Use Host-Unique to allow multiple PPPoE sessions.\n"
+	    "   -s             -- Use synchronous PPP encapsulation.\n"
+	    "   -m MSS         -- Clamp incoming and outgoing MSS options.\n"
+	    "   -p pidfile     -- Write process-ID to pidfile.\n"
+	    "   -e sess:mac    -- Skip discovery phase; use existing session.\n"
+	    "   -n             -- Do not open discovery socket.\n"
+	    "   -k             -- Kill a session with PADT (requires -e)\n"
+	    "   -d             -- Perform discovery, print session info and exit.\n"
+	    "   -f disc:sess   -- Set Ethernet frame types (hex).\n"
+	    "   -h             -- Print usage information.\n\n"
+	    "PPPoE Version %s, Copyright (C) 2001-2006 Roaring Penguin Software Inc.\n"
+	    "PPPoE comes with ABSOLUTELY NO WARRANTY.\n"
+	    "This is free software, and you are welcome to redistribute it under the terms\n"
+	    "of the GNU General Public License, version 2 or any later version.\n"
+	    "http://www.roaringpenguin.com\n", VERSION);
+    exit(EXIT_SUCCESS);
 }
 
 /**********************************************************************
@@ -1048,25 +406,64 @@ main(int argc, char *argv[])
     unsigned int s;		/* Temporary to hold session */
     FILE *pidfile;
     unsigned int discoveryType, sessionType;
+    char const *options;
+
+    PPPoEConnection conn;
 
 #ifdef HAVE_N_HDLC
     int disc = N_HDLC;
     long flags;
 #endif
 
-    /* No cookie or relay-ID yet */
-    cookie.type = 0;
-    relayId.type = 0;
+    if (getuid() != geteuid() ||
+	getgid() != getegid()) {
+	IsSetID = 1;
+    }
+
+    /* Initialize connection info */
+    memset(&conn, 0, sizeof(conn));
+    conn.discoverySocket = -1;
+    conn.sessionSocket = -1;
+    conn.discoveryTimeout = PADI_TIMEOUT;
+
+    /* For signal handler */
+    Connection = &conn;
 
     /* Initialize syslog */
     openlog("pppoe", LOG_PID, LOG_DAEMON);
 
-    while((opt = getopt(argc, argv, "I:VAT:D:hS:C:Usm:p:e:kdf:")) != -1) {
+#ifdef DEBUGGING_ENABLED
+    options = "I:VAT:D:hS:C:Usm:np:e:kdf:F:t:";
+#else
+    options = "I:VAT:hS:C:Usm:np:e:kdf:F:t:";
+#endif
+    while((opt = getopt(argc, argv, options)) != -1) {
 	switch(opt) {
+	case 't':
+	    if (sscanf(optarg, "%d", &conn.discoveryTimeout) != 1) {
+		fprintf(stderr, "Illegal argument to -t: Should be -t timeout\n");
+		exit(EXIT_FAILURE);
+	    }
+	    if (conn.discoveryTimeout < 1) {
+		conn.discoveryTimeout = 1;
+	    }
+	    break;
+	case 'F':
+	    if (sscanf(optarg, "%d", &optFloodDiscovery) != 1) {
+		fprintf(stderr, "Illegal argument to -F: Should be -F numFloods\n");
+		exit(EXIT_FAILURE);
+	    }
+	    if (optFloodDiscovery < 1) optFloodDiscovery = 1;
+	    fprintf(stderr,
+		    "WARNING: DISCOVERY FLOOD IS MEANT FOR STRESS-TESTING\n"
+		    "A PPPOE SERVER WHICH YOU OWN.  DO NOT USE IT AGAINST\n"
+		    "A REAL ISP.  YOU HAVE 5 SECONDS TO ABORT.\n");
+	    sleep(5);
+	    break;
 	case 'f':
 	    if (sscanf(optarg, "%x:%x", &discoveryType, &sessionType) != 2) {
 		fprintf(stderr, "Illegal argument to -f: Should be disc:sess in hex\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	    }
 	    Eth_PPPOE_Discovery = (UINT16_t) discoveryType;
 	    Eth_PPPOE_Session   = (UINT16_t) sessionType;
@@ -1076,7 +473,13 @@ main(int argc, char *argv[])
 	    break;
 
 	case 'k':
-	    optKillSession = 1;
+	    conn.killSession = 1;
+	    break;
+
+	case 'n':
+	    /* Do not even open a discovery socket -- used when invoked
+	       by pppoe-server */
+	    conn.noDiscoverySocket = 1;
 	    break;
 
 	case 'e':
@@ -1086,50 +489,56 @@ main(int argc, char *argv[])
 		       &s, &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
 	    if (n != 7) {
 		fprintf(stderr, "Illegal argument to -e: Should be sess:xx:yy:zz:aa:bb:cc\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	    }
 
 	    /* Copy MAC address of peer */
 	    for (n=0; n<6; n++) {
-		PeerEthAddr[n] = (unsigned char) m[n];
+		conn.peerEth[n] = (unsigned char) m[n];
 	    }
 
 	    /* Convert session */
-	    Session = htons(s);
+	    conn.session = htons(s);
 
 	    /* Skip discovery phase! */
-	    optSkipDiscovery = 1;
+	    conn.skipDiscovery = 1;
 	    break;
-		       
+
 	case 'p':
+	    switchToRealID();
 	    pidfile = fopen(optarg, "w");
 	    if (pidfile) {
 		fprintf(pidfile, "%lu\n", (unsigned long) getpid());
 		fclose(pidfile);
 	    }
+	    switchToEffectiveID();
 	    break;
 	case 'S':
-	    SET_STRING(ServiceName, optarg);
+	    SET_STRING(conn.serviceName, optarg);
 	    break;
 	case 'C':
-	    SET_STRING(DesiredACName, optarg);
+	    SET_STRING(conn.acName, optarg);
 	    break;
 	case 's':
-	    Synchronous = 1;
+	    conn.synchronous = 1;
 	    break;
 	case 'U':
-	    optUseHostUnique = 1;
+	    conn.useHostUniq = 1;
 	    break;
+#ifdef DEBUGGING_ENABLED
 	case 'D':
-	    DebugFile = fopen(optarg, "w");
-	    if (!DebugFile) {
+	    switchToRealID();
+	    conn.debugFile = fopen(optarg, "w");
+	    switchToEffectiveID();
+	    if (!conn.debugFile) {
 		fprintf(stderr, "Could not open %s: %s\n",
 			optarg, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	    }
-	    fprintf(DebugFile, "rp-pppoe-%s\n", VERSION);
-	    fflush(DebugFile);
+	    fprintf(conn.debugFile, "rp-pppoe-%s\n", VERSION);
+	    fflush(conn.debugFile);
 	    break;
+#endif
 	case 'T':
 	    optInactivityTimeout = (int) strtol(optarg, NULL, 10);
 	    if (optInactivityTimeout < 0) {
@@ -1140,21 +549,21 @@ main(int argc, char *argv[])
 	    optClampMSS = (int) strtol(optarg, NULL, 10);
 	    if (optClampMSS < 536) {
 		fprintf(stderr, "-m: %d is too low (min 536)\n", optClampMSS);
-		exit(1);
+		exit(EXIT_FAILURE);
 	    }
 	    if (optClampMSS > 1452) {
 		fprintf(stderr, "-m: %d is too high (max 1452)\n", optClampMSS);
-		exit(1);
+		exit(EXIT_FAILURE);
 	    }
 	    break;
 	case 'I':
-	    SET_STRING(IfName, optarg);
+	    SET_STRING(conn.ifName, optarg);
 	    break;
 	case 'V':
 	    printf("Roaring Penguin PPPoE Version %s\n", VERSION);
-	    exit(0);
+	    exit(EXIT_SUCCESS);
 	case 'A':
-	    optPrintACNames = 1;
+	    conn.printACNames = 1;
 	    break;
 	case 'h':
 	    usage(argv[0]);
@@ -1165,32 +574,29 @@ main(int argc, char *argv[])
     }
 
     /* Pick a default interface name */
-    if (!IfName) {
+    if (!conn.ifName) {
 #ifdef USE_BPF
 	fprintf(stderr, "No interface specified (-I option)\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 #else
-	IfName = DEFAULT_IF;
+	SET_STRING(conn.ifName, DEFAULT_IF);
 #endif
     }
 
-    /* Set signal handlers: send PADT on TERM, HUP and INT */
-    if (!optPrintACNames) {
-	signal(SIGTERM, sigPADT);
-	signal(SIGHUP, sigPADT);
-	signal(SIGINT, sigPADT);
+    if (!conn.printACNames) {
 
 #ifdef HAVE_N_HDLC
-	if (Synchronous) {
+	if (conn.synchronous) {
 	    if (ioctl(0, TIOCSETD, &disc) < 0) {
-		printErr("Unable to set line discipline to N_HDLC -- synchronous mode probably will fail");
+		printErr("Unable to set line discipline to N_HDLC.  Make sure your kernel supports the N_HDLC line discipline, or do not use the SYNCHRONOUS option.  Quitting.");
+		exit(EXIT_FAILURE);
 	    } else {
 		syslog(LOG_INFO,
 		       "Changed pty line discipline to N_HDLC for synchronous mode");
 	    }
 	    /* There is a bug in Linux's select which returns a descriptor
 	     * as readable if N_HDLC line discipline is on, even if
-	     * it isn't really readable.  This return happens onlt when
+	     * it isn't really readable.  This return happens only when
 	     * select() times out.  To avoid blocking forever in read(),
 	     * make descriptor 0 non-blocking */
 	    flags = fcntl(0, F_GETFL);
@@ -1203,19 +609,53 @@ main(int argc, char *argv[])
 
     }
 
-    discovery();
+    if (optFloodDiscovery) {
+	for (n=0; n < optFloodDiscovery; n++) {
+	    if (conn.printACNames) {
+		fprintf(stderr, "Sending discovery flood %d\n", n+1);
+	    }
+            conn.discoverySocket =
+	        openInterface(conn.ifName, Eth_PPPOE_Discovery, conn.myEth);
+	    discovery(&conn);
+	    conn.discoveryState = STATE_SENT_PADI;
+	    close(conn.discoverySocket);
+	}
+	exit(EXIT_SUCCESS);
+    }
+
+    /* Open session socket before discovery phase, to avoid losing session */
+    /* packets sent by peer just after PADS packet (noted on some Cisco    */
+    /* server equipment).                                                  */
+    /* Opening this socket just before waitForPADS in the discovery()      */
+    /* function would be more appropriate, but it would mess-up the code   */
+    if (!optSkipSession)
+        conn.sessionSocket = openInterface(conn.ifName, Eth_PPPOE_Session, conn.myEth);
+
+    /* Skip discovery and don't open discovery socket? */
+    if (conn.skipDiscovery && conn.noDiscoverySocket) {
+	conn.discoveryState = STATE_SESSION;
+    } else {
+        conn.discoverySocket =
+	    openInterface(conn.ifName, Eth_PPPOE_Discovery, conn.myEth);
+        discovery(&conn);
+    }
     if (optSkipSession) {
 	printf("%u:%02x:%02x:%02x:%02x:%02x:%02x\n",
-	       ntohs(Session),
-	       PeerEthAddr[0],
-	       PeerEthAddr[1],
-	       PeerEthAddr[2],
-	       PeerEthAddr[3],
-	       PeerEthAddr[4],
-	       PeerEthAddr[5]);
-	exit(0);
+	       ntohs(conn.session),
+	       conn.peerEth[0],
+	       conn.peerEth[1],
+	       conn.peerEth[2],
+	       conn.peerEth[3],
+	       conn.peerEth[4],
+	       conn.peerEth[5]);
+	exit(EXIT_SUCCESS);
     }
-    session();
+
+    /* Set signal handlers: send PADT on HUP; ignore TERM and INT */
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
+    signal(SIGHUP, sigPADT);
+    session(&conn);
     return 0;
 }
 
@@ -1232,14 +672,33 @@ void
 fatalSys(char const *str)
 {
     char buf[1024];
-    sprintf(buf, "%.256s: %.256s", str, strerror(errno));
+    sprintf(buf, "%.256s: Session %d: %.256s",
+	    str, (int) ntohs(Connection->session), strerror(errno));
     printErr(buf);
-    sendPADT();
-    exit(1);
+    sendPADTf(Connection, "RP-PPPoE: System call error: %s",
+	      strerror(errno));
+    exit(EXIT_FAILURE);
 }
 
 /**********************************************************************
-*%FUNCTION: fatal
+*%FUNCTION: sysErr
+*%ARGUMENTS:
+* str -- error message
+*%RETURNS:
+* Nothing
+*%DESCRIPTION:
+* Prints a message plus the errno value to syslog.
+***********************************************************************/
+void
+sysErr(char const *str)
+{
+    char buf[1024];
+    sprintf(buf, "%.256s: %.256s", str, strerror(errno));
+    printErr(buf);
+}
+
+/**********************************************************************
+*%FUNCTION: rp_fatal
 *%ARGUMENTS:
 * str -- error message
 *%RETURNS:
@@ -1248,16 +707,18 @@ fatalSys(char const *str)
 * Prints a message to stderr and syslog and exits.
 ***********************************************************************/
 void
-fatal(char const *str)
+rp_fatal(char const *str)
 {
     printErr(str);
-    sendPADT();
-    exit(1);
+    sendPADTf(Connection, "RP-PPPoE: Session %d: %.256s",
+	      (int) ntohs(Connection->session), str);
+    exit(EXIT_FAILURE);
 }
 
 /**********************************************************************
 *%FUNCTION: asyncReadFromEth
 *%ARGUMENTS:
+* conn -- PPPoE connection info
 * sock -- Ethernet socket
 * clampMss -- if non-zero, do MSS-clamping
 *%RETURNS:
@@ -1267,9 +728,9 @@ fatal(char const *str)
 * device.
 ***********************************************************************/
 void
-asyncReadFromEth(int sock, int clampMss)
+asyncReadFromEth(PPPoEConnection *conn, int sock, int clampMss)
 {
-    struct PPPoEPacket packet;
+    PPPoEPacket packet;
     int len;
     int plen;
     int i;
@@ -1283,19 +744,23 @@ asyncReadFromEth(int sock, int clampMss)
     int type;
 #endif
 
-    receivePacket(sock, &packet, &len);
+    if (receivePacket(sock, &packet, &len) < 0) {
+	return;
+    }
 
     /* Check length */
     if (ntohs(packet.length) + HDR_SIZE > len) {
-	syslog(LOG_ERR, "Bogus PPPoE length field");
+	syslog(LOG_ERR, "Bogus PPPoE length field (%u)",
+	       (unsigned int) ntohs(packet.length));
 	return;
     }
-    if (DebugFile) {
-	fprintf(DebugFile, "RCVD ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
+#ifdef DEBUGGING_ENABLED
+    if (conn->debugFile) {
+	dumpPacket(conn->debugFile, &packet, "RCVD");
+	fprintf(conn->debugFile, "\n");
+	fflush(conn->debugFile);
     }
+#endif
 
 #ifdef USE_BPF
     /* Make sure this is a session packet before processing further */
@@ -1320,13 +785,16 @@ asyncReadFromEth(int sock, int clampMss)
 	syslog(LOG_ERR, "Unexpected packet type %d", (int) packet.type);
 	return;
     }
-    if (memcmp(packet.ethHdr.h_source, PeerEthAddr, ETH_ALEN)) {
+    if (memcmp(packet.ethHdr.h_dest, conn->myEth, ETH_ALEN)) {
+	return;
+    }
+    if (memcmp(packet.ethHdr.h_source, conn->peerEth, ETH_ALEN)) {
 	/* Not for us -- must be another session.  This is not an error,
 	   so don't log anything.  */
 	return;
     }
 
-    if (packet.session != Session) {
+    if (packet.session != conn->session) {
 	/* Not for us -- must be another session.  This is not an error,
 	   so don't log anything.  */
 	return;
@@ -1384,6 +852,7 @@ asyncReadFromEth(int sock, int clampMss)
 /**********************************************************************
 *%FUNCTION: syncReadFromEth
 *%ARGUMENTS:
+* conn -- PPPoE connection info
 * sock -- Ethernet socket
 * clampMss -- if true, clamp MSS.
 *%RETURNS:
@@ -1393,9 +862,9 @@ asyncReadFromEth(int sock, int clampMss)
 * device.
 ***********************************************************************/
 void
-syncReadFromEth(int sock, int clampMss)
+syncReadFromEth(PPPoEConnection *conn, int sock, int clampMss)
 {
-    struct PPPoEPacket packet;
+    PPPoEPacket packet;
     int len;
     int plen;
     struct iovec vec[2];
@@ -1404,19 +873,23 @@ syncReadFromEth(int sock, int clampMss)
     int type;
 #endif
 
-    receivePacket(sock, &packet, &len);
+    if (receivePacket(sock, &packet, &len) < 0) {
+	return;
+    }
 
     /* Check length */
     if (ntohs(packet.length) + HDR_SIZE > len) {
-	syslog(LOG_ERR, "Bogus PPPoE length field");
+	syslog(LOG_ERR, "Bogus PPPoE length field (%u)",
+	       (unsigned int) ntohs(packet.length));
 	return;
     }
-    if (DebugFile) {
-	fprintf(DebugFile, "RCVD ");
-	dumpPacket(DebugFile, &packet);
-	fprintf(DebugFile, "\n");
-	fflush(DebugFile);
+#ifdef DEBUGGING_ENABLED
+    if (conn->debugFile) {
+	dumpPacket(conn->debugFile, &packet, "RCVD");
+	fprintf(conn->debugFile, "\n");
+	fflush(conn->debugFile);
     }
+#endif
 
 #ifdef USE_BPF
     /* Make sure this is a session packet before processing further */
@@ -1441,12 +914,17 @@ syncReadFromEth(int sock, int clampMss)
 	syslog(LOG_ERR, "Unexpected packet type %d", (int) packet.type);
 	return;
     }
-    if (memcmp(packet.ethHdr.h_source, PeerEthAddr, ETH_ALEN)) {
+    if (memcmp(packet.ethHdr.h_dest, conn->myEth, ETH_ALEN)) {
 	/* Not for us -- must be another session.  This is not an error,
 	   so don't log anything.  */
 	return;
     }
-    if (packet.session != Session) {
+    if (memcmp(packet.ethHdr.h_source, conn->peerEth, ETH_ALEN)) {
+	/* Not for us -- must be another session.  This is not an error,
+	   so don't log anything.  */
+	return;
+    }
+    if (packet.session != conn->session) {
 	/* Not for us -- must be another session.  This is not an error,
 	   so don't log anything.  */
 	return;
@@ -1475,4 +953,3 @@ syncReadFromEth(int sock, int clampMss)
 	fatalSys("syncReadFromEth: write");
     }
 }
-

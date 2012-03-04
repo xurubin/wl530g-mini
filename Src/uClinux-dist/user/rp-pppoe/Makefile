@@ -15,7 +15,7 @@
 #***********************************************************************
 
 # Version is set ONLY IN THE MAKEFILE!  Don't delete this!
-VERSION=2.3
+VERSION=3.10
 
 prefix=
 exec_prefix=${prefix}
@@ -40,7 +40,7 @@ CFLAGS+=$(DEFINES) $(PATHS)
 LIBS=$(LDLIBS)
 
 FLTFLAGS += -s 10000
-all: pppoe pppoe-sniff
+all: pppoe
 	@echo ""
 	@echo "Type 'make install' as root to install the software."
 
@@ -50,8 +50,8 @@ pppoe-sniff: pppoe-sniff.o if.o common.o
 pppoe-server: pppoe-server.o if.o debug.o common.o md5.o
 	$(CC) $(LDFLAGS) -o $@ pppoe-server.o if.o debug.o common.o md5.o $(LIBS)
 
-pppoe: pppoe.o if.o debug.o common.o ppp.o
-	$(CC) $(LDFLAGS) -o $@ pppoe.o if.o debug.o common.o ppp.o $(LIBS)
+pppoe: pppoe.o if.o debug.o common.o ppp.o discovery.o
+	$(CC) $(LDFLAGS) -o $@ pppoe.o if.o debug.o common.o ppp.o discovery.o $(LIBS)
 
 pppoe.o: pppoe.c pppoe.h
 	$(CC) $(CFLAGS) '-DVERSION="$(VERSION)"' -c -o pppoe.o pppoe.c
@@ -59,6 +59,9 @@ pppoe.o: pppoe.c pppoe.h
 ppp.o: ppp.c pppoe.h
 	$(CC) $(CFLAGS) '-DVERSION="$(VERSION)"' -c -o ppp.o ppp.c
 
+discovery.o: discovery.c pppoe.h
+	$(CC) $(CFLAGS) '-DVERSION="$(VERSION)"' -c -o discovery.o discovery.c
+	
 md5.o: md5.c md5.h
 	$(CC) $(CFLAGS) '-DVERSION="$(VERSION)"' -c -o md5.o md5.c
 
