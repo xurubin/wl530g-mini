@@ -117,6 +117,7 @@ dir_$(CONFIG_USER_FTPD_FTPD)                += ftpd
 dir_$(CONFIG_USER_GDBSERVER_GDBREPLAY)      += gdbserver
 dir_$(CONFIG_USER_GDBSERVER_GDBSERVER)      += gdbserver
 dir_$(CONFIG_USER_GETTYD_GETTYD)            += gettyd
+dir_$(CONFIG_USER_GPIO)                     += gpio
 dir_$(CONFIG_USER_HD_HD)                    += hd
 dir_$(CONFIG_USER_HOSTAP_HOSTAP)            += hostap
 dir_$(CONFIG_USER_HTTPD_HTTPD)              += httpd

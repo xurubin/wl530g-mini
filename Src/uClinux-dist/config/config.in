@@ -1060,6 +1060,7 @@ comment 'Marvell AP32 Configuration'
 bool 'rgcfg'		CONFIG_USER_MRVL_RGCFG
 bool 'mvapd'		CONFIG_USER_MRVL_AP_DAEMON
 bool 'mvmfgd'		CONFIG_USER_MRVL_AP_MFG_DAEMON
+bool 'GPIO device driver'      CONFIG_USER_GPIO
 endmenu
 
 #############################################################################
