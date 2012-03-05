@@ -1,11 +1,12 @@
 insmod /lib/modules/unimac.o
 insmod /lib/modules/mvwlan.o
+insmod /lib/modules/gpio.o
 
-hostname Libertas
 /bin/expand /etc/ramfs.img /dev/ram0
 mount -t proc proc /proc
 mount -t ext2 /dev/ram0 /var
 mkdir /var/tmp
+mkdir /var/tmp/ppp
 mkdir /var/log
 mkdir /var/run
 mkdir /var/lock
@@ -19,10 +20,14 @@ cp -r /var/etc /
 
 /bin/rgcfg -i
 
-/bin/mvapd /etc/hostapd.conf &
-/bin/sleep 1
+/bin/mvapd /etc/config/hostapd.conf &
+sleep 1
 
 #uncomment next line to make your Libertas board act as a home-gateway.
 
 source /etc/rc.net
 cat /etc/motd
+diag_led 0
+
+echo nameserver 172.16.118.62 > /tmp/ppp/resolv.conf
+

@@ -1,12 +1,12 @@
+#/*--rx201_wbr204-*/
 #
 #	Makefile -- Build instructions for Marvell/Libertas
 #
-
 ROMFSIMG = $(IMAGEDIR)/romfs.img
 IMAGE    = $(IMAGEDIR)/image.bin
 ELFIMAGE = $(IMAGEDIR)/image.elf
 
-ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config etc/dhcpc
+ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config
 
 ifdef CONFIG_128MHZ_CLOCK
 CLOCK=128MHZ
@@ -15,6 +15,7 @@ endif
 ifdef CONFIG_160MHZ_CLOCK
 CLOCK=160MHZ
 endif
+
 
 ifdef CONFIG_8M_MEM
 MEMSIZE=8M
@@ -63,47 +64,48 @@ DEVICES = \
 	ttyp8,c,3,8    ttyp9,c,3,9        ttypa,c,3,10     ttypb,c,3,11 \
 	ttypc,c,3,12   ttypd,c,3,13       ttype,c,3,14     ttypf,c,3,15 \
 	\
-	zero,c,1,5     random,c,1,8       urandom,c,1,9
+	zero,c,1,5     random,c,1,8       urandom,c,1,9 \
+	gpio/in,c,100,0     gpio/out,c,100,1     gpio/outen,c,100,2     gpio/control,c,100,3     gpio/diag_led,c,100,4 \
+	ppp,c,108,0
+
 
 
 clean:
 
 romfs:
 	[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)
-
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
+	
+	mkdir -p $(ROMFSDIR)/dev/gpio
 	for i in $(DEVICES); do \
 		echo $(ROMFSDIR)/dev/$$i | sed 's/,/\t/g' | xargs mknod; \
+		##touch $(ROMFSDIR)/dev/@$$i; \
 	done
 	$(ROMFSINST) -s /var/tmp /tmp
 	$(ROMFSINST) -s /bin /sbin
-	$(ROMFSINST) /1
+	$(ROMFSINST) /etc/passwd
+	$(ROMFSINST) /etc/group
 	$(ROMFSINST) /etc/rc
 	$(ROMFSINST) /etc/rc.net
+	$(ROMFSINST) /etc/mfg_data
 	$(ROMFSINST) /etc/inittab
-	$(ROMFSINST) /etc/services
 	case "$(LINUXDIR)" in \
 	*2.4.*) ;; \
 	*) echo "ttyS0:linux:/bin/sh" >> $(ROMFSDIR)/etc/inittab ;; \
 	esac
-	$(ROMFSINST) /etc/inetd.conf
-	$(ROMFSINST) /etc/config/dhcpd.conf
-	$(ROMFSINST) /etc/config/dhcpd.leases
 	$(ROMFSINST) /etc/motd
 	$(ROMFSINST) /etc/resolv.conf
-	$(ROMFSINST) /etc/resolv.dnsmasq
+	$(ROMFSINST) /etc/config/pppd-options
+	$(ROMFSINST) /etc/config/dnsmasq.conf
 	$(ROMFSINST) /etc/config/unimac.conf
-	$(ROMFSINST) /etc/hostapd.conf
-	$(ROMFSINST) /etc/hostapd.accept
-	$(ROMFSINST) /etc/hostapd.deny
+	$(ROMFSINST) /etc/config/hostapd.conf
+	$(ROMFSINST) /etc/config/hostapd.accept
+	$(ROMFSINST) /etc/config/hostapd.deny
 	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
-	./mkfs.jffs2 -r $(ROOTDIR)/romfs/etc -o jffs2.img
-	$(ROMFSINST) /etc/jffs2.img
-	$(ROMFSINST) mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
 	$(ROMFSINST) /etc/updateapd
-	$(ROMFSINST) /bin/mvmfgd
+	$(ROMFSINST) mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
 	$(ROMFSINST) /bin/mvapd
 
 image:
@@ -120,7 +122,9 @@ image:
 			--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
 			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.text
 	cat $(IMAGEDIR)/linux.text $(IMAGEDIR)/linux.data $(ROMFSIMG) > $(IMAGE)
-	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROOTDIR)/$(LINUXDIR)/arch/armnommu/boot/zImage /tftpboot
-	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
+#	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROOTDIR)/$(LINUXDIR)/arch/armnommu/boot/zImage /tftpboot
+#	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(IMAGE) /tftpboot
+	mksquashfs  $(ROMFSDIR)/* $(IMAGEDIR)/squashfs.bin -no-exports -nopad -noappend -all-root -comp xz -Xbcj arm
+
 
