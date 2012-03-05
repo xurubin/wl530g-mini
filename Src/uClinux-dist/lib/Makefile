@@ -108,7 +108,7 @@ romfs:
 	for i in $(dir_y) ; do \
 		[ ! -d $$i ] || make -C $$i romfs || exit $$? ; \
 	done
-	-$(STRIP) $(ROMFSDIR)/lib/*
+	-$(STRIP) $(ROMFSDIR)/lib/*.*
 
 clean:
 ifeq ($(findstring glibc,$(LIBCDIR)),glibc)
