@@ -158,6 +158,7 @@ dir_$(CONFIG_USER_MAWK_AWK)                 += mawk
 dir_$(CONFIG_USER_MTDUTILS)                 += mtd-utils
 dir_$(CONFIG_USER_MICROWIN)                 += microwin
 dir_$(CONFIG_USER_MINI_HTTPD_MINI_HTTPD)    += mini_httpd
+dir_$(CONFIG_USER_MINIUPNPD)                += miniupnpd
 dir_$(CONFIG_USER_MOUNT_MOUNT)              += mount
 dir_$(CONFIG_USER_MOUNT_UMOUNT)             += mount
 dir_$(CONFIG_USER_MP3PLAY_MP3PLAY)          += mp3play

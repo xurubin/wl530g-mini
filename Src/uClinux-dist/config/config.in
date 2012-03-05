@@ -337,6 +337,7 @@ if [ "$CONFIG_USER_MINI_HTTPD_MINI_HTTPD" = "y" ]; then
 	fi
 fi
 
+bool 'mini_upnpd'		CONFIG_USER_MINIUPNPD
 bool 'msntp'			CONFIG_USER_MSNTP_MSNTP
 bool 'netstat'			CONFIG_USER_ROUTE_NETSTAT
 bool 'netstat-nat'		CONFIG_USER_NETSTAT_NAT_NETSTAT_NAT
