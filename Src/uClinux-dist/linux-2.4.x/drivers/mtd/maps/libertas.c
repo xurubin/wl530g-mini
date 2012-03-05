@@ -141,7 +141,7 @@ int __init init_libertas(void)
 	if (ret_val != SUCCESS)
 		return ret_val;
 
-	mtd = get_mtd_named("Libertas AP-32 romfs root file system");
+	mtd = get_mtd_named("Libertas AP-32 squashfs root file system");
 	
 	if (mtd) {
 		ROOT_DEV = MKDEV(MTD_BLOCK_MAJOR, mtd->index);
