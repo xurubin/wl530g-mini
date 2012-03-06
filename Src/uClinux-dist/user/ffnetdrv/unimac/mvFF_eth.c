@@ -23,6 +23,13 @@
 * FILE REVISION NUMBER:
 *
 *******************************************************************************/
+#ifndef CONFIG_ARCH_FIREFOX
+#ifndef CONFIG_ARCH_LIBERTAS
+#error  No Device marcro definition.
+#endif
+#endif
+
+
 /*
  * General note - Driver assumes that booter has resetted the ethernet interface
  * and it's fully functional.
@@ -2393,6 +2400,27 @@ extern int qdEntryPoint(void);
 extern void qdExitPoint(void);
 extern int qdModuleStart(void);
 
+
+// Fulfill the "General note" at the beginning of the file.
+// Code stripped from official bootloader @ D03C0B10
+static void resetEth()
+{
+//	 ((volatile GT_U32)*((volatile GT_U32*)(0x80006050))) = 0x7FE83080;
+//	 ((volatile GT_U32)*((volatile GT_U32*)(0x80006050))) = 0x7FE83080 + 0x8000;
+	 ((volatile GT_U32)*((volatile GT_U32*)(0x80006050))) = 0x7FE87800;
+	 ((volatile GT_U32)*((volatile GT_U32*)(0x80006050))) = 0x7FE83080;
+	 ((volatile GT_U32)*((volatile GT_U32*)(0x80006050))) = 0x2072B080;
+
+
+
+	 //ETHER0_SDMA_CONFIG_REG = SDCR_RETX_COUNT_15 | SDCR_BLMR_LITTLE | SDCR_BLMT_LITTLE | SDCR_RIFB | SDCR_BSZ_8x64
+	 //((volatile GT_U32)*((volatile GT_U32*)(0x80008440))) = 0x32FC;		
+	 //ETHER0_PORT_CONFIG_REG = ETH_PROMISCUOUS_MODE | REJECT_BROADCAST | PORT_ENABLE | ETH_HASH_SIZE_500B
+	 //((volatile GT_U32)*((volatile GT_U32*)(0x80008400))) |= 0x1083;	
+	 //ETHER0_PORT_CONFIG_EXT_REG = AUTO_NEG_DUPLEX_DIS | AUTO_NEG_FLOW_DIS | FLOW_CTRL_DISABLE | MFL_1536_BYTES | AUTO_NEG_SPEED_DIS
+	 //((volatile GT_U32)*((volatile GT_U32*)(0x80008408))) = 0x85600;	
+}
+
 /* 
  * int mvFF_eth_start(void)
  *
@@ -2405,6 +2433,8 @@ int mvFF_eth_start(void) {
   int iNumOfVlans,i;
   BINDING * pBinding;
   struct net_device * pNetDev = NULL;
+
+  resetEth(); // Reset the eth hardware
 
   memset( mvBindings, 0, sizeof(mvBindings) );
   memset( &mvEthHw, 0, sizeof(mvEthHw) );

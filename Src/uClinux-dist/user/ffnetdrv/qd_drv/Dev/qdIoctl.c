@@ -37,6 +37,7 @@
  *
  */
 
+
 #define ERROR_SUCCESS           (0)
 #define ERROR_NOT_SUPPORTED     (-1)
 #define ERROR_INVALID_PARAMETER (-2)

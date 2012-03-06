@@ -40,7 +40,7 @@ OBJS = 	qd_drv/Dev/qdInit.o \
 CC=arm-elf-gcc
 LD=arm-elf-ld
 
-CFLAGS = -DMODULE -D__KERNEL__ -Dlinux -D__linux__ -Dunix -D__uClinux__ -DEMBED -DLINUX
+CFLAGS += -DMODULE -D__KERNEL__ -Dlinux -D__linux__ -Dunix -D__uClinux__ -DEMBED -DLINUX
 CFLAGS += -I../../linux-2.4.x/include -I../../linux-2.4.x/include/linux 
 CFLAGS += -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common
 CFLAGS += -fno-common -pipe -fno-builtin -D__linux__ -DNO_MM -mapcs-32 -mshort-load-bytes

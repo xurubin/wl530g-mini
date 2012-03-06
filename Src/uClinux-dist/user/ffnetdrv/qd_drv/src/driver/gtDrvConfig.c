@@ -96,6 +96,7 @@ GT_STATUS driverConfig
 
     dev->numOfPorts = (GT_U8)portsCount;
 
+    printk("Device ID:%x Num Ports: %d\n", dev->deviceId, dev->numOfPorts);
     return GT_OK;
 }
 
