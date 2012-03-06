@@ -110,7 +110,6 @@ romfs:
 
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
-	genromfs -v -V "ROMdisk" -f $(ROMFSIMG) -d $(ROMFSDIR)
 	$(CROSS_COMPILE)objcopy -O binary --remove-section=.romvec \
 			--remove-section=.text --remove-section=.ramvec \
 			--remove-section=.init \
@@ -126,5 +125,5 @@ image:
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(IMAGE) /tftpboot
 	mksquashfs  $(ROMFSDIR)/* $(IMAGEDIR)/squashfs.bin -no-exports -nopad -noappend -all-root -comp xz -Xbcj arm
-
+	cp $(ROOTDIR)/$(LINUXDIR)/arch/$(ARCH)/boot/compressed/piggy.rom $(IMAGEDIR)/piggy.bin
 
