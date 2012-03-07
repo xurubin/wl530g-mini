@@ -120,7 +120,7 @@ image:
 			--remove-section=.eram \
 			--set-section-flags=.romvec=CONTENTS,ALLOC,LOAD,READONLY,CODE \
 			$(ROOTDIR)/$(LINUXDIR)/linux $(IMAGEDIR)/linux.text
-	cat $(IMAGEDIR)/linux.text $(IMAGEDIR)/linux.data $(ROMFSIMG) > $(IMAGE)
+#	cat $(IMAGEDIR)/linux.text $(IMAGEDIR)/linux.data $(ROMFSIMG) > $(IMAGE)
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROOTDIR)/$(LINUXDIR)/arch/armnommu/boot/zImage /tftpboot
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(ROMFSIMG) /tftpboot
 #	[ -n "$(NO_BUILD_INTO_TFTPBOOT)" ] || cp $(IMAGE) /tftpboot
