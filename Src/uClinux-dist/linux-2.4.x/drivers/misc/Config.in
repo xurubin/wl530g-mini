@@ -3,5 +3,7 @@
 #
 mainmenu_option next_comment
 comment 'Misc devices'
-
+bool 'Libertas GPIO Device Driver' CONFIG_MRVL_GPIO
+bool 'Marvell Ethernet Switch Driver' CONFIG_MRVL_RGCFG
+bool 'Marvell WLAN Driver' CONFIG_MRVL_WLAN
 endmenu

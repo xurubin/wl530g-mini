@@ -105,8 +105,8 @@ romfs:
 	$(ROMFSINST) /etc/config/hostapd.deny
 	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
 	$(ROMFSINST) /etc/updateapd
-	$(ROMFSINST) mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
-	$(ROMFSINST) /bin/mvapd
+	$(ROMFSINST) -e CONFIG_USER_MRVL_MVWLAN mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
+	$(ROMFSINST) -e CONFIG_USER_MRVL_AP_DAEMON /bin/mvapd
 
 image:
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)

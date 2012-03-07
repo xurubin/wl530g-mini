@@ -11,6 +11,15 @@
 
 O_TARGET := misc.o
 
+subdir-$(CONFIG_MRVL_GPIO)  += gpio
+obj-$(CONFIG_MRVL_GPIO)     += gpio/mv_gpio.o
+
+subdir-$(CONFIG_MRVL_WLAN)  += mvwlan
+obj-$(CONFIG_MRVL_WLAN)     += mvwlan/mvwlan.o
+
+subdir-$(CONFIG_MRVL_RGCFG) += ffnetdrv
+obj-$(CONFIG_MRVL_RGCFG)    += ffnetdrv/unimac.o
+
 include $(TOPDIR)/Rules.make
 
 fastdep:

@@ -17,9 +17,7 @@ MAGIC_ROM_PTR=y
 #
 # Loadable module support
 #
-CONFIG_MODULES=y
-# CONFIG_MODVERSIONS is not set
-# CONFIG_KMOD is not set
+# CONFIG_MODULES is not set
 
 #
 # System Type
@@ -298,6 +296,13 @@ CONFIG_NET_RADIO=y
 # ISDN subsystem
 #
 # CONFIG_ISDN is not set
+
+#
+# Misc devices
+#
+CONFIG_MRVL_GPIO=y
+CONFIG_MRVL_RGCFG=y
+CONFIG_MRVL_WLAN=y
 
 #
 # Parallel port support

@@ -317,9 +317,7 @@ fi
 #                        M i s c    D r i v e r s
 #------------------------------------------------------------------------------
 
-if [ "$CONFIG_ARCH_TA7S" = "y" ]; then
-   source drivers/misc/Config.in
-fi
+source drivers/misc/Config.in
 source drivers/parport/Config.in
 source drivers/mtd/Config.in
 source drivers/pnp/Config.in
