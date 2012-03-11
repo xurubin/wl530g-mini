@@ -28,8 +28,8 @@
 /*-------------------------------------------------*/
 /* Trailers and Headers settings                   */
 /*-------------------------------------------------*/
-#undef TRAILERS
-#define HEADERS
+#define TRAILERS
+#undef HEADERS
 
 #ifdef TRAILERS
 #define QD_TRAILER_MODE
