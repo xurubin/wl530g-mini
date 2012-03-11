@@ -369,7 +369,7 @@ gpio_init(void)
 #endif
 
 	apctlLedBlinkStart(GPIO_DIAG);
-	apctlLedSetRate(GPIO_DIAG, RATE_298MS, DUTY_50_PERCENT);
+	apctlLedSetRate(GPIO_DIAG, RATE_1192MS, DUTY_12_PERCENT);
 	return 0;
 }
 
