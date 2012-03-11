@@ -1,0 +1,47 @@
+	ramfs - An automatically resizing memory based filesystem
+
+
+  Ramfs is a file system which keeps all files in RAM. It allows read
+  and write access. In contrast to RAM disks, which get allocated a
+  fixed amount of RAM, ramfs grows and shrinks to accommodate the
+  files it contains.
+
+  You can mount the ramfs with:
+      mount -t ramfs none /mnt/wherever
+
+  Then just create and use files. When the filesystem is unmounted, all
+  its contents are lost.
+
+  NOTE! This filesystem is probably most useful not as a real
+  filesystem, but as an example of how virtual filesystems can be
+  written.
+
+Resource limits:
+
+By default a ramfs will be limited to using half of (physical) memory
+for storing file contents, a bit over that when the metadata is
+included. The resource usage limits of ramfs can be controlled with
+the following mount options:
+
+	maxsize=NNN
+		Sets the maximum allowed memory usage of the
+filesystem to NNN kilobytes. This will be rounded down to a multiple
+of the page size. The default is half of physical memory. NB.  unlike
+most of the other limits, setting this to zero does *not* mean no
+limit, but will actually limit the size of the filesystem data to zero
+pages. There might be a use for this in some perverse situation.
+	
+	maxfilesize=NNN
+		Sets the maximum size of a single file on the
+filesystem to NNN kilobytes. This will be rounded down to a multiple
+of the page size. If NNN=0 there is no limit. The default is no limit.
+
+       maxdentries=NNN
+		Sets the maximum number of directory entries (hard
+links) on the filesystem to NNN. If NNN=0 there is no limit. By
+default this is set to maxsize/4.
+
+	maxinodes=NNN
+		Sets the maximum number of inodes (i.e. distinct
+files) on the filesystem to NNN. If NNN=0 there is no limit. The
+default is no limit (but there can never be more inodes than dentries).

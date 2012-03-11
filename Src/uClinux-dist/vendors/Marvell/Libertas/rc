@@ -2,9 +2,8 @@
 #insmod /lib/modules/mvwlan.o
 #insmod /lib/modules/gpio.o
 
-/bin/expand /etc/ramfs.img /dev/ram0
 mount -t proc proc /proc
-mount -t ext2 /dev/ram0 /var
+mount -t ramfs none /var
 mkdir /var/tmp
 mkdir /var/tmp/ppp
 mkdir /var/log
@@ -13,9 +12,8 @@ mkdir /var/lock
 
 #Making the /etc directory RW
 
-/bin/expand /etc/ramfs.img /dev/ram1
 cp -r /etc /var
-mount -t ext2 /dev/ram1 /etc
+mount -t ramfs none /etc
 cp -r /var/etc /
 
 /bin/rgcfg -i

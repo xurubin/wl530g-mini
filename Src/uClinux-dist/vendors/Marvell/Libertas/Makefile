@@ -6,7 +6,7 @@ ROMFSIMG = $(IMAGEDIR)/romfs.img
 IMAGE    = $(IMAGEDIR)/image.bin
 ELFIMAGE = $(IMAGEDIR)/image.elf
 
-ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config
+ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config dev/gpio
 
 ifdef CONFIG_128MHZ_CLOCK
 CLOCK=128MHZ
@@ -35,8 +35,7 @@ endif
 DEVICES = \
 	tty,c,5,0      console,c,5,1      cua0,c,5,64      cua1,c,5,65  \
 	\
-	mem,c,1,1      kmem,c,1,2         null,c,1,3       ram0,b,1,0 \
-	ram1,b,1,1 \
+	mem,c,1,1      kmem,c,1,2         null,c,1,3  \
 	\
 	ptyp0,c,2,0    ptyp1,c,2,1        ptyp2,c,2,2      ptyp3,c,2,3 \
 	ptyp4,c,2,4    ptyp5,c,2,5        ptyp6,c,2,6      ptyp7,c,2,7 \
@@ -78,7 +77,6 @@ romfs:
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
 	
-	mkdir -p $(ROMFSDIR)/dev/gpio
 	for i in $(DEVICES); do \
 		echo $(ROMFSDIR)/dev/$$i | sed 's/,/\t/g' | xargs mknod; \
 		##touch $(ROMFSDIR)/dev/@$$i; \
