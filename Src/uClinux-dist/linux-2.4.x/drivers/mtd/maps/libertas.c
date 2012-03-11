@@ -78,16 +78,16 @@ static struct mtd_partition libertas_partitions[] = {
 */
 	{
 		name: "Libertas AP-32 compressed kernel",
-		size:   0x00078000,
+		size:   0x00068000,
 		offset: 0x00008000
 	},
 	{
 		name: "Libertas AP-32 squashfs root file system",
-		size:   0x00070000,
-		offset: 0x00080000
+		size:   0x00080000,
+		offset: 0x00070000
 	},
 	{
-		name: "Libertas AP-32 JFFS2 storage",
+		name: "Libertas AP-32 config storage",
 		size:   0x00004000,
 		offset: 0x00004000,
 	},
@@ -100,7 +100,7 @@ static struct mtd_partition libertas_partitions[] = {
 		name: "Libertas AP-32 master bootloader",
 		size:   0x00010000,
 		offset: 0x000F0000,
-	}	
+	}
 };
 
 
