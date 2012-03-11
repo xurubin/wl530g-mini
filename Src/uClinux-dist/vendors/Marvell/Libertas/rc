@@ -1,6 +1,6 @@
-insmod /lib/modules/unimac.o
-insmod /lib/modules/mvwlan.o
-insmod /lib/modules/gpio.o
+#insmod /lib/modules/unimac.o
+#insmod /lib/modules/mvwlan.o
+#insmod /lib/modules/gpio.o
 
 /bin/expand /etc/ramfs.img /dev/ram0
 mount -t proc proc /proc
