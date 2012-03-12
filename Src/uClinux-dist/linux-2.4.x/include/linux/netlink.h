@@ -15,6 +15,9 @@
 
 #define MAX_LINKS 32		
 
+
+#define __u32                        u_int32_t
+#define __u16                        u_int16_t
 struct sockaddr_nl
 {
 	sa_family_t	nl_family;	/* AF_NETLINK	*/

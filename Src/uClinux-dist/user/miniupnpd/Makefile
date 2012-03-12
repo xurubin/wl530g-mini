@@ -1,195 +1,156 @@
-# $Id: Makefile,v 1.61 2012/03/05 20:36:15 nanard Exp $
+# $Id: Makefile.linux,v 1.62 2012/03/05 20:36:15 nanard Exp $
 # MiniUPnP project
+# (c) 2006-2011 Thomas Bernard
 # http://miniupnp.free.fr/ or http://miniupnp.tuxfamily.org/
-# Author: Thomas Bernard
+# Author : Thomas Bernard
+# for use with GNU Make
 #
-# Makefile for miniupnpd (MiniUPnP daemon)
+# To install use :
+# $ PREFIX=/dummyinstalldir make -f Makefile.linux install
+# or :
+# $ INSTALLPREFIX=/usr/local make -f Makefile.linux install
+# or :
+# $ make -f Makefile.linux install
 #
-# This Makefile should work for *BSD and SunOS/Solaris.
-# On Mac OS X, use "bsdmake" to build.
-# This Makefile is NOT compatible with GNU Make.
-# Linux users, please use Makefile.linux :
-#  make -f Makefile.linux
+# if your system hasn't iptables libiptc headers and binary correctly
+# installed, you need to get iptables sources from http://netfilter.org/
+# ./configure them and build them then miniupnpd will build using :
+# $ IPTABLESPATH=/path/to/iptables-1.4.1 make -f Makefile.linux
+#
+CFLAGS += -Wall -O -D_GNU_SOURCE -g -DDEBUG -ansi
+#CFLAGS ?= -Wall -Os -D_GNU_SOURCE -fno-strict-aliasing -Wstrict-prototypes
 
-CFLAGS = -pipe -Wall -Os -ansi
-#CFLAGS = -pipe -Wall -O -g -DDEBUG -ansi
-CC ?= gcc
-RM = rm -f
-MV = mv
-INSTALL = install
-STRIP = strip
 
-# OSNAME and FWNAME are used for building OS or FW dependent code.
-OSNAME != uname -s
-ARCH != uname -m
-.ifndef FWNAME
-.if exists(/usr/include/net/pfvar.h)
-FWNAME = pf
-.else
-FWNAME = ipf
-.endif
-.endif
+INSTALLPREFIX ?= $(PREFIX)/usr
+SBININSTALLDIR = $(INSTALLPREFIX)/sbin
+ETCINSTALLDIR = $(PREFIX)/etc/miniupnpd
 
-# better way to find if we are using ipf or pf
-.if $(OSNAME) == "FreeBSD"
-FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
-          if checkyesno ipfilter_enable; then \
-          echo "ipf"; else echo "pf"; fi
-.endif
+BASEOBJS = miniupnpd.o upnphttp.o upnpdescgen.o upnpsoap.o \
+           upnpreplyparse.o minixml.o \
+		   upnpredirect.o getifaddr.o daemonize.o upnpglobalvars.o \
+           options.o upnppermissions.o minissdp.o natpmp.o \
+           upnpevents.o upnputils.o getconnstatus.o
 
-.if $(OSNAME) == "NetBSD"
-FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
-          if checkyesno ipfilter; then \
-          echo "ipf"; else echo "pf"; fi
-.endif
+LNXOBJS = linux/getifstats.o linux/ifacewatcher.o
+NETFILTEROBJS = netfilter/iptcrdr.o
 
-.if $(OSNAME) == "DragonFly"
-FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
-          if chechyesno ipfilter; then \
-          echo "ipf"; else echo "pf"; fi
-.endif
+ALLOBJS = $(BASEOBJS) $(LNXOBJS) $(NETFILTEROBJS)
 
-.if $(OSNAME) == "Darwin"
-FWNAME = ipfw
-.endif
+LIBS += -liptc
+# LIBS += -lip4tc
+# CFLAGS += -DIPTABLES_143
 
-# Solaris specific CFLAGS
-.if $(OSNAME) == "SunOS"
-CFLAGS += -DSOLARIS2=`uname -r | cut -d. -f2`
-.if $(ARCH) == "amd64"
-CFLAGS += -m64 -mcmodel=kernel -mno-red-zone -ffreestanding
-.elif $(ARCH) == "sparc64"
-CFLAGS += -m64 -mcmodel=medlow
-.endif
-.endif
+IPTABLESPATH = ../iptables/
+CFLAGS  += -I$(IPTABLESPATH)/include/
+LDFLAGS += -L$(IPTABLESPATH)/libiptc/
 
-STDOBJS = miniupnpd.o upnphttp.o upnpdescgen.o upnpsoap.o \
-          upnpredirect.o getifaddr.o daemonize.o upnpglobalvars.o \
-          options.o upnppermissions.o minissdp.o natpmp.o \
-          upnpevents.o upnputils.o getconnstatus.o
-BSDOBJS = bsd/getifstats.o bsd/ifacewatcher.o
-SUNOSOBJS = solaris/getifstats.o bsd/ifacewatcher.o
-MACOBJS = mac/getifstats.o bsd/ifacewatcher.o
-PFOBJS = pf/obsdrdr.o
-IPFOBJS = ipf/ipfrdr.o
-IPFWOBJS = ipfw/ipfwrdr.o
-MISCOBJS = upnpreplyparse.o minixml.o
 
-ALLOBJS = $(STDOBJS) $(MISCOBJS)
-.if $(OSNAME) == "SunOS"
-ALLOBJS += $(SUNOSOBJS)
-TESTGETIFSTATSOBJS = testgetifstats.o solaris/getifstats.o
-.elif $(OSNAME) == "Darwin"
-ALLOBJS += $(MACOBJS)
-TESTGETIFSTATSOBJS = testgetifstats.o mac/getifstats.o
-.else
-ALLOBJS += $(BSDOBJS)
-TESTGETIFSTATSOBJS = testgetifstats.o bsd/getifstats.o
-.endif
-
-.if $(FWNAME) == "pf"
-ALLOBJS += $(PFOBJS)
-.elif $(FWNAME) == "ipfw"
-ALLOBJS += $(IPFWOBJS)
-.else
-ALLOBJS += $(IPFOBJS)
-.endif
+# test if iptables version >= 1.4.3
+##CFLAGS := $(CFLAGS) -DIPTABLES_143
+##LIBS = $(IPTABLESPATH)/libiptc/.libs/libip4tc.o
+LIBS = $(IPTABLESPATH)/libiptc/libiptc.a
 
 TESTUPNPDESCGENOBJS = testupnpdescgen.o upnpdescgen.o
-TESTUPNPPERMISSIONSOBJS = testupnppermissions.o upnppermissions.o
-TESTGETIFADDROBJS = testgetifaddr.o getifaddr.o
-MINIUPNPDCTLOBJS = miniupnpdctl.o
 
 EXECUTABLES = miniupnpd testupnpdescgen testgetifstats \
-              testupnppermissions miniupnpdctl \
-              testgetifaddr
-.if $(OSNAME) == "Darwin"
-LIBS =
-.else
-LIBS = -lkvm
-.endif
-.if $(OSNAME) == "SunOS"
-LIBS += -lsocket -lnsl -lkstat -lresolv
-.endif
+              testupnppermissions miniupnpdctl testgetifaddr
 
-# set PREFIX variable to install in the wanted place
-
-INSTALLBINDIR = $(PREFIX)/sbin
-INSTALLETCDIR = $(PREFIX)/etc
-# INSTALLMANDIR = $(PREFIX)/man
-INSTALLMANDIR = /usr/share/man
+.PHONY:	all clean install depend genuuid
 
 all:	$(EXECUTABLES)
 
 clean:
-	$(RM) $(STDOBJS) $(BSDOBJS) $(SUNOSOBJS) $(MACOBJS) $(EXECUTABLES) \
-	testupnpdescgen.o \
-	$(MISCOBJS) config.h testgetifstats.o testupnppermissions.o \
-	miniupnpdctl.o testgetifaddr.o \
-	$(PFOBJS) $(IPFOBJS) $(IPFWOBJS)
+	$(RM) $(ALLOBJS)
+	$(RM) $(EXECUTABLES)
+	$(RM) testupnpdescgen.o testgetifstats.o
+	$(RM) testupnppermissions.o testgetifaddr.o
+	$(RM) miniupnpdctl.o
 
 install:	miniupnpd genuuid
 	$(STRIP) miniupnpd
-	$(INSTALL) -d $(DESTDIR)$(INSTALLBINDIR)
-	$(INSTALL) -m 555 miniupnpd $(DESTDIR)$(INSTALLBINDIR)
-	$(INSTALL) -d $(DESTDIR)$(INSTALLETCDIR)
-	$(INSTALL) -b miniupnpd.conf $(DESTDIR)$(INSTALLETCDIR)
-	# TODO : install man page correctly
-#	$(INSTALL) -d $(INSTALLMANDIR)
-#	$(INSTALL) miniupnpd.1 $(INSTALLMANDIR)/cat1/miniupnpd.0
+	$(INSTALL) -d $(SBININSTALLDIR)
+	$(INSTALL) miniupnpd $(SBININSTALLDIR)
+	$(INSTALL) -d $(ETCINSTALLDIR)
+	$(INSTALL) netfilter/iptables_init.sh $(ETCINSTALLDIR)
+	$(INSTALL) netfilter/iptables_removeall.sh $(ETCINSTALLDIR)
+	$(INSTALL) --mode=0644 -b miniupnpd.conf $(ETCINSTALLDIR)
+	$(INSTALL) -d $(PREFIX)/etc/init.d
+	$(INSTALL) linux/miniupnpd.init.d.script $(PREFIX)/etc/init.d/miniupnpd
 
-# genuuid is using the uuid cli tool available under OpenBSD 4.0 in
-# the uuid-1.5.0 package
-# any other cli tool returning a uuid on stdout should work.
-UUID != if which uuidgen 2>&1 > /dev/null; then \
-        echo `uuidgen` ; \
-        elif which uuid 2>&1 > /dev/null; then \
-        echo `uuid` ; \
-        else echo "00000000-0000-0000-0000-000000000000"; \
-        fi
-
+# genuuid is using the uuidgen CLI tool which is part of libuuid
+# from the e2fsprogs
 genuuid:
-	$(MV) miniupnpd.conf miniupnpd.conf.before
-	sed -e "s/^uuid=[-0-9a-fA-F]*/uuid=$(UUID)/" miniupnpd.conf.before > miniupnpd.conf
-	$(RM) miniupnpd.conf.before
+ifeq ($(TARGET_OPENWRT),)
+	sed -i -e "s/^uuid=[-0-9a-f]*/uuid=`(genuuid||uuidgen||uuid) 2>/dev/null`/" miniupnpd.conf
+else
+	sed -i -e "s/^uuid=[-0-9a-f]*/uuid=`($(STAGING_DIR_HOST)/bin/genuuid||$(STAGING_DIR_HOST)/bin/uuidgen||$(STAGING_DIR_HOST)/bin/uuid) 2>/dev/null`/" miniupnpd.conf
+endif
 
-depend:	config.h
-	mkdep $(ALLOBJS:.o=.c) testupnpdescgen.c testgetifstats.c \
-    testupnppermissions.c miniupnpdctl.c testgetifaddr.c
+miniupnpd:	$(BASEOBJS) $(LNXOBJS) $(NETFILTEROBJS) $(LIBS)
 
-miniupnpd: config.h $(ALLOBJS)
-	$(CC) $(CFLAGS) -o $@ $(ALLOBJS) $(LIBS)
+testupnpdescgen:	$(TESTUPNPDESCGENOBJS)
 
-# BSDmake :
-#	$(CC) $(CFLAGS) -o $@ $> $(LIBS)
+testgetifstats:	testgetifstats.o linux/getifstats.o
 
-miniupnpdctl:	config.h $(MINIUPNPDCTLOBJS)
-	$(CC) $(CFLAGS) -o $@ $(MINIUPNPDCTLOBJS)
+testupnppermissions:	testupnppermissions.o upnppermissions.o
 
-testupnpdescgen:	config.h $(TESTUPNPDESCGENOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTUPNPDESCGENOBJS)
+testgetifaddr:	testgetifaddr.o getifaddr.o
 
-testgetifstats:	config.h $(TESTGETIFSTATSOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTGETIFSTATSOBJS) $(LIBS)
-
-testgetifaddr:	config.h $(TESTGETIFADDROBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTGETIFADDROBJS)
-
-testupnppermissions:	config.h $(TESTUPNPPERMISSIONSOBJS)
-	$(CC) $(CFLAGS) -o $@ $(TESTUPNPPERMISSIONSOBJS)
-
-# gmake :
-#	$(CC) $(CFLAGS) -o $@ $^
-# BSDmake :
-#	$(CC) $(CFLAGS) -o $@ $>
+miniupnpdctl:	miniupnpdctl.o
 
 config.h:	genconfig.sh
 	./genconfig.sh
 
-.SUFFIXES:	.o .c
-.c.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
+depend:	config.h
+	makedepend -f$(MAKEFILE_LIST) -Y \
+	$(ALLOBJS:.o=.c) $(TESTUPNPDESCGENOBJS:.o=.c) \
+	testgetifstats.c 2>/dev/null
 
-#	$(CC) $(CFLAGS) -c -o $(.TARGET) $(.IMPSRC)
+romfs: miniupnpd
+	$(ROMFSINST) miniupnpd /bin/miniupnpd
 
+# DO NOT DELETE
 
+miniupnpd.o: config.h upnpglobalvars.h upnppermissions.h miniupnpdtypes.h
+miniupnpd.o: upnphttp.h upnpdescgen.h miniupnpdpath.h getifaddr.h upnpsoap.h
+miniupnpd.o: options.h minissdp.h upnpredirect.h daemonize.h upnpevents.h
+miniupnpd.o: natpmp.h commonrdr.h upnputils.h ifacewatcher.h
+upnphttp.o: config.h upnphttp.h upnpdescgen.h miniupnpdpath.h upnpsoap.h
+upnphttp.o: upnpevents.h
+upnpdescgen.o: config.h getifaddr.h upnpredirect.h upnpdescgen.h
+upnpdescgen.o: miniupnpdpath.h upnpglobalvars.h upnppermissions.h
+upnpdescgen.o: miniupnpdtypes.h upnpdescstrings.h upnpurns.h getconnstatus.h
+upnpsoap.o: config.h upnpglobalvars.h upnppermissions.h miniupnpdtypes.h
+upnpsoap.o: upnphttp.h upnpsoap.h upnpreplyparse.h upnpredirect.h getifaddr.h
+upnpsoap.o: getifstats.h getconnstatus.h upnpurns.h
+upnpreplyparse.o: upnpreplyparse.h minixml.h
+minixml.o: minixml.h
+upnpredirect.o: config.h upnpredirect.h upnpglobalvars.h upnppermissions.h
+upnpredirect.o: miniupnpdtypes.h upnpevents.h netfilter/iptcrdr.h commonrdr.h
+getifaddr.o: config.h getifaddr.h
+daemonize.o: daemonize.h config.h
+upnpglobalvars.o: config.h upnpglobalvars.h upnppermissions.h
+upnpglobalvars.o: miniupnpdtypes.h
+options.o: options.h config.h upnppermissions.h upnpglobalvars.h
+options.o: miniupnpdtypes.h
+upnppermissions.o: config.h upnppermissions.h
+minissdp.o: config.h upnpdescstrings.h miniupnpdpath.h upnphttp.h
+minissdp.o: upnpglobalvars.h upnppermissions.h miniupnpdtypes.h minissdp.h
+minissdp.o: upnputils.h codelength.h
+natpmp.o: config.h natpmp.h upnpglobalvars.h upnppermissions.h
+natpmp.o: miniupnpdtypes.h getifaddr.h upnpredirect.h commonrdr.h
+upnpevents.o: config.h upnpevents.h miniupnpdpath.h upnpglobalvars.h
+upnpevents.o: upnppermissions.h miniupnpdtypes.h upnpdescgen.h
+upnputils.o: config.h upnputils.h
+getconnstatus.o: getconnstatus.h getifaddr.h
+linux/getifstats.o: config.h getifstats.h
+linux/ifacewatcher.o: config.h ifacewatcher.h config.h minissdp.h
+linux/ifacewatcher.o: miniupnpdtypes.h getifaddr.h upnpglobalvars.h
+linux/ifacewatcher.o: upnppermissions.h natpmp.h
+netfilter/iptcrdr.o: netfilter/iptcrdr.h commonrdr.h config.h
+netfilter/iptcrdr.o: upnpglobalvars.h upnppermissions.h miniupnpdtypes.h
+testupnpdescgen.o: config.h upnpdescgen.h
+upnpdescgen.o: config.h getifaddr.h upnpredirect.h upnpdescgen.h
+upnpdescgen.o: miniupnpdpath.h upnpglobalvars.h upnppermissions.h
+upnpdescgen.o: miniupnpdtypes.h upnpdescstrings.h upnpurns.h getconnstatus.h
+testgetifstats.o: getifstats.h

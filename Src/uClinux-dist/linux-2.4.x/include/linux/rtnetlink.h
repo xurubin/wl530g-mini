@@ -48,6 +48,9 @@
 
 #define	RTM_MAX		(RTM_BASE+31)
 
+#define __s32 int32_t
+#define __s16 int16_t
+#define __u8 u_int8_t
 /* 
    Generic structure for encapsulation of optional route information.
    It is reminiscent of sockaddr, but with sa_family replaced

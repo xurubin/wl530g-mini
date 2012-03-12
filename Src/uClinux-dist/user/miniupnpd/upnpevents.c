@@ -39,7 +39,7 @@ struct subscriber {
 	uint32_t seq;
 	enum subscriber_service_enum service;
 	char uuid[42];
-	char callback[];
+	char callback[0];
 };
 
 struct upnp_event_notify {
