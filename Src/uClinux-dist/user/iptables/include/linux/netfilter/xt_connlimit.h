@@ -7,7 +7,7 @@ struct xt_connlimit_info {
 	union {
 		u_int32_t v4_mask;
 		u_int32_t v6_mask[4];
-	};
+	} mask;
 	unsigned int limit, inverse;
 
 	/* this needs to be at the end */

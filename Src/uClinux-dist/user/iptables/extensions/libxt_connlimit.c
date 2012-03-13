@@ -27,7 +27,7 @@ static const struct option connlimit_opts[] = {
 static void connlimit_init(struct xt_entry_match *match)
 {
 	struct xt_connlimit_info *info = (void *)match->data;
-	info->v4_mask = 0xFFFFFFFFUL;
+	info->mask.v4_mask = 0xFFFFFFFFUL;
 }
 
 static void prefix_to_netmask(u_int32_t *mask, unsigned int prefix_len)
@@ -80,16 +80,16 @@ static int connlimit_parse(int c, char **argv, int invert, unsigned int *flags,
 				exit_error(PARAMETER_PROBLEM,
 					"--connlimit-mask must be between "
 					"0 and 128");
-			prefix_to_netmask(info->v6_mask, i);
+			prefix_to_netmask(info->mask.v6_mask, i);
 		} else {
 			if (i > 32 || *err != '\0')
 				exit_error(PARAMETER_PROBLEM,
 					"--connlimit-mask must be between "
 					"0 and 32");
 			if (i == 0)
-				info->v4_mask = 0;
+				info->mask.v4_mask = 0;
 			else
-				info->v4_mask = htonl(0xFFFFFFFF << (32 - i));
+				info->mask.v4_mask = htonl(0xFFFFFFFF << (32 - i));
 		}
 		break;
 	default:
@@ -148,7 +148,7 @@ static void connlimit_print4(const void *ip,
 {
 	const struct xt_connlimit_info *info = (const void *)match->data;
 
-	printf("#conn/%u %s %u ", count_bits4(info->v4_mask),
+	printf("#conn/%u %s %u ", count_bits4(info->mask.v4_mask),
 	       info->inverse ? "<=" : ">", info->limit);
 }
 
@@ -156,7 +156,7 @@ static void connlimit_print6(const void *ip,
                              const struct xt_entry_match *match, int numeric)
 {
 	const struct xt_connlimit_info *info = (const void *)match->data;
-	printf("#conn/%u %s %u ", count_bits6(info->v6_mask),
+	printf("#conn/%u %s %u ", count_bits6(info->mask.v6_mask),
 	       info->inverse ? "<=" : ">", info->limit);
 }
 
@@ -166,7 +166,7 @@ static void connlimit_save4(const void *ip, const struct xt_entry_match *match)
 
 	printf("%s--connlimit-above %u --connlimit-mask %u ",
 	       info->inverse ? "! " : "", info->limit,
-	       count_bits4(info->v4_mask));
+	       count_bits4(info->mask.v4_mask));
 }
 
 static void connlimit_save6(const void *ip, const struct xt_entry_match *match)
@@ -175,7 +175,7 @@ static void connlimit_save6(const void *ip, const struct xt_entry_match *match)
 
 	printf("%s--connlimit-above %u --connlimit-mask %u ",
 	       info->inverse ? "! " : "", info->limit,
-	       count_bits6(info->v6_mask));
+	       count_bits6(info->mask.v6_mask));
 }
 
 static struct xtables_match connlimit_match = {

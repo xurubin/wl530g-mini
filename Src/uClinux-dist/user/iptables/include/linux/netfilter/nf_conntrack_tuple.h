@@ -26,8 +26,8 @@
    network order! */
 union nf_conntrack_address {
 	u_int32_t all[NF_CT_TUPLE_L3SIZE];
-	__be32 ip;
-	__be32 ip6[4];
+	__u32 ip;
+	__u32 ip6[4];
 };
 
 /* The protocol-specific manipulable parts of the tuple: always in
@@ -38,19 +38,19 @@ union nf_conntrack_man_proto
 	u_int16_t all;
 
 	struct {
-		__be16 port;
+		__u16 port;
 	} tcp;
 	struct {
-		__be16 port;
+		__u16 port;
 	} udp;
 	struct {
-		__be16 id;
+		__u16 id;
 	} icmp;
 	struct {
-		__be16 port;
+		__u16 port;
 	} sctp;
 	struct {
-		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
+		__u16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
 	} gre;
 };
 
@@ -76,19 +76,19 @@ struct nf_conntrack_tuple
 			u_int16_t all;
 
 			struct {
-				__be16 port;
+				__u16 port;
 			} tcp;
 			struct {
-				__be16 port;
+				__u16 port;
 			} udp;
 			struct {
 				u_int8_t type, code;
 			} icmp;
 			struct {
-				__be16 port;
+				__u16 port;
 			} sctp;
 			struct {
-				__be16 key;
+				__u16 key;
 			} gre;
 		} u;
 

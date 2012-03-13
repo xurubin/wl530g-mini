@@ -25,7 +25,7 @@ struct nf_nat_range
 	unsigned int flags;
 
 	/* Inclusive: network order. */
-	__be32 min_ip, max_ip;
+	__u32 min_ip, max_ip;
 
 	/* Inclusive: network order */
 	union nf_conntrack_man_proto min, max;

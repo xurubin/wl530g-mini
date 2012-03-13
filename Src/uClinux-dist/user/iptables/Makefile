@@ -1,5 +1,5 @@
 # uncomment this to get a fully statically linked version
-# NO_SHARED_LIBS = 1
+NO_SHARED_LIBS = 1
 
 # uncomment this to disable IPv6 support
 # DO_IPV6 = 0
@@ -15,10 +15,10 @@ TOPLEVEL_INCLUDED=YES
 # kernels have a bug, where linux/netfilter_ipv4.h includes linux/config.h,
 # which includes linux/autoconf.h, which is placed into KBUILD_OUTPUT.
 ifndef KERNEL_DIR
-KERNEL_DIR="/lib/modules/$(shell uname -r)/source"
+KERNEL_DIR=$(ROOTDIR)/$(LINUXDIR)
 endif
 ifndef KBUILD_OUTPUT
-KBUILD_OUTPUT="/lib/modules/$(shell uname -r)/build"
+#KBUILD_OUTPUT="/lib/modules/$(shell uname -r)/build"
 endif
 IPTABLES_VERSION:=1.4.0
 OLD_IPTABLES_VERSION:=1.4.0rc1
@@ -33,17 +33,17 @@ INCDIR:=$(PREFIX)/include
 RELEASE_DIR:=/tmp
 
 # Need libc6 for this.  FIXME: Should covert to autoconf.
-ifeq ($(shell [ -f /usr/include/netinet/ip6.h ] && echo YES), YES)
-DO_IPV6:=1
-endif
+#ifeq ($(shell [ -f /usr/include/netinet/ip6.h ] && echo YES), YES)
+#DO_IPV6:=1
+#endif
 
 # Enable linking to libselinux via enviornment 'DO_SELINUX=1'
 ifndef DO_SELINUX
 DO_SELINUX=0
 endif
 
-COPT_FLAGS:=-O2
-CFLAGS:=$(COPT_FLAGS) -Wall -Wunused -I$(KBUILD_OUTPUT)/include -I$(KERNEL_DIR)/include -Iinclude/ -DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" #-g -DDEBUG #-pg # -DIPTC_DEBUG
+COPT_FLAGS:=-Os
+CFLAGS:=$(COPT_FLAGS) -Wl,-elf2flt -Wall -Wunused -I$(KBUILD_OUTPUT)/include -I$(KERNEL_DIR)/include -Iinclude/ -DIPTABLES_VERSION=\"$(IPTABLES_VERSION)\" #-g -DDEBUG #-pg # -DIPTC_DEBUG
 
 ifdef NO_SHARED_LIBS
 CFLAGS += -DNO_SHARED_LIBS=1
@@ -54,7 +54,7 @@ EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables $(DESTDIR)$(MANDIR)/man8/iptables.8
 
 # No longer experimental.
 ifneq ($(DO_MULTI), 1)
-EXTRAS+=iptables-save iptables-restore iptables-xml
+EXTRAS+=iptables-save iptables-restore # iptables-xml
 endif
 EXTRA_INSTALLS+=$(DESTDIR)$(BINDIR)/iptables-save $(DESTDIR)$(BINDIR)/iptables-restore $(DESTDIR)$(BINDIR)/iptables-xml $(DESTDIR)$(MANDIR)/man8/iptables-restore.8 $(DESTDIR)$(MANDIR)/man8/iptables-save.8
 
@@ -97,6 +97,9 @@ endif
 
 .PHONY: default
 default: print-extensions all
+
+romfs:
+	$(ROMFSINST) /bin/iptables
 
 .PHONY: print-extensions
 print-extensions:

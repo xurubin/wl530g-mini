@@ -5,9 +5,9 @@
 # header files are present in the include/linux directory of this iptables
 # package (HW)
 #
-PF_EXT_SLIB:=ah addrtype conntrack ecn icmp iprange owner policy realm recent tos ttl unclean CLUSTERIP DNAT ECN LOG MASQUERADE MIRROR NETMAP REDIRECT REJECT SAME SNAT TOS TTL ULOG
+PF_EXT_SLIB:=ah conntrack ecn icmp owner tos ttl unclean DNAT ECN LOG MASQUERADE MIRROR REDIRECT REJECT SAME SNAT TOS TTL ULOG
 PF6_EXT_SLIB:=ah dst eui64 frag hbh hl icmp6 ipv6header mh owner policy rt HL LOG REJECT
-PFX_EXT_SLIB:=connbytes connmark connlimit comment dccp dscp esp hashlimit helper length limit mac mark multiport physdev pkttype quota sctp state statistic standard string tcp tcpmss time u32 udp CLASSIFY CONNMARK DSCP MARK NFLOG NFQUEUE NOTRACK TCPMSS TRACE
+PFX_EXT_SLIB:=dscp esp helper length limit mac mark multiport pkttype state standard string tcp tcpmss udp MARK
 
 PF_EXT_SELINUX_SLIB:=
 PF6_EXT_SELINUX_SLIB:=
@@ -230,7 +230,7 @@ extensions/libipt_targets.man: $(patsubst %,extensions/libipt_%.man,$(PF_EXT_MAN
 		    cat extensions/libxt_$$ext.man ;\
 		fi; \
 	    done ;\
-       	fi >>extensions/libipt_targets.man
+	fi >>extensions/libipt_targets.man
 
 EXTRAS += extensions/libipt_matches.man
 extensions/libipt_matches.man: $(patsubst %,extensions/libipt_%.man,$(PF_EXT_MAN_ALL_MATCHES)) $(patsubst %,extensions/libxt_%.man,$(PFX_EXT_MAN_ALL_MATCHES))
@@ -252,7 +252,7 @@ extensions/libipt_matches.man: $(patsubst %,extensions/libipt_%.man,$(PF_EXT_MAN
 		    cat extensions/libxt_$$ext.man ;\
 		fi; \
 	    done ;\
-       	fi >>extensions/libipt_matches.man
+	fi >>extensions/libipt_matches.man
 
 EXTRAS += extensions/libip6t_targets.man
 extensions/libip6t_targets.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EXT_MAN_ALL_TARGETS)) $(patsubst %,extensions/libxt_%.man,$(PFX_EXT_MAN_ALL_TARGETS))
@@ -274,7 +274,7 @@ extensions/libip6t_targets.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EX
 		    cat extensions/libxt_$$ext.man ;\
 		fi; \
 	    done ;\
-       	fi >>extensions/libip6t_targets.man
+	fi >>extensions/libip6t_targets.man
 
 EXTRAS += extensions/libip6t_matches.man
 extensions/libip6t_matches.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EXT_MAN_ALL_MATCHES)) $(patsubst %,extensions/libxt_%.man,$(PFX_EXT_MAN_ALL_MATCHES))
@@ -296,7 +296,7 @@ extensions/libip6t_matches.man: $(patsubst %, extensions/libip6t_%.man, $(PF6_EX
 		    cat extensions/libxt_$$ext.man ;\
 		fi; \
 	    done ;\
-       	fi >>extensions/libip6t_matches.man
+	fi >>extensions/libip6t_matches.man
 
 $(DEST_IPT_LIBDIR)/libipt_%.so: extensions/libipt_%.so
 	@[ -d $(DEST_IPT_LIBDIR)/ ] || mkdir -p $(DEST_IPT_LIBDIR)/
