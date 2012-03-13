@@ -11,12 +11,14 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <netdb.h>
+#include "libiptc/libiptc.h"
+#include "iptables.h"
+
 #ifndef NO_SHARED_LIBS
 #include <dlfcn.h>
 #endif
-#include <time.h>
-#include "libiptc/libiptc.h"
-#include "iptables.h"
 
 static int binary = 0, counters = 0;
 
@@ -77,6 +79,7 @@ static const struct pprot chain_protos[] = {
 	{ "icmp", IPPROTO_ICMP },
 	{ "esp", IPPROTO_ESP },
 	{ "ah", IPPROTO_AH },
+	{ "sctp", IPPROTO_SCTP },
 };
 
 static void print_proto(u_int16_t proto, int invert)
@@ -84,6 +87,12 @@ static void print_proto(u_int16_t proto, int invert)
 	if (proto) {
 		unsigned int i;
 		const char *invertstr = invert ? "! " : "";
+
+		struct protoent *pent = getprotobynumber(proto);
+		if (pent) {
+			printf("-p %s%s ", invertstr, pent->p_name);
+			return;
+		}
 
 		for (i = 0; i < sizeof(chain_protos)/sizeof(struct pprot); i++)
 			if (chain_protos[i].num == proto) {
@@ -113,7 +122,7 @@ static int print_match(const struct ipt_entry_match *e,
 			const struct ipt_ip *ip)
 {
 	struct iptables_match *match
-		= find_match(e->u.user.name, TRY_LOAD);
+		= find_match(e->u.user.name, TRY_LOAD, NULL);
 
 	if (match) {
 		printf("-m %s ", e->u.user.name);
@@ -135,7 +144,10 @@ static int print_match(const struct ipt_entry_match *e,
 /* print a given ip including mask if neccessary */
 static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
 {
-	if (!mask && !ip)
+	u_int32_t bits, hmask = ntohl(mask);
+	int i;
+
+	if (!mask && !ip && !invert)
 		return;
 
 	printf("%s %s%u.%u.%u.%u",
@@ -143,10 +155,19 @@ static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
 		invert ? "! " : "",
 		IP_PARTS(ip));
 
-	if (mask != 0xffffffff) 
-		printf("/%u.%u.%u.%u ", IP_PARTS(mask));
+	if (mask == 0xFFFFFFFFU) {
+		printf("/32 ");
+		return;
+	}
+
+	i    = 32;
+	bits = 0xFFFFFFFEU;
+	while (--i >= 0 && hmask != bits)
+		bits <<= 1;
+	if (i >= 0)
+		printf("/%u ", i);
 	else
-		printf(" ");
+		printf("/%u.%u.%u.%u ", IP_PARTS(mask));
 }
 
 /* We want this to be readable, so only print out neccessary fields.
@@ -159,7 +180,7 @@ static void print_rule(const struct ipt_entry *e,
 
 	/* print counters */
 	if (counters)
-		printf("[%llu:%llu] ", e->counters.pcnt, e->counters.bcnt);
+		printf("[%llu:%llu] ", (unsigned long long)e->counters.pcnt, (unsigned long long)e->counters.bcnt);
 
 	/* print chain name */
 	printf("-A %s ", chain);
@@ -191,7 +212,11 @@ static void print_rule(const struct ipt_entry *e,
 	/* Print target name */	
 	target_name = iptc_get_target(e, h);
 	if (target_name && (*target_name != '\0'))
+#ifdef IPT_F_GOTO
+		printf("-%c %s ", e->ip.flags & IPT_F_GOTO ? 'g' : 'j', target_name);
+#else
 		printf("-j %s ", target_name);
+#endif
 
 	/* Print targinfo part */
 	t = ipt_get_target((struct ipt_entry *)e);
@@ -232,7 +257,9 @@ static int for_each_table(int (*func)(const char *tablename))
 
 	procfile = fopen("/proc/net/ip_tables_names", "r");
 	if (!procfile)
-		return 0;
+		exit_error(OTHER_PROBLEM,
+			   "Unable to open /proc/net/ip_tables_names: %s\n",
+			   strerror(errno));
 
 	while (fgets(tablename, sizeof(tablename), procfile)) {
 		if (tablename[strlen(tablename) - 1] != '\n')
@@ -278,7 +305,7 @@ static int do_output(const char *tablename)
 				struct ipt_counters count;
 				printf("%s ",
 				       iptc_get_policy(chain, &count, &h));
-				printf("[%llu:%llu]\n", count.pcnt, count.bcnt);
+				printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
 			} else {
 				printf("- [0:0]\n");
 			}
@@ -306,6 +333,8 @@ static int do_output(const char *tablename)
 		exit_error(OTHER_PROBLEM, "Binary NYI\n");
 	}
 
+	iptc_free(&h);
+
 	return 1;
 }
 
@@ -313,13 +342,23 @@ static int do_output(const char *tablename)
  * :Chain name POLICY packets bytes
  * rule
  */
-int main(int argc, char *argv[])
+#ifdef IPTABLES_MULTI
+int
+iptables_save_main(int argc, char *argv[])
+#else
+int
+main(int argc, char *argv[])
+#endif
 {
 	const char *tablename = NULL;
 	int c;
 
 	program_name = "iptables-save";
 	program_version = IPTABLES_VERSION;
+
+	lib_dir = getenv("IPTABLES_LIB_DIR");
+	if (!lib_dir)
+		lib_dir = IPT_LIB_DIR;
 
 #ifdef NO_SHARED_LIBS
 	init_extensions();
@@ -346,7 +385,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (optind < argc) {
-		fprintf(stderr, "Unknown arguments found on commandline");
+		fprintf(stderr, "Unknown arguments found on commandline\n");
 		exit(1);
 	}
 

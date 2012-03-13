@@ -9,6 +9,16 @@
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
 #include <linux/netfilter_ipv4/ipt_REJECT.h>
+#include <linux/version.h>
+
+/* If we are compiling against a kernel that does not support
+ * IPT_ICMP_ADMIN_PROHIBITED, we are emulating it.
+ * The result will be a plain DROP of the packet instead of
+ * reject. -- Maciej Soltysiak <solt@dns.toxicfilms.tv>
+ */
+#ifndef IPT_ICMP_ADMIN_PROHIBITED
+#define IPT_ICMP_ADMIN_PROHIBITED	IPT_TCP_RESET + 1
+#endif
 
 struct reject_names {
 	const char *name;
@@ -34,12 +44,14 @@ static const struct reject_names reject_table[] = {
 	 IPT_ICMP_NET_PROHIBITED, "ICMP network prohibited"},
 	{"icmp-host-prohibited", "host-prohib",
 	 IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
-	{"tcp-reset", "tcp-reset",
-	 IPT_TCP_RESET, "TCP RST packet"}
+	{"tcp-reset", "tcp-rst",
+	 IPT_TCP_RESET, "TCP RST packet"},
+	{"icmp-admin-prohibited", "admin-prohib",
+	 IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited (*)"}
 };
 
 static void
-print_reject_types()
+print_reject_types(void)
 {
 	unsigned int i;
 
@@ -55,8 +67,7 @@ print_reject_types()
 /* Saves the union ipt_targinfo in parsable form to stdout. */
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void REJECT_help(void)
 {
 	printf(
 "REJECT options:\n"
@@ -64,32 +75,29 @@ help(void)
 "                                a reply packet according to type:\n");
 
 	print_reject_types();
+
+	printf("(*) See man page or read the INCOMPATIBILITES file for compatibility issues.\n");
 }
 
-static struct option opts[] = {
-	{ "reject-with", 1, 0, '1' },
-	{ 0 }
+static const struct option REJECT_opts[] = {
+	{ "reject-with", 1, NULL, '1' },
+	{ }
 };
 
 /* Allocate and initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
+static void REJECT_init(struct xt_entry_target *t)
 {
 	struct ipt_reject_info *reject = (struct ipt_reject_info *)t->data;
 
 	/* default */
 	reject->with = IPT_ICMP_PORT_UNREACHABLE;
 
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
+static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
+                        const void *entry, struct xt_entry_target **target)
 {
 	struct ipt_reject_info *reject = (struct ipt_reject_info *)(*target)->data;
 	unsigned int limit = sizeof(reject_table)/sizeof(struct reject_names);
@@ -120,16 +128,9 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	return 0;
 }
 
-/* Final check; nothing. */
-static void final_check(unsigned int flags)
-{
-}
-
 /* Prints out ipt_reject_info. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
+static void REJECT_print(const void *ip, const struct xt_entry_target *target,
+                         int numeric)
 {
 	const struct ipt_reject_info *reject
 		= (const struct ipt_reject_info *)target->data;
@@ -143,7 +144,7 @@ print(const struct ipt_ip *ip,
 }
 
 /* Saves ipt_reject in parsable form to stdout. */
-static void save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+static void REJECT_save(const void *ip, const struct xt_entry_target *target)
 {
 	const struct ipt_reject_info *reject
 		= (const struct ipt_reject_info *)target->data;
@@ -156,23 +157,20 @@ static void save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 	printf("--reject-with %s ", reject_table[i].name);
 }
 
-static
-struct iptables_target reject
-= { NULL,
-    "REJECT",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_reject_info)),
-    IPT_ALIGN(sizeof(struct ipt_reject_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_target reject_target = {
+	.name		= "REJECT",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_reject_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_reject_info)),
+	.help		= REJECT_help,
+	.init		= REJECT_init,
+	.parse		= REJECT_parse,
+	.print		= REJECT_print,
+	.save		= REJECT_save,
+	.extra_opts	= REJECT_opts,
 };
 
 void _init(void)
 {
-	register_target(&reject);
+	register_target(&reject_target);
 }

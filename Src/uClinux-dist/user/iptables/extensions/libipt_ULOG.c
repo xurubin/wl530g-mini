@@ -17,10 +17,8 @@
 #include <getopt.h>
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ipt_ULOG.h>
-
-#define ULOG_DEFAULT_NLGROUP 1
-#define ULOG_DEFAULT_QTHRESHOLD 1
+/* For 64bit kernel / 32bit userspace */
+#include "../include/linux/netfilter_ipv4/ipt_ULOG.h"
 
 
 void print_groups(unsigned int gmask)
@@ -36,7 +34,7 @@ void print_groups(unsigned int gmask)
 }
 
 /* Function which prints out usage message. */
-static void help(void)
+static void ULOG_help(void)
 {
 	printf("ULOG v%s options:\n"
 	       " --ulog-nlgroup nlgroup		NETLINK group used for logging\n"
@@ -46,24 +44,22 @@ static void help(void)
 	       IPTABLES_VERSION);
 }
 
-static struct option opts[] = {
-	{"ulog-nlgroup", 1, 0, '!'},
-	{"ulog-prefix", 1, 0, '#'},
-	{"ulog-cprange", 1, 0, 'A'},
-	{"ulog-qthreshold", 1, 0, 'B'},
-	{0}
+static const struct option ULOG_opts[] = {
+	{"ulog-nlgroup", 1, NULL, '!'},
+	{"ulog-prefix", 1, NULL, '#'},
+	{"ulog-cprange", 1, NULL, 'A'},
+	{"ulog-qthreshold", 1, NULL, 'B'},
+	{ }
 };
 
 /* Initialize the target. */
-static void init(struct ipt_entry_target *t, unsigned int *nfcache)
+static void ULOG_init(struct xt_entry_target *t)
 {
 	struct ipt_ulog_info *loginfo = (struct ipt_ulog_info *) t->data;
 
 	loginfo->nl_group = ULOG_DEFAULT_NLGROUP;
 	loginfo->qthreshold = ULOG_DEFAULT_QTHRESHOLD;
 
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 #define IPT_LOG_OPT_NLGROUP 0x01
@@ -73,9 +69,8 @@ static void init(struct ipt_entry_target *t, unsigned int *nfcache)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int parse(int c, char **argv, int invert, unsigned int *flags,
-		 const struct ipt_entry *entry,
-		 struct ipt_entry_target **target)
+static int ULOG_parse(int c, char **argv, int invert, unsigned int *flags,
+                      const void *entry, struct xt_entry_target **target)
 {
 	struct ipt_ulog_info *loginfo =
 	    (struct ipt_ulog_info *) (*target)->data;
@@ -112,7 +107,15 @@ static int parse(int c, char **argv, int invert, unsigned int *flags,
 		if (strlen(optarg) > sizeof(loginfo->prefix) - 1)
 			exit_error(PARAMETER_PROBLEM,
 				   "Maximum prefix length %u for --ulog-prefix",
-				   (unsigned int)(sizeof(loginfo->prefix) - 1));
+				   (unsigned int)sizeof(loginfo->prefix) - 1);
+
+		if (strlen(optarg) == 0)
+			exit_error(PARAMETER_PROBLEM,
+				   "No prefix specified for --ulog-prefix");
+
+		if (strlen(optarg) != strlen(strtok(optarg, "\n")))
+			exit_error(PARAMETER_PROBLEM,
+				   "Newlines not allowed in --ulog-prefix");
 
 		strcpy(loginfo->prefix, optarg);
 		*flags |= IPT_LOG_OPT_PREFIX;
@@ -140,69 +143,61 @@ static int parse(int c, char **argv, int invert, unsigned int *flags,
 		loginfo->qthreshold = atoi(optarg);
 		*flags |= IPT_LOG_OPT_QTHRESHOLD;
 		break;
+	default:
+		return 0;
 	}
 	return 1;
 }
 
-/* Final check; nothing. */
-static void final_check(unsigned int flags)
-{
-}
-
 /* Saves the union ipt_targinfo in parsable form to stdout. */
-static void save(const struct ipt_ip *ip,
-		 const struct ipt_entry_target *target)
+static void ULOG_save(const void *ip, const struct xt_entry_target *target)
 {
 	const struct ipt_ulog_info *loginfo
 	    = (const struct ipt_ulog_info *) target->data;
 
 	if (strcmp(loginfo->prefix, "") != 0)
-		printf("--ulog-prefix %s ", loginfo->prefix);
+		printf("--ulog-prefix \"%s\" ", loginfo->prefix);
 
 	if (loginfo->nl_group != ULOG_DEFAULT_NLGROUP) {
 		printf("--ulog-nlgroup ");
 		print_groups(loginfo->nl_group);
-		printf("\n");
 	}
 	if (loginfo->copy_range)
-		printf("--ulog-cprange %d ", (int)loginfo->copy_range);
+		printf("--ulog-cprange %u ", (unsigned int)loginfo->copy_range);
 
 	if (loginfo->qthreshold != ULOG_DEFAULT_QTHRESHOLD)
-		printf("--ulog-qthreshold %d ", (int)loginfo->qthreshold);
+		printf("--ulog-qthreshold %u ", (unsigned int)loginfo->qthreshold);
 }
 
 /* Prints out the targinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target, int numeric)
+static void ULOG_print(const void *ip, const struct xt_entry_target *target,
+                       int numeric)
 {
 	const struct ipt_ulog_info *loginfo
 	    = (const struct ipt_ulog_info *) target->data;
 
 	printf("ULOG ");
-	printf("copy_range %d nlgroup ", (int)loginfo->copy_range);
+	printf("copy_range %u nlgroup ", (unsigned int)loginfo->copy_range);
 	print_groups(loginfo->nl_group);
 	if (strcmp(loginfo->prefix, "") != 0)
 		printf("prefix `%s' ", loginfo->prefix);
-	printf("queue_threshold %d ", (int)loginfo->qthreshold);
+	printf("queue_threshold %u ", (unsigned int)loginfo->qthreshold);
 }
 
-static
-struct iptables_target ulog = { NULL,
-	"ULOG",
-	IPTABLES_VERSION,
-	IPT_ALIGN(sizeof(struct ipt_ulog_info)),
-	IPT_ALIGN(sizeof(struct ipt_ulog_info)),
-	&help,
-	&init,
-	&parse,
-	&final_check,
-	&print,
-	&save,
-	opts
+static struct iptables_target ulog_target = {
+	.name		= "ULOG",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_ulog_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_ulog_info)),
+	.help		= ULOG_help,
+	.init		= ULOG_init,
+	.parse		= ULOG_parse,
+	.print		= ULOG_print,
+	.save		= ULOG_save,
+	.extra_opts	= ULOG_opts,
 };
 
 void _init(void)
 {
-	register_target(&ulog);
+	register_target(&ulog_target);
 }

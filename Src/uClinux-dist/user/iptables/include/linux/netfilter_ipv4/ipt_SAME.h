@@ -8,11 +8,8 @@
 struct ipt_same_info
 {
 	unsigned char info;
-
-	unsigned int rangesize;
-
-	unsigned int ipnum;
-
+	u_int32_t rangesize;
+	u_int32_t ipnum;
 	u_int32_t *iparray;
 
 	/* hangs off end. */

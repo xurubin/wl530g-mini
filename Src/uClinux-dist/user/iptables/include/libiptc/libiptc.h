@@ -2,6 +2,7 @@
 #define _LIBIPTC_H
 /* Library which manipulates filtering rules. */
 
+#include <linux/types.h>
 #include <libiptc/ipt_kernel_headers.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
 
@@ -33,6 +34,9 @@ int iptc_is_chain(const char *chain, const iptc_handle_t handle);
 
 /* Take a snapshot of the rules.  Returns NULL on error. */
 iptc_handle_t iptc_init(const char *tablename);
+
+/* Cleanup after iptc_init(). */
+void iptc_free(iptc_handle_t *h);
 
 /* Iterator functions to run through the chains.  Returns NULL at end. */
 const char *iptc_first_chain(iptc_handle_t *handle);

@@ -8,9 +8,36 @@
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ipt_recent.h>
 
+/* Need these in order to not fail when compiling against an older kernel. */
+#ifndef RECENT_NAME
+#define RECENT_NAME	"ipt_recent"
+#endif /* RECENT_NAME */
+
+#ifndef RECENT_VER
+#define RECENT_VER	"unknown"
+#endif /* RECENT_VER */
+
+#ifndef IPT_RECENT_NAME_LEN
+#define IPT_RECENT_NAME_LEN	200
+#endif /* IPT_RECENT_NAME_LEN */
+
+/* Options for this module */
+static const struct option recent_opts[] = {
+	{ .name = "set",      .has_arg = 0, .val = 201 }, 
+	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
+	{ .name = "update",   .has_arg = 0, .val = 203 },
+	{ .name = "seconds",  .has_arg = 1, .val = 204 }, 
+	{ .name = "hitcount", .has_arg = 1, .val = 205 },
+	{ .name = "remove",   .has_arg = 0, .val = 206 },
+	{ .name = "rttl",     .has_arg = 0, .val = 207 },
+	{ .name = "name",     .has_arg = 1, .val = 208 },
+	{ .name = "rsource",  .has_arg = 0, .val = 209 },
+	{ .name = "rdest",    .has_arg = 0, .val = 210 },
+	{ }
+};
+
 /* Function which prints out usage message. */
-static void
-help(void)
+static void recent_help(void)
 {
 	printf(
 "recent v%s options:\n"
@@ -30,52 +57,37 @@ help(void)
 "                                Useful if you have problems with people spoofing their source address in order\n"
 "                                to DoS you via this module.\n"
 "    --name name                 Name of the recent list to be used.  DEFAULT used if none given.\n"
-"    --rsource                   Save the source address of each packet in the recent list table (default).\n"
-"    --rdest                     Save the destination address of each packet in the recent list table.\n"
+"    --rsource                   Match/Save the source address of each packet in the recent list table (default).\n"
+"    --rdest                     Match/Save the destination address of each packet in the recent list table.\n"
+RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n"
 ,
 IPTABLES_VERSION);
 
 }
   
-static struct option opts[] = {
-	{ "set", 0, 0, 201 }, 
-	{ "rcheck", 0, 0, 202 }, 
-	{ "update", 0, 0, 203 },
-	{ "seconds", 1, 0, 204 }, 
-	{ "hitcount", 1, 0, 205 },
-	{ "remove",0, 0, 206 },
-	{ "rttl",0, 0, 207},
-	{ "name", 1, 0, 208},
-	{ "rsource", 0, 0, 209},
-	{ "rdest", 0, 0, 210},
-	{0}
-};
-
 /* Initialize the match. */
-static void
-init(struct ipt_entry_match *match, unsigned int *nfcache)
+static void recent_init(struct xt_entry_match *match)
 {
 	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
 
-	*nfcache |= NFC_UNKNOWN;
 
-	strncpy(info->name,"DEFAULT",200);
+	strncpy(info->name,"DEFAULT",IPT_RECENT_NAME_LEN);
+	/* eventhough IPT_RECENT_NAME_LEN is currently defined as 200,
+	 * better be safe, than sorry */
+	info->name[IPT_RECENT_NAME_LEN-1] = '\0';
 	info->side = IPT_RECENT_SOURCE;
 }
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      unsigned int *nfcache,
-      struct ipt_entry_match **match)
+static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
+                        const void *entry, struct xt_entry_match **match)
 {
 	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
 	switch (c) {
 		case 201:
 			if (*flags) exit_error(PARAMETER_PROBLEM,
-					"recent: only one of `--set', `--check' "
+					"recent: only one of `--set', `--rcheck' "
 					"`--update' or `--remove' may be set");
 			check_inverse(optarg, &invert, &optind, 0);
 			info->check_set |= IPT_RECENT_SET;
@@ -85,7 +97,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			
 		case 202:
 			if (*flags) exit_error(PARAMETER_PROBLEM,
-					"recent: only one of `--set', `--check' "
+					"recent: only one of `--set', `--rcheck' "
 					"`--update' or `--remove' may be set");
 			check_inverse(optarg, &invert, &optind, 0);
 			info->check_set |= IPT_RECENT_CHECK;
@@ -95,7 +107,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 
 		case 203:
 			if (*flags) exit_error(PARAMETER_PROBLEM,
-					"recent: only one of `--set', `--check' "
+					"recent: only one of `--set', `--rcheck' "
 					"`--update' or `--remove' may be set");
 			check_inverse(optarg, &invert, &optind, 0);
 			info->check_set |= IPT_RECENT_UPDATE;
@@ -105,7 +117,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 
 		case 206:
 			if (*flags) exit_error(PARAMETER_PROBLEM,
-					"recent: only one of `--set', `--check' "
+					"recent: only one of `--set', `--rcheck' "
 					"`--update' or `--remove' may be set");
 			check_inverse(optarg, &invert, &optind, 0);
 			info->check_set |= IPT_RECENT_REMOVE;
@@ -126,7 +138,8 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			break;
 
 		case 208:
-			strncpy(info->name,optarg,200);
+			strncpy(info->name,optarg,IPT_RECENT_NAME_LEN);
+			info->name[IPT_RECENT_NAME_LEN-1] = '\0';
 			break;
 
 		case 209:
@@ -145,25 +158,23 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 }
 
 /* Final check; must have specified a specific option. */
-static void
-final_check(unsigned int flags)
+static void recent_check(unsigned int flags)
 {
 
 	if (!flags)
 		exit_error(PARAMETER_PROBLEM,
-			"recent: you must specify one of `--set', `--check' "
+			"recent: you must specify one of `--set', `--rcheck' "
 			"`--update' or `--remove'");
 }
 
 /* Prints out the matchinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_match *match,
-      int numeric)
+static void recent_print(const void *ip, const struct xt_entry_match *match,
+                         int numeric)
 {
 	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
 
-	if (info->invert) fputc('!', stdout);
+	if (info->invert)
+		fputc('!', stdout);
 
 	printf("recent: ");
 	if(info->check_set & IPT_RECENT_SET) printf("SET ");
@@ -179,43 +190,41 @@ print(const struct ipt_ip *ip,
 }
 
 /* Saves the union ipt_matchinfo in parsable form to stdout. */
-static void
-save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
+static void recent_save(const void *ip, const struct xt_entry_match *match)
 {
-	struct ipt_recent_info *info = (struct ipt_recent_info *)match;
+	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
 
-	if (info->invert) fputc('!', stdout);
+	if (info->invert)
+		printf("! ");
 
-	printf("recent: ");
-	if(info->check_set & IPT_RECENT_SET) printf("SET ");
-	if(info->check_set & IPT_RECENT_CHECK) printf("CHECK ");
-	if(info->check_set & IPT_RECENT_UPDATE) printf("UPDATE ");
-	if(info->check_set & IPT_RECENT_REMOVE) printf("REMOVE ");
-	if(info->seconds) printf("seconds: %d ",info->seconds);
-	if(info->hit_count) printf("hit_count: %d ",info->hit_count);
-	if(info->check_set & IPT_RECENT_TTL) printf("TTL-Match ");
-	if(info->name) printf("name: %s ",info->name);
-	if(info->side == IPT_RECENT_SOURCE) printf("side: source ");
-	if(info->side == IPT_RECENT_DEST) printf("side: dest");
+	if(info->check_set & IPT_RECENT_SET) printf("--set ");
+	if(info->check_set & IPT_RECENT_CHECK) printf("--rcheck ");
+	if(info->check_set & IPT_RECENT_UPDATE) printf("--update ");
+	if(info->check_set & IPT_RECENT_REMOVE) printf("--remove ");
+	if(info->seconds) printf("--seconds %d ",info->seconds);
+	if(info->hit_count) printf("--hitcount %d ",info->hit_count);
+	if(info->check_set & IPT_RECENT_TTL) printf("--rttl ");
+	if(info->name) printf("--name %s ",info->name);
+	if(info->side == IPT_RECENT_SOURCE) printf("--rsource ");
+	if(info->side == IPT_RECENT_DEST) printf("--rdest ");
 }
 
-static
-struct iptables_match recent
-= { NULL,
-    "recent",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_recent_info)),
-    IPT_ALIGN(sizeof(struct ipt_recent_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+/* Structure for iptables to use to communicate with module */
+static struct iptables_match recent_match = {
+    .name          = "recent",
+    .version       = IPTABLES_VERSION,
+    .size          = IPT_ALIGN(sizeof(struct ipt_recent_info)),
+    .userspacesize = IPT_ALIGN(sizeof(struct ipt_recent_info)),
+    .help          = recent_help,
+    .init          = recent_init,
+    .parse         = recent_parse,
+    .final_check   = recent_check,
+    .print         = recent_print,
+    .save          = recent_save,
+    .extra_opts    = recent_opts,
 };
 
 void _init(void)
 {
-	register_match(&recent);
+	register_match(&recent_match);
 }

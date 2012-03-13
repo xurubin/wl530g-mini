@@ -11,11 +11,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <iptables_common.h>
+#include <xtables.h>
 
 
-
-static struct ds_class
+static const struct ds_class
 {
 	const char *name;
 	unsigned int dscp;

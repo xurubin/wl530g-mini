@@ -7,6 +7,14 @@
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
 
+/* special hack for icmp-type 'any': 
+ * Up to kernel <=2.4.20 the problem was:
+ * '-p icmp ' matches all icmp packets
+ * '-p icmp -m icmp' matches _only_ ICMP type 0 :(
+ * This is now fixed by initializing the field * to icmp type 0xFF
+ * See: https://bugzilla.netfilter.org/cgi-bin/bugzilla/show_bug.cgi?id=37
+ */
+
 struct icmp_names {
 	const char *name;
 	u_int8_t type;
@@ -14,6 +22,7 @@ struct icmp_names {
 };
 
 static const struct icmp_names icmp_codes[] = {
+	{ "any", 0xFF, 0, 0xFF },
 	{ "echo-reply", 0, 0, 0xFF },
 	/* Alias */ { "pong", 0, 0, 0xFF },
 
@@ -68,7 +77,7 @@ static const struct icmp_names icmp_codes[] = {
 };
 
 static void
-print_icmptypes()
+print_icmptypes(void)
 {
 	unsigned int i;
 	printf("Valid ICMP Types:");
@@ -89,8 +98,7 @@ print_icmptypes()
 }
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void icmp_help(void)
 {
 	printf(
 "ICMP v%s options:\n"
@@ -100,12 +108,12 @@ help(void)
 	print_icmptypes();
 }
 
-static struct option opts[] = {
-	{ "icmp-type", 1, 0, '1' },
-	{0}
+static const struct option icmp_opts[] = {
+	{ "icmp-type", 1, NULL, '1' },
+	{ }
 };
 
-static unsigned int
+static void 
 parse_icmp(const char *icmptype, u_int8_t *type, u_int8_t code[])
 {
 	unsigned int limit = sizeof(icmp_codes)/sizeof(struct icmp_names);
@@ -156,39 +164,35 @@ parse_icmp(const char *icmptype, u_int8_t *type, u_int8_t code[])
 			code[1] = 0xFF;
 		}
 	}
-
-	if (code[0] == 0 && code[1] == 0xFF)
-		return NFC_IP_SRC_PT;
-	else return NFC_IP_SRC_PT | NFC_IP_DST_PT;
 }
 
 /* Initialize the match. */
-static void
-init(struct ipt_entry_match *m, unsigned int *nfcache)
+static void icmp_init(struct xt_entry_match *m)
 {
 	struct ipt_icmp *icmpinfo = (struct ipt_icmp *)m->data;
 
+	icmpinfo->type = 0xFF;
 	icmpinfo->code[1] = 0xFF;
 }
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      unsigned int *nfcache,
-      struct ipt_entry_match **match)
+static int icmp_parse(int c, char **argv, int invert, unsigned int *flags,
+                      const void *entry, struct xt_entry_match **match)
 {
 	struct ipt_icmp *icmpinfo = (struct ipt_icmp *)(*match)->data;
 
 	switch (c) {
 	case '1':
+		if (*flags == 1)
+			exit_error(PARAMETER_PROBLEM,
+				   "icmp match: only use --icmp-type once!");
 		check_inverse(optarg, &invert, &optind, 0);
-		*nfcache |= parse_icmp(argv[optind-1],
-				       &icmpinfo->type,
-				       icmpinfo->code);
+		parse_icmp(argv[optind-1], &icmpinfo->type, 
+			   icmpinfo->code);
 		if (invert)
 			icmpinfo->invflags |= IPT_ICMP_INV;
+		*flags = 1;
 		break;
 
 	default:
@@ -236,10 +240,8 @@ static void print_icmptype(u_int8_t type,
 }
 
 /* Prints out the union ipt_matchinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_match *match,
-      int numeric)
+static void icmp_print(const void *ip, const struct xt_entry_match *match,
+                       int numeric)
 {
 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
 
@@ -254,41 +256,38 @@ print(const struct ipt_ip *ip,
 }
 
 /* Saves the match in parsable form to stdout. */
-static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
+static void icmp_save(const void *ip, const struct xt_entry_match *match)
 {
 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
 
 	if (icmp->invflags & IPT_ICMP_INV)
 		printf("! ");
 
-	printf("--icmp-type %u", icmp->type);
-	if (icmp->code[0] != 0 || icmp->code[1] != 0xFF)
-		printf("/%u", icmp->code[0]);
-	printf(" ");
+	/* special hack for 'any' case */
+	if (icmp->type == 0xFF) {
+		printf("--icmp-type any ");
+	} else {
+		printf("--icmp-type %u", icmp->type);
+		if (icmp->code[0] != 0 || icmp->code[1] != 0xFF)
+			printf("/%u", icmp->code[0]);
+		printf(" ");
+	}
 }
 
-/* Final check; we don't care. */
-static void final_check(unsigned int flags)
-{
-}
-
-static
-struct iptables_match icmp
-= { NULL,
-    "icmp",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ipt_icmp)),
-    IPT_ALIGN(sizeof(struct ipt_icmp)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_match icmp_match = {
+	.name		= "icmp",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_icmp)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_icmp)),
+	.help		= icmp_help,
+	.init		= icmp_init,
+	.parse		= icmp_parse,
+	.print		= icmp_print,
+	.save		= icmp_save,
+	.extra_opts	= icmp_opts,
 };
 
 void _init(void)
 {
-	register_match(&icmp);
+	register_match(&icmp_match);
 }

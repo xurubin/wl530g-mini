@@ -6,40 +6,36 @@
 #include <getopt.h>
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ip_nat_rule.h>
+#include <linux/netfilter/nf_nat.h>
+
+#define IPT_SNAT_OPT_SOURCE 0x01
+#define IPT_SNAT_OPT_RANDOM 0x02
 
 /* Source NAT data consists of a multi-range, indicating where to map
    to. */
 struct ipt_natinfo
 {
-	struct ipt_entry_target t;
+	struct xt_entry_target t;
 	struct ip_nat_multi_range mr;
 };
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void SNAT_help(void)
 {
 	printf(
 "SNAT v%s options:\n"
 " --to-source <ipaddr>[-<ipaddr>][:port-port]\n"
 "				Address to map source to.\n"
-"				(You can use this more than once)\n\n",
+"[--random]\n"
+"\n",
 IPTABLES_VERSION);
 }
 
-static struct option opts[] = {
-	{ "to-source", 1, 0, '1' },
-	{ 0 }
+static const struct option SNAT_opts[] = {
+	{ "to-source", 1, NULL, '1' },
+	{ "random", 0, NULL, '2' },
+	{ }
 };
-
-/* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
-{
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
-}
 
 static struct ipt_natinfo *
 append_range(struct ipt_natinfo *info, const struct ip_nat_range *range)
@@ -61,11 +57,11 @@ append_range(struct ipt_natinfo *info, const struct ip_nat_range *range)
 }
 
 /* Ranges expected in network order. */
-static struct ipt_entry_target *
+static struct xt_entry_target *
 parse_to(char *arg, int portok, struct ipt_natinfo *info)
 {
 	struct ip_nat_range range;
-	char *colon, *dash;
+	char *colon, *dash, *error;
 	struct in_addr *ip;
 
 	memset(&range, 0, sizeof(range));
@@ -81,9 +77,14 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
 		range.flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
 
 		port = atoi(colon+1);
-		if (port == 0 || port > 65535)
+		if (port <= 0 || port > 65535)
 			exit_error(PARAMETER_PROBLEM,
 				   "Port `%s' not valid\n", colon+1);
+
+		error = strchr(colon+1, ':');
+		if (error)
+			exit_error(PARAMETER_PROBLEM,
+				   "Invalid port:port syntax - use dash\n");
 
 		dash = strchr(colon, '-');
 		if (!dash) {
@@ -94,7 +95,7 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
 			int maxport;
 
 			maxport = atoi(dash + 1);
-			if (maxport == 0 || maxport > 65535)
+			if (maxport <= 0 || maxport > 65535)
 				exit_error(PARAMETER_PROBLEM,
 					   "Port `%s' not valid\n", dash+1);
 			if (maxport < port)
@@ -137,16 +138,16 @@ parse_to(char *arg, int portok, struct ipt_natinfo *info)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
+static int SNAT_parse(int c, char **argv, int invert, unsigned int *flags,
+                      const void *e, struct xt_entry_target **target)
 {
+	const struct ipt_entry *entry = e;
 	struct ipt_natinfo *info = (void *)*target;
 	int portok;
 
 	if (entry->ip.proto == IPPROTO_TCP
-	    || entry->ip.proto == IPPROTO_UDP)
+	    || entry->ip.proto == IPPROTO_UDP
+	    || entry->ip.proto == IPPROTO_ICMP)
 		portok = 1;
 	else
 		portok = 0;
@@ -157,8 +158,26 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 			exit_error(PARAMETER_PROBLEM,
 				   "Unexpected `!' after --to-source");
 
+		if (*flags & IPT_SNAT_OPT_SOURCE) {
+			if (!kernel_version)
+				get_kernel_version();
+			if (kernel_version > LINUX_VERSION(2, 6, 10))
+				exit_error(PARAMETER_PROBLEM,
+					   "Multiple --to-source not supported");
+		}
 		*target = parse_to(optarg, portok, info);
-		*flags = 1;
+		/* WTF do we need this for?? */
+		if (*flags & IPT_SNAT_OPT_RANDOM)
+			info->mr.range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
+		*flags |= IPT_SNAT_OPT_SOURCE;
+		return 1;
+
+	case '2':
+		if (*flags & IPT_SNAT_OPT_SOURCE) {
+			info->mr.range[0].flags |= IP_NAT_RANGE_PROTO_RANDOM;
+			*flags |= IPT_SNAT_OPT_RANDOM;
+		} else
+			*flags |= IPT_SNAT_OPT_RANDOM;
 		return 1;
 
 	default:
@@ -167,9 +186,9 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 }
 
 /* Final check; must have specfied --to-source. */
-static void final_check(unsigned int flags)
+static void SNAT_check(unsigned int flags)
 {
-	if (!flags)
+	if (!(flags & IPT_SNAT_OPT_SOURCE))
 		exit_error(PARAMETER_PROBLEM,
 			   "You must specify --to-source");
 }
@@ -195,10 +214,8 @@ static void print_range(const struct ip_nat_range *r)
 }
 
 /* Prints out the targinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
+static void SNAT_print(const void *ip, const struct xt_entry_target *target,
+                       int numeric)
 {
 	struct ipt_natinfo *info = (void *)target;
 	unsigned int i = 0;
@@ -207,12 +224,13 @@ print(const struct ipt_ip *ip,
 	for (i = 0; i < info->mr.rangesize; i++) {
 		print_range(&info->mr.range[i]);
 		printf(" ");
+		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
+			printf("random ");
 	}
 }
 
 /* Saves the union ipt_targinfo in parsable form to stdout. */
-static void
-save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+static void SNAT_save(const void *ip, const struct xt_entry_target *target)
 {
 	struct ipt_natinfo *info = (void *)target;
 	unsigned int i = 0;
@@ -221,26 +239,25 @@ save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 		printf("--to-source ");
 		print_range(&info->mr.range[i]);
 		printf(" ");
+		if (info->mr.range[i].flags & IP_NAT_RANGE_PROTO_RANDOM)
+			printf("--random ");
 	}
 }
 
-static
-struct iptables_target snat
-= { NULL,
-    "SNAT",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_target snat_target = {
+	.name		= "SNAT",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.help		= SNAT_help,
+	.parse		= SNAT_parse,
+	.final_check	= SNAT_check,
+	.print		= SNAT_print,
+	.save		= SNAT_save,
+	.extra_opts	= SNAT_opts,
 };
 
 void _init(void)
 {
-	register_target(&snat);
+	register_target(&snat_target);
 }

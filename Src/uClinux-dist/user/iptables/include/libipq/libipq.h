@@ -30,13 +30,8 @@
 #include <asm/types.h>
 #include <linux/netlink.h>
 
-#ifdef KERNEL_64_USERSPACE_32
-#include "ip_queue_64.h"
-typedef u_int64_t ipq_id_t;
-#else
 #include <linux/netfilter_ipv4/ip_queue.h>
-typedef u_int32_t ipq_id_t;
-#endif
+typedef unsigned long ipq_id_t;
 
 #ifdef DEBUG_LIBIPQ
 #include <stdio.h>
@@ -58,7 +53,6 @@ struct ipq_handle
 	struct sockaddr_nl peer;
 };
 
-__BEGIN_DECLS
 struct ipq_handle *ipq_create_handle(u_int32_t flags, u_int32_t protocol);
 
 int ipq_destroy_handle(struct ipq_handle *h);
@@ -84,7 +78,6 @@ int ipq_ctl(const struct ipq_handle *h, int request, ...);
 
 char *ipq_errstr(void);
 void ipq_perror(const char *s);
-__END_DECLS
 
 #endif	/* _LIBIPQ_H */
 

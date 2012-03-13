@@ -1,7 +1,7 @@
 /* Shared library add-on to iptables for the TTL target
  * (C) 2000 by Harald Welte <laforge@gnumonks.org>
  *
- * $Id: libipt_TTL.c,v 1.6 2002/05/29 13:08:16 laforge Exp $
+ * $Id: libipt_TTL.c 7062 2007-10-04 16:29:00Z /C=EU/ST=EU/CN=Patrick McHardy/emailAddress=kaber@trash.net $
  *
  * This program is distributed under the terms of GNU GPL
  */
@@ -16,26 +16,21 @@
 
 #define IPT_TTL_USED	1
 
-static void init(struct ipt_entry_target *t, unsigned int *nfcache) 
-{
-}
-
-static void help(void) 
+static void TTL_help(void)
 {
 	printf(
 "TTL target v%s options\n"
-"  --ttl-set value		Set TTL to <value>\n"
-"  --ttl-dec value		Decrement TTL by <value>\n"
-"  --ttl-inc value		Increment TTL by <value>\n"
+"  --ttl-set value		Set TTL to <value 0-255>\n"
+"  --ttl-dec value		Decrement TTL by <value 1-255>\n"
+"  --ttl-inc value		Increment TTL by <value 1-255>\n"
 , IPTABLES_VERSION);
 }
 
-static int parse(int c, char **argv, int invert, unsigned int *flags,
-		const struct ipt_entry *entry,
-		struct ipt_entry_target **target)
+static int TTL_parse(int c, char **argv, int invert, unsigned int *flags,
+                     const void *entry, struct xt_entry_target **target)
 {
 	struct ipt_TTL_info *info = (struct ipt_TTL_info *) (*target)->data;
-	u_int8_t value;
+	unsigned int value;
 
 	if (*flags & IPT_TTL_USED) {
 		exit_error(PARAMETER_PROBLEM, 
@@ -50,7 +45,9 @@ static int parse(int c, char **argv, int invert, unsigned int *flags,
 		exit_error(PARAMETER_PROBLEM,
 				"TTL: unexpected `!'");
 	
-	value = atoi(optarg);
+	if (string_to_number(optarg, 0, 255, &value) == -1)
+		exit_error(PARAMETER_PROBLEM,
+		           "TTL: Expected value between 0 and 255");
 
 	switch (c) {
 
@@ -87,15 +84,14 @@ static int parse(int c, char **argv, int invert, unsigned int *flags,
 	return 1;
 }
 
-static void final_check(unsigned int flags)
+static void TTL_check(unsigned int flags)
 {
 	if (!(flags & IPT_TTL_USED))
 		exit_error(PARAMETER_PROBLEM,
 				"TTL: You must specify an action");
 }
 
-static void save(const struct ipt_ip *ip,
-		const struct ipt_entry_target *target)
+static void TTL_save(const void *ip, const struct xt_entry_target *target)
 {
 	const struct ipt_TTL_info *info = 
 		(struct ipt_TTL_info *) target->data;
@@ -115,8 +111,8 @@ static void save(const struct ipt_ip *ip,
 	printf("%u ", info->ttl);
 }
 
-static void print(const struct ipt_ip *ip,
-		const struct ipt_entry_target *target, int numeric)
+static void TTL_print(const void *ip, const struct xt_entry_target *target,
+                      int numeric)
 {
 	const struct ipt_TTL_info *info =
 		(struct ipt_TTL_info *) target->data;
@@ -136,29 +132,28 @@ static void print(const struct ipt_ip *ip,
 	printf("%u ", info->ttl);
 }
 
-static struct option opts[] = {
-	{ "ttl-set", 1, 0, '1' },
-	{ "ttl-dec", 1, 0, '2' },
-	{ "ttl-inc", 1, 0, '3' },
-	{ 0 }
+static const struct option TTL_opts[] = {
+	{ "ttl-set", 1, NULL, '1' },
+	{ "ttl-dec", 1, NULL, '2' },
+	{ "ttl-inc", 1, NULL, '3' },
+	{ }
 };
 
-static
-struct iptables_target TTL = { NULL, 
-	"TTL",
-	IPTABLES_VERSION,
-	IPT_ALIGN(sizeof(struct ipt_TTL_info)),
-	IPT_ALIGN(sizeof(struct ipt_TTL_info)),
-	&help,
-	&init,
-	&parse,
-	&final_check,
-	&print,
-	&save,
-	opts 
+static struct iptables_target ttl_target = {
+	.next		= NULL, 
+	.name		= "TTL",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_TTL_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_TTL_info)),
+	.help		= TTL_help,
+	.parse		= TTL_parse,
+	.final_check	= TTL_check,
+	.print		= TTL_print,
+	.save		= TTL_save,
+	.extra_opts	= TTL_opts,
 };
 
 void _init(void)
 {
-	register_target(&TTL);
+	register_target(&ttl_target);
 }

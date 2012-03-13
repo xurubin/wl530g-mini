@@ -15,8 +15,7 @@
 /*#define DEBUG	1*/
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void rt_help(void)
 {
 	printf(
 "RT v%s options:\n"
@@ -29,14 +28,14 @@ help(void)
 IPTABLES_VERSION, IP6T_RT_HOPS);
 }
 
-static struct option opts[] = {
-	{ "rt-type", 1, 0, '1' },
-	{ "rt-segsleft", 1, 0, '2' },
-	{ "rt-len", 1, 0, '3' },
-	{ "rt-0-res", 0, 0, '4' },
-	{ "rt-0-addrs", 1, 0, '5' },
-	{ "rt-0-not-strict", 0, 0, '6' },
-	{0}
+static const struct option rt_opts[] = {
+	{ "rt-type", 1, NULL, '1' },
+	{ "rt-segsleft", 1, NULL, '2' },
+	{ "rt-len", 1, NULL, '3' },
+	{ "rt-0-res", 0, NULL, '4' },
+	{ "rt-0-addrs", 1, NULL, '5' },
+	{ "rt-0-not-strict", 0, NULL, '6' },
+	{ }
 };
 
 static u_int32_t
@@ -138,8 +137,7 @@ parse_addresses(const char *addrstr, struct in6_addr *addrp)
 }
 
 /* Initialize the match. */
-static void
-init(struct ip6t_entry_match *m, unsigned int *nfcache)
+static void rt_init(struct xt_entry_match *m)
 {
 	struct ip6t_rt *rtinfo = (struct ip6t_rt *)m->data;
 
@@ -154,11 +152,8 @@ init(struct ip6t_entry_match *m, unsigned int *nfcache)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ip6t_entry *entry,
-      unsigned int *nfcache,
-      struct ip6t_entry_match **match)
+static int rt_parse(int c, char **argv, int invert, unsigned int *flags,
+                    const void *entry, struct xt_entry_match **match)
 {
 	struct ip6t_rt *rtinfo = (struct ip6t_rt *)(*match)->data;
 
@@ -238,12 +233,6 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	return 1;
 }
 
-/* Final check; we don't care. */
-static void
-final_check(unsigned int flags)
-{
-}
-
 static void
 print_nums(const char *name, u_int32_t min, u_int32_t max,
 	    int invert)
@@ -276,9 +265,8 @@ print_addresses(int addrnr, struct in6_addr *addrp)
 }
 
 /* Prints out the union ip6t_matchinfo. */
-static void
-print(const struct ip6t_ip6 *ip,
-      const struct ip6t_entry_match *match, int numeric)
+static void rt_print(const void *ip, const struct xt_entry_match *match,
+                     int numeric)
 {
 	const struct ip6t_rt *rtinfo = (struct ip6t_rt *)match->data;
 
@@ -304,7 +292,7 @@ print(const struct ip6t_ip6 *ip,
 }
 
 /* Saves the union ip6t_matchinfo in parsable form to stdout. */
-static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_match *match)
+static void rt_save(const void *ip, const struct xt_entry_match *match)
 {
 	const struct ip6t_rt *rtinfo = (struct ip6t_rt *)match->data;
 
@@ -341,24 +329,21 @@ static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_match *match
 
 }
 
-static
-struct ip6tables_match rt
-= { NULL,
-    "rt",
-    IPTABLES_VERSION,
-    IP6T_ALIGN(sizeof(struct ip6t_rt)),
-    IP6T_ALIGN(sizeof(struct ip6t_rt)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct ip6tables_match rt_match6 = {
+	.name		= "rt",
+	.version	= IPTABLES_VERSION,
+	.size		= IP6T_ALIGN(sizeof(struct ip6t_rt)),
+	.userspacesize	= IP6T_ALIGN(sizeof(struct ip6t_rt)),
+	.help		= rt_help,
+	.init		= rt_init,
+	.parse		= rt_parse,
+	.print		= rt_print,
+	.save		= rt_save,
+	.extra_opts	= rt_opts,
 };
 
 void
 _init(void)
 {
-	register_match6(&rt);
+	register_match6(&rt_match6);
 }

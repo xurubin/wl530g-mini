@@ -1,4 +1,4 @@
-/* Header file for IP tables userspace logging, Version 1.8 
+/* Header file for IP tables userspace logging, Version 1.8
  *
  * (C) 2000-2002 by Harald Welte <laforge@gnumonks.org>
  * 
@@ -10,6 +10,9 @@
 #ifndef NETLINK_NFLOG
 #define NETLINK_NFLOG 	5
 #endif
+
+#define ULOG_DEFAULT_NLGROUP	1
+#define ULOG_DEFAULT_QTHRESHOLD	1
 
 #define ULOG_MAC_LEN	80
 #define ULOG_PREFIX_LEN	32

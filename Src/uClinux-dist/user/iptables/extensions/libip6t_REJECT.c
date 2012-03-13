@@ -38,7 +38,7 @@ static const struct reject_names reject_table[] = {
 };
 
 static void
-print_reject_types()
+print_reject_types(void)
 {
 	unsigned int i;
 
@@ -54,8 +54,7 @@ print_reject_types()
 /* Saves the union ipt_targinfo in parsable form to stdout. */
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void REJECT_help(void)
 {
 	printf(
 "REJECT options:\n"
@@ -65,30 +64,25 @@ help(void)
 	print_reject_types();
 }
 
-static struct option opts[] = {
-	{ "reject-with", 1, 0, '1' },
-	{ 0 }
+static const struct option REJECT_opts[] = {
+	{ "reject-with", 1, NULL, '1' },
+	{ }
 };
 
 /* Allocate and initialize the target. */
-static void
-init(struct ip6t_entry_target *t, unsigned int *nfcache)
+static void REJECT_init(struct xt_entry_target *t)
 {
 	struct ip6t_reject_info *reject = (struct ip6t_reject_info *)t->data;
 
 	/* default */
 	reject->with = IP6T_ICMP6_PORT_UNREACH;
 
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ip6t_entry *entry,
-      struct ip6t_entry_target **target)
+static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
+                        const void *entry, struct xt_entry_target **target)
 {
 	struct ip6t_reject_info *reject = 
 		(struct ip6t_reject_info *)(*target)->data;
@@ -115,16 +109,9 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	return 0;
 }
 
-/* Final check; nothing. */
-static void final_check(unsigned int flags)
-{
-}
-
 /* Prints out ipt_reject_info. */
-static void
-print(const struct ip6t_ip6 *ip,
-      const struct ip6t_entry_target *target,
-      int numeric)
+static void REJECT_print(const void *ip, const struct xt_entry_target *target,
+                         int numeric)
 {
 	const struct ip6t_reject_info *reject
 		= (const struct ip6t_reject_info *)target->data;
@@ -138,8 +125,7 @@ print(const struct ip6t_ip6 *ip,
 }
 
 /* Saves ipt_reject in parsable form to stdout. */
-static void save(const struct ip6t_ip6 *ip, 
-		 const struct ip6t_entry_target *target)
+static void REJECT_save(const void *ip, const struct xt_entry_target *target)
 {
 	const struct ip6t_reject_info *reject
 		= (const struct ip6t_reject_info *)target->data;
@@ -152,22 +138,20 @@ static void save(const struct ip6t_ip6 *ip,
 	printf("--reject-with %s ", reject_table[i].name);
 }
 
-struct ip6tables_target reject
-= { NULL,
-    "REJECT",
-    IPTABLES_VERSION,
-    IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
-    IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct ip6tables_target reject_target6 = {
+	.name = "REJECT",
+	.version	= IPTABLES_VERSION,
+	.size 		= IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
+	.userspacesize 	= IP6T_ALIGN(sizeof(struct ip6t_reject_info)),
+	.help		= REJECT_help,
+	.init		= REJECT_init,
+	.parse		= REJECT_parse,
+	.print		= REJECT_print,
+	.save		= REJECT_save,
+	.extra_opts	= REJECT_opts,
 };
 
 void _init(void)
 {
-	register_target6(&reject);
+	register_target6(&reject_target6);
 }

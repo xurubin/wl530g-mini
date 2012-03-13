@@ -9,23 +9,22 @@
 #include <getopt.h>
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ip_nat_rule.h>
+#include <linux/netfilter/nf_nat.h>
 
 #define MODULENAME "NETMAP"
 
-static struct option opts[] = {
-	{ "to", 1, 0, '1' },
-	{ 0 }
+static const struct option NETMAP_opts[] = {
+	{ "to", 1, NULL, '1' },
+	{ }
 };
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void NETMAP_help(void)
 {
 	printf(MODULENAME" v%s options:\n"
 	       "  --%s address[/mask]\n"
 	       "				Network address to map to.\n\n",
-	       IPTABLES_VERSION, opts[0].name);
+	       IPTABLES_VERSION, NETMAP_opts[0].name);
 }
 
 static u_int32_t
@@ -55,16 +54,13 @@ netmask2bits(u_int32_t netmask)
 }
 
 /* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
+static void NETMAP_init(struct xt_entry_target *t)
 {
 	struct ip_nat_multi_range *mr = (struct ip_nat_multi_range *)t->data;
 
 	/* Actually, it's 0, but it's ignored at the moment. */
 	mr->rangesize = 1;
 
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 /* Parses network address */
@@ -88,7 +84,7 @@ parse_to(char *arg, struct ip_nat_range *range)
 	range->min_ip = ip->s_addr;
 	if (slash) {
 		if (strchr(slash+1, '.')) {
-			ip = dotted_to_addr(slash+1);
+			ip = dotted_to_mask(slash+1);
 			if (!ip)
 				exit_error(PARAMETER_PROBLEM, "Bad netmask `%s'\n",
 					   slash+1);
@@ -118,10 +114,8 @@ parse_to(char *arg, struct ip_nat_range *range)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
+static int NETMAP_parse(int c, char **argv, int invert, unsigned int *flags,
+                        const void *entry, struct xt_entry_target **target)
 {
 	struct ip_nat_multi_range *mr
 		= (struct ip_nat_multi_range *)(*target)->data;
@@ -130,7 +124,7 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	case '1':
 		if (check_inverse(optarg, &invert, NULL, 0))
 			exit_error(PARAMETER_PROBLEM,
-				   "Unexpected `!' after --%s", opts[0].name);
+				   "Unexpected `!' after --%s", NETMAP_opts[0].name);
 
 		parse_to(optarg, &mr->range[0]);
 		*flags = 1;
@@ -142,18 +136,16 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 }
 
 /* Final check; need --to */
-static void final_check(unsigned int flags)
+static void NETMAP_check(unsigned int flags)
 {
 	if (!flags)
 		exit_error(PARAMETER_PROBLEM,
-			   MODULENAME" needs --%s", opts[0].name);
+			   MODULENAME" needs --%s", NETMAP_opts[0].name);
 }
 
 /* Prints out the targinfo. */
-static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
+static void NETMAP_print(const void *ip, const struct xt_entry_target *target,
+                         int numeric)
 {
 	struct ip_nat_multi_range *mr
 		= (struct ip_nat_multi_range *)target->data;
@@ -172,31 +164,28 @@ print(const struct ipt_ip *ip,
 }
 
 /* Saves the targinfo in parsable form to stdout. */
-static void
-save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+static void NETMAP_save(const void *ip, const struct xt_entry_target *target)
 {
-	printf("--%s ", opts[0].name);
-	print(ip, target, 0);
+	printf("--%s ", NETMAP_opts[0].name);
+	NETMAP_print(ip, target, 0);
 }
 
-static
-struct iptables_target target_module
-= { NULL,
-    MODULENAME,
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_target netmap_target = {
+	.name		= MODULENAME,
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.help		= NETMAP_help,
+	.init		= NETMAP_init,
+	.parse		= NETMAP_parse,
+	.final_check	= NETMAP_check,
+	.print		= NETMAP_print,
+	.save		= NETMAP_save,
+	.extra_opts	= NETMAP_opts,
 };
 
 void _init(void)
 {
-	register_target(&target_module);
+	register_target(&netmap_target);
 }
 

@@ -1,7 +1,7 @@
 /* Shared library add-on to iptables to add TTL matching support 
  * (C) 2000 by Harald Welte <laforge@gnumonks.org>
  *
- * $Id: libipt_ttl.c,v 1.6 2002/05/29 13:08:16 laforge Exp $
+ * $Id: libipt_ttl.c 7061 2007-10-04 16:28:39Z /C=EU/ST=EU/CN=Patrick McHardy/emailAddress=kaber@trash.net $
  *
  * This program is released under the terms of GNU GPL */
 
@@ -14,7 +14,7 @@
 #include <linux/netfilter_ipv4/ip_tables.h>
 #include <linux/netfilter_ipv4/ipt_ttl.h>
 
-static void help(void) 
+static void ttl_help(void)
 {
 	printf(
 "TTL match v%s options:\n"
@@ -24,31 +24,20 @@ static void help(void)
 , IPTABLES_VERSION);
 }
 
-static void init(struct ipt_entry_match *m, unsigned int *nfcache)
-{
-	/* caching not yet implemented */
-	*nfcache |= NFC_UNKNOWN;
-}
-
-static int parse(int c, char **argv, int invert, unsigned int *flags,
-		const struct ipt_entry *entry, unsigned int *nfcache,
-		struct ipt_entry_match **match)
+static int ttl_parse(int c, char **argv, int invert, unsigned int *flags,
+                     const void *entry, struct xt_entry_match **match)
 {
 	struct ipt_ttl_info *info = (struct ipt_ttl_info *) (*match)->data;
-	u_int8_t value;
+	unsigned int value;
 
 	check_inverse(optarg, &invert, &optind, 0);
-	value = atoi(argv[optind-1]);
 
-	if (*flags) 
-		exit_error(PARAMETER_PROBLEM, 
-				"Can't specify TTL option twice");
-
-	if (!optarg)
-		exit_error(PARAMETER_PROBLEM,
-				"ttl: You must specify a value");
 	switch (c) {
 		case '2':
+			if (string_to_number(optarg, 0, 255, &value) == -1)
+				exit_error(PARAMETER_PROBLEM,
+				           "ttl: Expected value between 0 and 255");
+
 			if (invert)
 				info->mode = IPT_TTL_NE;
 			else
@@ -56,38 +45,45 @@ static int parse(int c, char **argv, int invert, unsigned int *flags,
 
 			/* is 0 allowed? */
 			info->ttl = value;
-			*flags = 1;
-
 			break;
 		case '3':
+			if (string_to_number(optarg, 0, 255, &value) == -1)
+				exit_error(PARAMETER_PROBLEM,
+				           "ttl: Expected value between 0 and 255");
+
 			if (invert) 
 				exit_error(PARAMETER_PROBLEM,
 						"ttl: unexpected `!'");
 
 			info->mode = IPT_TTL_LT;
 			info->ttl = value;
-			*flags = 1;
-
 			break;
 		case '4':
+			if (string_to_number(optarg, 0, 255, &value) == -1)
+				exit_error(PARAMETER_PROBLEM,
+				           "ttl: Expected value between 0 and 255");
+
 			if (invert)
 				exit_error(PARAMETER_PROBLEM,
 						"ttl: unexpected `!'");
 
 			info->mode = IPT_TTL_GT;
 			info->ttl = value;
-			*flags = 1;
-
 			break;
 		default:
 			return 0;
 
 	}
 
+	if (*flags) 
+		exit_error(PARAMETER_PROBLEM, 
+				"Can't specify TTL option twice");
+	*flags = 1;
+
 	return 1;
 }
 
-static void final_check(unsigned int flags)
+static void ttl_check(unsigned int flags)
 {
 	if (!flags) 
 		exit_error(PARAMETER_PROBLEM,
@@ -95,9 +91,8 @@ static void final_check(unsigned int flags)
 			"`--ttl-eq', `--ttl-lt', `--ttl-gt");
 }
 
-static void print(const struct ipt_ip *ip, 
-		const struct ipt_entry_match *match,
-		int numeric)
+static void ttl_print(const void *ip, const struct xt_entry_match *match,
+                      int numeric)
 {
 	const struct ipt_ttl_info *info = 
 		(struct ipt_ttl_info *) match->data;
@@ -120,8 +115,7 @@ static void print(const struct ipt_ip *ip,
 	printf("%u ", info->ttl);
 }
 
-static void save(const struct ipt_ip *ip, 
-		const struct ipt_entry_match *match)
+static void ttl_save(const void *ip, const struct xt_entry_match *match)
 {
 	const struct ipt_ttl_info *info =
 		(struct ipt_ttl_info *) match->data;
@@ -146,32 +140,29 @@ static void save(const struct ipt_ip *ip,
 	printf("%u ", info->ttl);
 }
 
-static struct option opts[] = {
-	{ "ttl", 1, 0, '2' },
-	{ "ttl-eq", 1, 0, '2'},
-	{ "ttl-lt", 1, 0, '3'},
-	{ "ttl-gt", 1, 0, '4'},
-	{ 0 }
+static const struct option ttl_opts[] = {
+	{ "ttl", 1, NULL, '2' },
+	{ "ttl-eq", 1, NULL, '2'},
+	{ "ttl-lt", 1, NULL, '3'},
+	{ "ttl-gt", 1, NULL, '4'},
+	{ }
 };
 
-static
-struct iptables_match ttl = {
-	NULL,
-	"ttl",
-	IPTABLES_VERSION,
-	IPT_ALIGN(sizeof(struct ipt_ttl_info)),
-	IPT_ALIGN(sizeof(struct ipt_ttl_info)),
-	&help,
-	&init,
-	&parse,
-	&final_check,
-	&print,
-	&save,
-	opts
+static struct iptables_match ttl_match = {
+	.name		= "ttl",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ipt_ttl_info)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_ttl_info)),
+	.help		= ttl_help,
+	.parse		= ttl_parse,
+	.final_check	= ttl_check,
+	.print		= ttl_print,
+	.save		= ttl_save,
+	.extra_opts	= ttl_opts,
 };
 
 
 void _init(void) 
 {
-	register_match(&ttl);
+	register_match(&ttl_match);
 }

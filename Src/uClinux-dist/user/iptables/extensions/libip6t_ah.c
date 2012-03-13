@@ -9,8 +9,7 @@
 #include <linux/netfilter_ipv6/ip6t_ah.h>
                                         
 /* Function which prints out usage message. */
-static void
-help(void)
+static void ah_help(void)
 {
 	printf(
 "AH v%s options:\n"
@@ -20,11 +19,11 @@ help(void)
 IPTABLES_VERSION);
 }
 
-static struct option opts[] = {
-	{ "ahspi", 1, 0, '1' },
-	{ "ahlen", 1, 0, '2' },
-	{ "ahres", 0, 0, '3' },
-	{0}
+static const struct option ah_opts[] = {
+	{ .name = "ahspi", .has_arg = 1, .val = '1' },
+	{ .name = "ahlen", .has_arg = 1, .val = '2' },
+	{ .name = "ahres", .has_arg = 0, .val = '3' },
+	{ }
 };
 
 static u_int32_t
@@ -33,21 +32,21 @@ parse_ah_spi(const char *spistr, const char *typestr)
 	unsigned long int spi;
 	char* ep;
 
-	spi =  strtoul(spistr,&ep,0) ;
+	spi = strtoul(spistr, &ep, 0);
 
-	if ( spistr == ep ) {
+	if ( spistr == ep )
 		exit_error(PARAMETER_PROBLEM,
 			   "AH no valid digits in %s `%s'", typestr, spistr);
-	}
-	if ( spi == ULONG_MAX  && errno == ERANGE ) {
+
+	if ( spi == ULONG_MAX  && errno == ERANGE )
 		exit_error(PARAMETER_PROBLEM,
 			   "%s `%s' specified too big: would overflow",
 			   typestr, spistr);
-	}	
-	if ( *spistr != '\0'  && *ep != '\0' ) {
+
+	if ( *spistr != '\0'  && *ep != '\0' )
 		exit_error(PARAMETER_PROBLEM,
 			   "AH error parsing %s `%s'", typestr, spistr);
-	}
+
 	return (u_int32_t) spi;
 }
 
@@ -59,20 +58,19 @@ parse_ah_spis(const char *spistring, u_int32_t *spis)
 
 	buffer = strdup(spistring);
 	if ((cp = strchr(buffer, ':')) == NULL)
-		spis[0] = spis[1] = parse_ah_spi(buffer,"spi");
+		spis[0] = spis[1] = parse_ah_spi(buffer, "spi");
 	else {
 		*cp = '\0';
 		cp++;
 
-		spis[0] = buffer[0] ? parse_ah_spi(buffer,"spi") : 0;
-		spis[1] = cp[0] ? parse_ah_spi(cp,"spi") : 0xFFFFFFFF;
+		spis[0] = buffer[0] ? parse_ah_spi(buffer, "spi") : 0;
+		spis[1] = cp[0] ? parse_ah_spi(cp, "spi") : 0xFFFFFFFF;
 	}
 	free(buffer);
 }
 
 /* Initialize the match. */
-static void
-init(struct ip6t_entry_match *m, unsigned int *nfcache)
+static void ah_init(struct xt_entry_match *m)
 {
 	struct ip6t_ah *ahinfo = (struct ip6t_ah *)m->data;
 
@@ -83,11 +81,8 @@ init(struct ip6t_entry_match *m, unsigned int *nfcache)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ip6t_entry *entry,
-      unsigned int *nfcache,
-      struct ip6t_entry_match **match)
+static int ah_parse(int c, char **argv, int invert, unsigned int *flags,
+                    const void *entry, struct xt_entry_match **match)
 {
 	struct ip6t_ah *ahinfo = (struct ip6t_ah *)(*match)->data;
 
@@ -126,12 +121,6 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 	return 1;
 }
 
-/* Final check; we don't care. */
-static void
-final_check(unsigned int flags)
-{
-}
-
 static void
 print_spis(const char *name, u_int32_t min, u_int32_t max,
 	    int invert)
@@ -139,17 +128,10 @@ print_spis(const char *name, u_int32_t min, u_int32_t max,
 	const char *inv = invert ? "!" : "";
 
 	if (min != 0 || max != 0xFFFFFFFF || invert) {
-		printf("%s", name);
-		if (min == max) {
-			printf(":%s", inv);
-			printf("%u", min);
-		} else {
-			printf("s:%s", inv);
-			printf("%u",min);
-			printf(":");
-			printf("%u",max);
-		}
-		printf(" ");
+		if (min == max)
+			printf("%s:%s%u ", name, inv, min);
+		else
+			printf("%ss:%s%u:%u ", name, inv, min, max);
 	}
 }
 
@@ -158,18 +140,13 @@ print_len(const char *name, u_int32_t len, int invert)
 {
 	const char *inv = invert ? "!" : "";
 
-	if (len != 0 || invert) {
-		printf("%s", name);
-		printf(":%s", inv);
-		printf("%u", len);
-		printf(" ");
-	}
+	if (len != 0 || invert)
+		printf("%s:%s%u ", name, inv, len);
 }
 
 /* Prints out the union ip6t_matchinfo. */
-static void
-print(const struct ip6t_ip6 *ip,
-      const struct ip6t_entry_match *match, int numeric)
+static void ah_print(const void *ip, const struct xt_entry_match *match,
+                     int numeric)
 {
 	const struct ip6t_ah *ah = (struct ip6t_ah *)match->data;
 
@@ -178,14 +155,17 @@ print(const struct ip6t_ip6 *ip,
 		    ah->invflags & IP6T_AH_INV_SPI);
 	print_len("length", ah->hdrlen, 
 		    ah->invflags & IP6T_AH_INV_LEN);
-	if (ah->hdrres) printf("reserved ");
+
+	if (ah->hdrres)
+		printf("reserved ");
+
 	if (ah->invflags & ~IP6T_AH_INV_MASK)
 		printf("Unknown invflags: 0x%X ",
 		       ah->invflags & ~IP6T_AH_INV_MASK);
 }
 
 /* Saves the union ip6t_matchinfo in parsable form to stdout. */
-static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_match *match)
+static void ah_save(const void *ip, const struct xt_entry_match *match)
 {
 	const struct ip6t_ah *ahinfo = (struct ip6t_ah *)match->data;
 
@@ -209,30 +189,25 @@ static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_match *match
 			ahinfo->hdrlen);
 	}
 
-	if (ahinfo->hdrres != 0 ) {
+	if (ahinfo->hdrres != 0 )
 		printf("--ahres ");
-	}
-
 }
 
-static
-struct ip6tables_match ah
-= { NULL,
-    "ah",
-    IPTABLES_VERSION,
-    IP6T_ALIGN(sizeof(struct ip6t_ah)),
-    IP6T_ALIGN(sizeof(struct ip6t_ah)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct ip6tables_match ah_match6 = {
+	.name          = "ah",
+	.version       = IPTABLES_VERSION,
+	.size          = IP6T_ALIGN(sizeof(struct ip6t_ah)),
+	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_ah)),
+	.help          = ah_help,
+	.init          = ah_init,
+	.parse         = ah_parse,
+	.print         = ah_print,
+	.save          = ah_save,
+	.extra_opts    = ah_opts,
 };
 
 void
 _init(void)
 {
-	register_match6(&ah);
+	register_match6(&ah_match6);
 }

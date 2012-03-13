@@ -8,56 +8,33 @@
 #include <linux/netfilter_ipv4/ip_tables.h>
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void MIRROR_help(void)
 {
 	printf(
 "MIRROR target v%s takes no options\n",
 IPTABLES_VERSION);
 }
 
-static struct option opts[] = {
-	{ 0 }
-};
-
-/* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
-{
-}
-
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
+static int MIRROR_parse(int c, char **argv, int invert, unsigned int *flags,
+                        const void *entry, struct xt_entry_target **target)
 {
 	return 0;
 }
 
-static void
-final_check(unsigned int flags)
-{
-}
-
-static
-struct iptables_target mirror
-= { NULL,
-    "MIRROR",
-    IPTABLES_VERSION,
-    IPT_ALIGN(0),
-    IPT_ALIGN(0),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    NULL, /* print */
-    NULL, /* save */
-    opts
+static struct iptables_target mirror_target = {
+	.name		= "MIRROR",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(0),
+	.userspacesize	= IPT_ALIGN(0),
+ 	.help		= MIRROR_help,
+ 	.parse		= MIRROR_parse,
+	.print		= NULL,
+	.save		= NULL,
 };
 
 void _init(void)
 {
-	register_target(&mirror);
+	register_target(&mirror_target);
 }

@@ -6,35 +6,36 @@
 #include <getopt.h>
 #include <iptables.h>
 #include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ip_nat_rule.h>
+#include <linux/netfilter/nf_nat.h>
 
 /* Function which prints out usage message. */
-static void
-help(void)
+static void MASQUERADE_help(void)
 {
 	printf(
 "MASQUERADE v%s options:\n"
 " --to-ports <port>[-<port>]\n"
-"				Port (range) to map to.\n\n",
+"				Port (range) to map to.\n"
+" --random\n"
+"				Randomize source port.\n"
+"\n"
+,
 IPTABLES_VERSION);
 }
 
-static struct option opts[] = {
-	{ "to-ports", 1, 0, '1' },
-	{ 0 }
+static const struct option MASQUERADE_opts[] = {
+	{ "to-ports", 1, NULL, '1' },
+	{ "random", 0, NULL, '2' },
+	{ }
 };
 
 /* Initialize the target. */
-static void
-init(struct ipt_entry_target *t, unsigned int *nfcache)
+static void MASQUERADE_init(struct xt_entry_target *t)
 {
 	struct ip_nat_multi_range *mr = (struct ip_nat_multi_range *)t->data;
 
 	/* Actually, it's 0, but it's ignored at the moment. */
 	mr->rangesize = 1;
 
-	/* Can't cache this */
-	*nfcache |= NFC_UNKNOWN;
 }
 
 /* Parses ports */
@@ -47,7 +48,7 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
 
 	port = atoi(arg);
-	if (port == 0 || port > 65535)
+	if (port <= 0 || port > 65535)
 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
 
 	dash = strchr(arg, '-');
@@ -73,17 +74,17 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
 
 /* Function which parses command options; returns true if it
    ate an option */
-static int
-parse(int c, char **argv, int invert, unsigned int *flags,
-      const struct ipt_entry *entry,
-      struct ipt_entry_target **target)
+static int MASQUERADE_parse(int c, char **argv, int invert, unsigned int *flags,
+                            const void *e, struct xt_entry_target **target)
 {
+	const struct ipt_entry *entry = e;
 	int portok;
 	struct ip_nat_multi_range *mr
 		= (struct ip_nat_multi_range *)(*target)->data;
 
 	if (entry->ip.proto == IPPROTO_TCP
-	    || entry->ip.proto == IPPROTO_UDP)
+	    || entry->ip.proto == IPPROTO_UDP
+	    || entry->ip.proto == IPPROTO_ICMP)
 		portok = 1;
 	else
 		portok = 0;
@@ -101,21 +102,19 @@ parse(int c, char **argv, int invert, unsigned int *flags,
 		parse_ports(optarg, mr);
 		return 1;
 
+	case '2':
+		mr->range[0].flags |=  IP_NAT_RANGE_PROTO_RANDOM;
+		return 1;
+
 	default:
 		return 0;
 	}
 }
 
-/* Final check; don't care. */
-static void final_check(unsigned int flags)
-{
-}
-
 /* Prints out the targinfo. */
 static void
-print(const struct ipt_ip *ip,
-      const struct ipt_entry_target *target,
-      int numeric)
+MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
+                 int numeric)
 {
 	struct ip_nat_multi_range *mr
 		= (struct ip_nat_multi_range *)target->data;
@@ -128,11 +127,14 @@ print(const struct ipt_ip *ip,
 			printf("-%hu", ntohs(r->max.tcp.port));
 		printf(" ");
 	}
+
+	if (r->flags & IP_NAT_RANGE_PROTO_RANDOM)
+		printf("random ");
 }
 
 /* Saves the union ipt_targinfo in parsable form to stdout. */
 static void
-save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
 {
 	struct ip_nat_multi_range *mr
 		= (struct ip_nat_multi_range *)target->data;
@@ -144,25 +146,25 @@ save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
 			printf("-%hu", ntohs(r->max.tcp.port));
 		printf(" ");
 	}
+
+	if (r->flags & IP_NAT_RANGE_PROTO_RANDOM)
+		printf("--random ");
 }
 
-static
-struct iptables_target masq
-= { NULL,
-    "MASQUERADE",
-    IPTABLES_VERSION,
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
-    &help,
-    &init,
-    &parse,
-    &final_check,
-    &print,
-    &save,
-    opts
+static struct iptables_target masquerade_target = {
+	.name		= "MASQUERADE",
+	.version	= IPTABLES_VERSION,
+	.size		= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.userspacesize	= IPT_ALIGN(sizeof(struct ip_nat_multi_range)),
+	.help		= MASQUERADE_help,
+	.init		= MASQUERADE_init,
+	.parse		= MASQUERADE_parse,
+	.print		= MASQUERADE_print,
+	.save		= MASQUERADE_save,
+	.extra_opts	= MASQUERADE_opts,
 };
 
 void _init(void)
 {
-	register_target(&masq);
+	register_target(&masquerade_target);
 }

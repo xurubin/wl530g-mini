@@ -11,14 +11,15 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef NO_SHARED_LIBS
-#include <dlfcn.h>
-#endif
 #include <time.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include "libiptc/libip6tc.h"
 #include "ip6tables.h"
+
+#ifndef NO_SHARED_LIBS
+#include <dlfcn.h>
+#endif
 
 static int binary = 0, counters = 0;
 
@@ -102,7 +103,7 @@ static int print_match(const struct ip6t_entry_match *e,
 			const struct ip6t_ip6 *ip)
 {
 	struct ip6tables_match *match
-		= find_match(e->u.user.name, TRY_LOAD);
+		= find_match(e->u.user.name, TRY_LOAD, NULL);
 
 	if (match) {
 		printf("-m %s ", e->u.user.name);
@@ -127,7 +128,7 @@ static void print_ip(char *prefix, const struct in6_addr *ip, const struct in6_a
 	char buf[51];
 	int l = ipv6_prefix_length(mask);
 
-	if (!mask && !ip)
+	if (l == 0 && !invert)
 		return;
 
 	printf("%s %s%s",
@@ -151,7 +152,7 @@ static void print_rule(const struct ip6t_entry *e,
 
 	/* print counters */
 	if (counters)
-		printf("[%llu:%llu] ", e->counters.pcnt, e->counters.bcnt);
+		printf("[%llu:%llu] ", (unsigned long long)e->counters.pcnt, (unsigned long long)e->counters.bcnt);
 
 	/* print chain name */
 	printf("-A %s ", chain);
@@ -233,7 +234,9 @@ static int for_each_table(int (*func)(const char *tablename))
 
 	procfile = fopen("/proc/net/ip6_tables_names", "r");
 	if (!procfile)
-		return 0;
+		exit_error(OTHER_PROBLEM,
+			   "Unable to open /proc/net/ip6_tables_names: %s\n",
+			   strerror(errno));
 
 	while (fgets(tablename, sizeof(tablename), procfile)) {
 		if (tablename[strlen(tablename) - 1] != '\n')
@@ -279,7 +282,7 @@ static int do_output(const char *tablename)
 				struct ip6t_counters count;
 				printf("%s ",
 				       ip6tc_get_policy(chain, &count, &h));
-				printf("[%llu:%llu]\n", count.pcnt, count.bcnt);
+				printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
 			} else {
 				printf("- [0:0]\n");
 			}
@@ -307,6 +310,8 @@ static int do_output(const char *tablename)
 		exit_error(OTHER_PROBLEM, "Binary NYI\n");
 	}
 
+	ip6tc_free(&h);
+
 	return 1;
 }
 
@@ -314,13 +319,21 @@ static int do_output(const char *tablename)
  * :Chain name POLICY packets bytes
  * rule
  */
+#ifdef IPTABLES_MULTI
+int ip6tables_save_main(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	const char *tablename = NULL;
 	int c;
 
 	program_name = "ip6tables-save";
 	program_version = IPTABLES_VERSION;
+
+	lib_dir = getenv("IP6TABLES_LIB_DIR");
+	if (!lib_dir)
+		lib_dir = IP6T_LIB_DIR;
 
 #ifdef NO_SHARED_LIBS
 	init_extensions();
@@ -347,7 +360,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (optind < argc) {
-		fprintf(stderr, "Unknown arguments found on commandline");
+		fprintf(stderr, "Unknown arguments found on commandline\n");
 		exit(1);
 	}
 

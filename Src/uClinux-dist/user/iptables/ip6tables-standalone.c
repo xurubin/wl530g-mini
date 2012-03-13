@@ -36,8 +36,13 @@
 #include <errno.h>
 #include <ip6tables.h>
 
+#ifdef IPTABLES_MULTI
+int
+ip6tables_main(int argc, char *argv[])
+#else
 int
 main(int argc, char *argv[])
+#endif
 {
 	int ret;
 	char *table = "filter";
@@ -45,6 +50,10 @@ main(int argc, char *argv[])
 
 	program_name = "ip6tables";
 	program_version = IPTABLES_VERSION;
+
+	lib_dir = getenv("IP6TABLES_LIB_DIR");
+	if (!lib_dir)
+		lib_dir = IP6T_LIB_DIR;
 
 #ifdef NO_SHARED_LIBS
 	init_extensions();
