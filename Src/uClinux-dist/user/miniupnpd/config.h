@@ -14,8 +14,8 @@
 #define USE_IFACEWATCHER 1
 #define SUPPORT_REMOTEHOST
 
-#define OS_NAME		"Ubuntu"
-#define OS_VERSION	"Ubuntu/lucid"
+#define OS_NAME		"uClinux"
+#define OS_VERSION	"2.4"
 #define OS_URL		"http://www.ubuntu.com/"
 
 /* syslog facility to be used by miniupnpd */
@@ -46,7 +46,7 @@
 
 /* Comment the following line to use home made daemonize() func instead
  * of BSD daemon() */
-#define USE_DAEMON
+/*#define USE_DAEMON*/
 
 /* Uncomment the following line to enable lease file support */
 /*#define ENABLE_LEASEFILE*/

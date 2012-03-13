@@ -47,9 +47,21 @@
 #/bin/iptables -t nat -A PREROUTING -p udp -m udp --dport 6003 -j DNAT --to 192.168.222.6
 #/bin/iptables -t nat -A POSTROUTING -d 192.168.222.6 -p udp --dport 6003 -j SNAT --to 192.168.222.1 
 
-echo 1 > /proc/sys/net/ipv4/ip_dynaddr
-echo 1 > /proc/sys/net/ipv4/ip_forward
+## UPNP Server
+# adding the MINIUPNPD chain for nat
+iptables -t nat -N MINIUPNPD
+#adding the rule to MINIUPNPD
+iptables -t nat -A PREROUTING -i ppp0 -j MINIUPNPD
+#adding the MINIUPNPD chain for filter
+iptables -t filter -N MINIUPNPD
+#adding the rule to MINIUPNPD
+iptables -t filter -A FORWARD -i WAN ! -o EAN -j MINIUPNPD
+
+miniupnpd -f /etc/config/miniupnpd.conf -d &
 
 pppd plugin pppoe nic-WAN mru 1458 usepeerdns defaultroute persist maxfail 0 &
 # HTTP server
 #/bin/boa &
+
+echo 1 > /proc/sys/net/ipv4/ip_dynaddr
+echo 1 > /proc/sys/net/ipv4/ip_forward

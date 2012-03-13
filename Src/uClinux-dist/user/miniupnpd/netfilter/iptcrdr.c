@@ -40,6 +40,7 @@
 #else
 /* IPTABLES API version < 1.4.3 */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
+#define inline __inline__
 #include <linux/netfilter_ipv4/ip_nat.h>
 #else
 #if 0
@@ -95,7 +96,7 @@ struct rdr_desc {
 	unsigned int timestamp;
 	unsigned short eport;
 	short proto;
-	char str[];
+	char str[0];
 };
 
 /* pointer to the chained list where descriptions are stored */

@@ -65,6 +65,7 @@ clean:
 	$(RM) testupnpdescgen.o testgetifstats.o
 	$(RM) testupnppermissions.o testgetifaddr.o
 	$(RM) miniupnpdctl.o
+	$(RM) *.d .makefirst
 
 install:	miniupnpd genuuid
 	$(STRIP) miniupnpd

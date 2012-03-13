@@ -101,6 +101,7 @@ romfs:
 	$(ROMFSINST) /etc/config/hostapd.conf
 	$(ROMFSINST) /etc/config/hostapd.accept
 	$(ROMFSINST) /etc/config/hostapd.deny
+	$(ROMFSINST) /etc/config/miniupnpd.conf
 	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
 	$(ROMFSINST) /etc/updateapd
 	$(ROMFSINST) -e CONFIG_USER_MRVL_MVWLAN mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
