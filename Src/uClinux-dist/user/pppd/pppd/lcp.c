@@ -40,7 +40,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: lcp.c,v 1.70 2003/07/28 12:25:41 carlsonj Exp $"
+#define RCSID	"$Id: lcp.c,v 1.2 2007-06-08 04:02:38 gerg Exp $"
 
 /*
  * TODO:
@@ -49,7 +49,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <syslog.h>
 
 #include "pppd.h"
 #include "fsm.h"
@@ -68,9 +67,6 @@ static const char rcsid[] = RCSID;
 #define DELAYED_UP	0x100
 
 static void lcp_delayed_up __P((void *));
-
-/* JYWeng 20031216: add to wanstatus.log */
-void saveWANStatus(char *currentstatus, int statusindex);
 
 /*
  * LCP-related command-line options.
@@ -210,7 +206,7 @@ static void lcp_resetci __P((fsm *));	/* Reset our CI */
 static int  lcp_cilen __P((fsm *));		/* Return length of our CI */
 static void lcp_addci __P((fsm *, u_char *, int *)); /* Add our CI to pkt */
 static int  lcp_ackci __P((fsm *, u_char *, int)); /* Peer ack'd our CI */
-static int  lcp_nakci __P((fsm *, u_char *, int)); /* Peer nak'd our CI */
+static int  lcp_nakci __P((fsm *, u_char *, int, int)); /* Peer nak'd our CI */
 static int  lcp_rejci __P((fsm *, u_char *, int)); /* Peer rej'd our CI */
 static int  lcp_reqci __P((fsm *, u_char *, int *, int)); /* Rcv peer CI */
 static void lcp_up __P((fsm *));		/* We're UP */
@@ -363,19 +359,12 @@ lcp_init(unit)
     ao->mru = MAXMRU;
     ao->neg_asyncmap = 1;
     ao->neg_chap = 1;
-    ao->chap_mdtype = MDTYPE_ALL;
+    ao->chap_mdtype = chap_mdtype_all;
     ao->neg_upap = 1;
-#ifdef EAP
     ao->neg_eap = 1;
-#else
-    ao->neg_eap = 0;
-#endif
     ao->neg_magicnumber = 1;
     ao->neg_pcompression = 1;
     ao->neg_accompression = 1;
-#ifdef CBCP_SUPPORT
-    ao->neg_cbcp = 1;
-#endif
     ao->neg_endpoint = 1;
 }
 
@@ -408,9 +397,8 @@ lcp_close(unit, reason)
     char *reason;
 {
     fsm *f = &lcp_fsm[unit];
-    int statusindex = 0;/* JYWeng 20031216: add to wanstatus.log */
 
-    if (phase != PHASE_DEAD)
+    if (phase != PHASE_DEAD && phase != PHASE_MASTER)
 	new_phase(PHASE_TERMINATE);
     if (f->state == STOPPED && f->flags & (OPT_PASSIVE|OPT_SILENT)) {
 	/*
@@ -424,16 +412,6 @@ lcp_close(unit, reason)
 
     } else
 	fsm_close(f, reason);
-/* JYWeng 20031216: add to wanstatus.log */
-    if(strstr(reason, "Link inactive")) {
-	    statusindex = 1;
-	    saveWANStatus("Terminating connection due to lack of activity.", statusindex);
-    }
-    else {
-	    statusindex = 2;
-	    saveWANStatus(reason, statusindex);
-    }
-/* JYWeng 20031216: add to wanstatus.log */
 }
 
 
@@ -516,7 +494,6 @@ lcp_input(unit, p, len)
     fsm_input(f, p, len);
 }
 
-
 /*
  * lcp_extcode - Handle a LCP-specific code.
  */
@@ -547,6 +524,8 @@ lcp_extcode(f, code, id, inp, len)
 	break;
 
     case DISCREQ:
+    case IDENTIF:
+    case TIMEREM:
 	break;
 
     default:
@@ -570,6 +549,7 @@ lcp_rprotrej(f, inp, len)
     int i;
     struct protent *protp;
     u_short prot;
+    const char *pname;
 
     if (len < 2) {
 	LCPDEBUG(("lcp_rprotrej: Rcvd short Protocol-Reject packet!"));
@@ -587,16 +567,27 @@ lcp_rprotrej(f, inp, len)
 	return;
     }
 
+    pname = protocol_name(prot);
+
     /*
      * Upcall the proper Protocol-Reject routine.
      */
     for (i = 0; (protp = protocols[i]) != NULL; ++i)
 	if (protp->protocol == prot && protp->enabled_flag) {
+	    if (pname == NULL)
+		dbglog("Protocol-Reject for 0x%x received", prot);
+	    else
+		dbglog("Protocol-Reject for '%s' (0x%x) received", pname,
+		       prot);
 	    (*protp->protrej)(f->unit);
 	    return;
 	}
 
-    warn("Protocol-Reject for unsupported protocol 0x%x", prot);
+    if (pname == NULL)
+	warn("Protocol-Reject for unsupported protocol 0x%x", prot);
+    else
+	warn("Protocol-Reject for unsupported protocol '%s' (0x%x)", pname,
+	     prot);
 }
 
 
@@ -946,10 +937,11 @@ bad:
  *	1 - Nak was good.
  */
 static int
-lcp_nakci(f, p, len)
+lcp_nakci(f, p, len, treat_as_reject)
     fsm *f;
     u_char *p;
     int len;
+    int treat_as_reject;
 {
     lcp_options *go = &lcp_gotoptions[f->unit];
     lcp_options *wo = &lcp_wantoptions[f->unit];
@@ -1206,7 +1198,9 @@ lcp_nakci(f, p, len)
      */
     if (go->neg_mrru) {
 	NAKCISHORT(CI_MRRU, neg_mrru,
-		   if (cishort <= wo->mrru)
+		   if (treat_as_reject)
+		       try.neg_mrru = 0;
+		   else if (cishort <= wo->mrru)
 		       try.mrru = cishort;
 		   );
     }
@@ -1311,8 +1305,8 @@ lcp_nakci(f, p, len)
 	if (looped_back) {
 	    if (++try.numloops >= lcp_loopbackfail) {
 		notice("Serial line is looped back.");
-		lcp_close(f->unit, "Loopback detected");
 		status = EXIT_LOOPBACK;
+		lcp_close(f->unit, "Loopback detected");
 	    }
 	} else
 	    try.numloops = 0;
@@ -1689,7 +1683,7 @@ lcp_reqci(f, inp, lenp, reject_if_disagree)
 		    if (ao->neg_chap) {
 			PUTCHAR(CILEN_CHAP, nakp);
 			PUTSHORT(PPP_CHAP, nakp);
-			PUTCHAR(ao->chap_mdtype, nakp);
+			PUTCHAR(CHAP_DIGEST(ao->chap_mdtype), nakp);
 		    } else {
 			PUTCHAR(CILEN_SHORT, nakp);
 			PUTSHORT(PPP_PAP, nakp);
@@ -1983,7 +1977,8 @@ lcp_finished(f)
 static char *lcp_codenames[] = {
     "ConfReq", "ConfAck", "ConfNak", "ConfRej",
     "TermReq", "TermAck", "CodeRej", "ProtRej",
-    "EchoReq", "EchoRep", "DiscReq"
+    "EchoReq", "EchoRep", "DiscReq", "Ident",
+    "TimeRem"
 };
 
 static int
@@ -2187,8 +2182,29 @@ lcp_printpkt(p, plen, printer, arg)
 	if (len >= 4) {
 	    GETLONG(cilong, p);
 	    printer(arg, " magic=0x%x", cilong);
-	    p += 4;
 	    len -= 4;
+	}
+	break;
+
+    case IDENTIF:
+    case TIMEREM:
+	if (len >= 4) {
+	    GETLONG(cilong, p);
+	    printer(arg, " magic=0x%x", cilong);
+	    len -= 4;
+	}
+	if (code == TIMEREM) {
+	    if (len < 4)
+		break;
+	    GETLONG(cilong, p);
+	    printer(arg, " seconds=%u", cilong);
+	    len -= 4;
+	}
+	if (len > 0) {
+	    printer(arg, " ");
+	    print_string((char *)p, len, printer, arg);
+	    p += len;
+	    len = 0;
 	}
 	break;
     }
@@ -2217,14 +2233,9 @@ void LcpLinkFailure (f)
     if (f->state == OPENED) {
 	info("No response to %d echo-requests", lcp_echos_pending);
         notice("Serial link appears to be disconnected.");
-        lcp_close(f->unit, "Peer not responding");
 	status = EXIT_PEER_DEAD;
+	lcp_close(f->unit, "Peer not responding");
     }
-#if 1 //eric++
-	openlog ("pppd", LOG_PID, LOG_DAEMON);
-	syslog (LOG_ERR, "LCP Echo Failure Count %d. f->state %d\n", lcp_echos_pending, f->state);
-	closelog ();
-#endif // #if 1
 }
 
 /*

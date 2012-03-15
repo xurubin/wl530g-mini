@@ -27,7 +27,7 @@
  * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $Id: chap_ms.h,v 1.10 2003/06/11 23:56:26 paulus Exp $
+ * $Id: chap_ms.h,v 1.3 2007-06-08 04:02:38 gerg Exp $
  */
 
 #ifndef __CHAPMS_INCLUDE__
@@ -49,25 +49,23 @@
 #define MS_CHAP_ERROR_CHANGING_PASSWORD		709
 
 /*
- * Use MS_CHAP_RESPONSE_LEN, rather than sizeof(MS_ChapResponse),
- * in case this struct gets padded.
+ * Offsets within the response field for MS-CHAP
  */
-typedef struct {
-    u_char LANManResp[24];
-    u_char NTResp[24];
-    u_char UseNT[1];		/* If 1, ignore the LANMan response field */
-} MS_ChapResponse;
+#define MS_CHAP_LANMANRESP	0
+#define MS_CHAP_LANMANRESP_LEN	24
+#define MS_CHAP_NTRESP		24
+#define MS_CHAP_NTRESP_LEN	24
+#define MS_CHAP_USENT		48
 
 /*
- * Use MS_CHAP2_RESPONSE_LEN, rather than sizeof(MS_Chap2Response),
- * in case this struct gets padded.
+ * Offsets within the response field for MS-CHAP2
  */
-typedef struct {
-    u_char PeerChallenge[16];
-    u_char Reserved[8];		/* Must be zero */
-    u_char NTResp[24];
-    u_char Flags[1];		/* Must be zero */
-} MS_Chap2Response;
+#define MS_CHAP2_PEER_CHALLENGE	0
+#define MS_CHAP2_PEER_CHAL_LEN	16
+#define MS_CHAP2_RESERVED_LEN	8
+#define MS_CHAP2_NTRESP		24
+#define MS_CHAP2_NTRESP_LEN	24
+#define MS_CHAP2_FLAGS		48
 
 #ifdef MPPE
 #include <net/ppp-comp.h>	/* MPPE_MAX_KEY_LEN */
@@ -89,12 +87,21 @@ extern void set_mppe_enc_types(int, int);
 #define MS_CHAP2_AUTHENTICATEE 0
 #define MS_CHAP2_AUTHENTICATOR 1
 
-void ChapMS __P((u_char *, char *, int, MS_ChapResponse *));
+void ChapMS __P((u_char *, char *, int, u_char *));
 void ChapMS2 __P((u_char *, u_char *, char *, char *, int,
-		  MS_Chap2Response *, u_char[MS_AUTH_RESPONSE_LENGTH+1], int));
+		  u_char *, u_char[MS_AUTH_RESPONSE_LENGTH+1], int));
 #ifdef MPPE
 void mppe_set_keys __P((u_char *, u_char[MD4_SIGNATURE_SIZE]));
+void mppe_set_keys2(u_char PasswordHashHash[MD4_SIGNATURE_SIZE],
+		    u_char NTResponse[24], int IsServer);
 #endif
+
+void	ChallengeHash __P((u_char[16], u_char *, char *, u_char[8]));
+
+void GenerateAuthenticatorResponse(u_char PasswordHashHash[MD4_SIGNATURE_SIZE],
+			u_char NTResponse[24], u_char PeerChallenge[16],
+			u_char *rchallenge, char *username,
+			u_char authResponse[MS_AUTH_RESPONSE_LENGTH+1]);
 
 void chapms_init(void);
 

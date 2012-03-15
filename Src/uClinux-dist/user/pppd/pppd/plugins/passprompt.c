@@ -14,7 +14,7 @@
 #include <syslog.h>
 #include "pppd.h"
 
-char pppd_version[] = VERSION;
+char passprompt_pppd_version[] = VERSION;
 
 static char promptprog[PATH_MAX+1];
 
@@ -50,7 +50,7 @@ static int promptpass(char *user, char *passwd)
     }
     if (!kid) {
 	/* we are the child, exec the program */
-	char *argv[4], fdstr[32];
+	char *argv[5], fdstr[32];
 	sys_close();
 	closelog();
 	close(p[0]);
@@ -103,7 +103,11 @@ static int promptpass(char *user, char *passwd)
     return 1;
 }
 
-void plugin_init(void)
+#ifdef DYNAMIC_PLUGINS
+#define	passprompt_plugin_init	plugin_init
+#endif
+
+void passprompt_plugin_init(void)
 {
     add_options(options);
     pap_passwd_hook = promptpass;

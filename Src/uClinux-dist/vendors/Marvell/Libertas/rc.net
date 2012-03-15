@@ -50,6 +50,6 @@
 echo 1 > /proc/sys/net/ipv4/ip_dynaddr
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-pppd plugin rp-pppoe nic-WAN mru 1458 usepeerdns defaultroute persist maxfail 0 &
+pppd plugin pppoe nic-WAN mru 1458 usepeerdns defaultroute persist maxfail 0 &
 # HTTP server
 #/bin/boa &

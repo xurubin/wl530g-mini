@@ -14,7 +14,7 @@
 
 #include "pppd.h"
 
-char pppd_version[] = VERSION;
+char passwordfd_pppd_version[] = VERSION;
 
 static int passwdfd = -1;
 static char save_passwd[MAXSECRETLEN];
@@ -70,7 +70,11 @@ static int pwfd_passwd (char *user, char *passwd)
     return 1;
 }
 
-void plugin_init (void)
+#ifdef DYNAMIC_PLUGINS
+#define	passwordfd_plugin_init	plugin_init
+#endif
+
+void passwordfd_plugin_init (void)
 {
     add_options (options);
 

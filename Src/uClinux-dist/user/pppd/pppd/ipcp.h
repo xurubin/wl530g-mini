@@ -70,6 +70,7 @@ typedef struct ipcp_options {
     bool old_addrs;		/* Use old (IP-Addresses) option? */
     bool req_addr;		/* Ask peer to send IP address? */
     bool default_route;		/* Assign default route through interface? */
+    bool force_default_route;	/* Don't check for existing default route */
     bool proxy_arp;		/* Make proxy ARP entry for peer? */
     bool neg_vj;		/* Van Jacobson Compression? */
     bool old_vj;		/* use old (short) form of VJ option? */

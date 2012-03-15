@@ -39,7 +39,7 @@
  * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $Id: pppd.h,v 1.82 2003/04/07 00:01:46 paulus Exp $
+ * $Id: pppd.h,v 1.16 2007/06/08 04:02:38 gerg Exp $
  */
 
 /*
@@ -55,6 +55,7 @@
 #include <sys/types.h>		/* for u_int32_t, if defined */
 #include <sys/time.h>		/* for struct timeval */
 #include <net/ppp_defs.h>
+#include <config/autoconf.h>
 #include "patchlevel.h"
 
 #if defined(__STDC__)
@@ -80,6 +81,28 @@
 #define MAXARGS		1	/* max # args to a command */
 #define MAXNAMELEN	256	/* max length of hostname or name for auth */
 #define MAXSECRETLEN	256	/* max length of password or secret */
+
+
+#ifdef EMBED
+/* Reduce some of the insanely large limits
+ *
+ * NGROUPS_MAX is 65536 (* 4 bytes)
+ *			= 256Kb reduce to 40 bytes
+ *
+ * MAXPATHLEN is somewhere between 1k and 4k (* 3 bytes)
+ *			= 12kb reduce to 768 bytes.
+ */
+#if NGROUPS_MAX > 10
+#undef NGROUPS_MAX
+#define NGROUPS_MAX	10
+#endif
+
+#if MAXPATHLEN > 256
+#undef MAXPATHLEN
+#define MAXPATHLEN	256
+#endif
+#endif
+
 
 /*
  * Option descriptor structure.
@@ -209,13 +232,14 @@ struct notifier {
 /*
  * Global variables.
  */
-extern bool tx_only;			/* JYWeng 20031216: idle time counting on tx traffic */
 
 extern int	hungup;		/* Physical layer has disconnected */
 extern int	ifunit;		/* Interface unit number */
 extern char	ifname[];	/* Interface name */
 extern char	hostname[];	/* Our hostname */
 extern u_char	outpacket_buf[]; /* Buffer for outgoing packets */
+extern int	devfd;		/* fd of underlying device */
+extern int	fd_ppp;		/* fd for talking PPP */
 extern int	phase;		/* Current state of link - see values below */
 extern int	baud_rate;	/* Current link speed in bits/sec */
 extern char	*progname;	/* Name of this program */
@@ -244,8 +268,16 @@ extern int	error_count;	/* # of times error() has been called */
 extern char	ppp_devnam[MAXPATHLEN];
 extern char     remote_number[MAXNAMELEN]; /* Remote telephone number, if avail. */
 extern int      ppp_session_number; /* Session number (eg PPPoE session) */
+extern int	fd_devnull;	/* fd open to /dev/null */
 
 extern int	listen_time;	/* time to listen first (ms) */
+extern bool	doing_multilink;
+extern bool	multilink_master;
+extern bool	bundle_eof;
+extern bool	bundle_terminating;
+extern bool external_auth; /* Set if we're using an external authenticator 
+				  			(radius, tacas etc) */
+
 extern struct notifier *pidchange;   /* for notifications of pid changing */
 extern struct notifier *phasechange; /* for notifications of phase changes */
 extern struct notifier *exitnotify;  /* for notification that we're exiting */
@@ -289,7 +321,10 @@ extern bool	uselogin;	/* Use /etc/passwd for checking PAP */
 extern char	our_name[MAXNAMELEN];/* Our name for authentication purposes */
 extern char	remote_name[MAXNAMELEN]; /* Peer's name for authentication */
 extern bool	explicit_remote;/* remote_name specified with remotename opt */
+extern const char *auth_group;	/* group provided by authenticator */
 extern bool	demand;		/* Do dial-on-demand */
+extern char	*ip_up;		/* user defined ip-up script */
+extern char	*ip_down;	/* user defined ip-down script */
 extern char	*ipparam;	/* Extra parameter for ip up/down scripts */
 extern bool	cryptpap;	/* Others' PAP passwords are encrypted */
 extern int	idle_time_limit;/* Shut down link if idle for this long */
@@ -310,6 +345,11 @@ extern bool	noendpoint;	/* don't send or accept endpt. discrim. */
 extern char	*bundle_name;	/* bundle name for multilink */
 extern bool	dump_options;	/* print out option values */
 extern bool	dryrun;		/* check everything, print options, exit */
+extern int	child_wait;	/* # seconds to wait for children at end */
+
+extern u_int32_t	metric;	/* the metric to set the host route to */
+extern u_int32_t	drmetric;	/* the default route metric to set */
+extern char	pid_file[MAXNAMELEN];	/* name of our pid file */
 
 #ifdef MAXOCTETS
 extern unsigned int maxoctets;	     /* Maximum octetes per session (in bytes) */
@@ -348,13 +388,11 @@ extern bool	ms_lanman;	/* Use LanMan password instead of NT */
 /* Values for auth_done only */
 #define CHAP_MD5_WITHPEER	0x40
 #define CHAP_MD5_PEER		0x80
-#ifdef CHAPMS
 #define CHAP_MS_SHIFT		8	/* LSB position for MS auths */
 #define CHAP_MS_WITHPEER	0x100
 #define CHAP_MS_PEER		0x200
 #define CHAP_MS2_WITHPEER	0x400
 #define CHAP_MS2_PEER		0x800
-#endif
 
 extern char *current_option;	/* the name of the option being parsed */
 extern int  privileged_option;	/* set iff the current option came from root */
@@ -376,6 +414,7 @@ extern int  option_priority;	/* priority of current options */
 #define PHASE_TERMINATE		9
 #define PHASE_DISCONNECT	10
 #define PHASE_HOLDOFF		11
+#define PHASE_MASTER		12
 
 /*
  * The following struct gives the addresses of procedures to call
@@ -467,13 +506,15 @@ void timeout __P((void (*func)(void *), void *arg, int s, int us));
 void untimeout __P((void (*func)(void *), void *arg));
 				/* Cancel call to func(arg) */
 void record_child __P((int, char *, void (*) (void *), void *));
-pid_t safe_fork __P((void));	/* Fork & close stuff in child */
+pid_t safe_fork __P((int, int, int));	/* Fork & close stuff in child */
 int  device_script __P((char *cmd, int in, int out, int dont_wait));
 				/* Run `cmd' with given stdin and stdout */
 pid_t run_program __P((char *prog, char **args, int must_exist,
-		       void (*done)(void *), void *arg));
+		       void (*done)(void *), void *arg, int wait));
 				/* Run program prog with args in child */
 void reopen_log __P((void));	/* (re)open the connection to syslog */
+void print_link_stats __P((void)); /* Print stats, if available */
+void reset_link_stats __P((int)); /* Reset (init) stats when link goes up */
 void update_link_stats __P((int)); /* Get stats at link termination */
 void script_setenv __P((char *, char *, int));	/* set script env var */
 void script_unsetenv __P((char *));		/* unset script env var */
@@ -483,6 +524,10 @@ void remove_notifier __P((struct notifier **, notify_func, void *));
 void notify __P((struct notifier *, int));
 int  ppp_send_config __P((int, int, u_int32_t, int, int));
 int  ppp_recv_config __P((int, int, u_int32_t, int, int));
+const char *protocol_name __P((int));
+void remove_pidfiles __P((void));
+void lock_db __P((void));
+void unlock_db __P((void));
 
 /* Procedures exported from tty.c. */
 void tty_init __P((void));
@@ -512,8 +557,10 @@ ssize_t complete_read __P((int, void *, size_t));
 
 /* Procedures exported from auth.c */
 void link_required __P((int));	  /* we are starting to use the link */
+void start_link __P((int));	  /* bring the link up now */
 void link_terminated __P((int));  /* we are finished with the link */
 void link_down __P((int));	  /* the LCP layer has left the Opened state */
+void upper_layers_down __P((int));/* take all NCPs down */
 void link_established __P((int)); /* the link is up; authenticate now */
 void start_networks __P((int));   /* start all the network control protos */
 void continue_networks __P((int)); /* start network [ip, etc] control protos */
@@ -542,6 +589,14 @@ int  auth_ip_addr __P((int, u_int32_t));
 int  auth_number __P((void));	/* check if remote number is authorized */
 int  bad_ip_adrs __P((u_int32_t));
 				/* check if IP address is unreasonable */
+#ifdef USE_PAM
+int check_pam_account_restrictions __P((const char *));
+				/* check PAM for user account restrictions */
+#endif
+#ifdef CONFIG_PROP_STATSD_STATSD
+void notify_login_failure __P((const char *));
+                                /* Notify statsd of any failures */
+#endif
 
 /* Procedures exported from demand.c */
 void demand_conf __P((void));	/* config interface(s) for demand-dial */
@@ -553,10 +608,19 @@ int  loop_chars __P((unsigned char *, int)); /* process chars from loopback */
 int  loop_frame __P((unsigned char *, int)); /* should we bring link up? */
 
 /* Procedures exported from multilink.c */
+#ifdef HAVE_MULTILINK
 void mp_check_options __P((void)); /* Check multilink-related options */
 int  mp_join_bundle __P((void));  /* join our link to an appropriate bundle */
+void mp_exit_bundle __P((void));  /* have disconnected our link from bundle */
+void mp_bundle_terminated __P((void));
 char *epdisc_to_str __P((struct epdisc *)); /* string from endpoint discrim. */
 int  str_to_epdisc __P((struct epdisc *, char *)); /* endpt disc. from str */
+#else
+#define mp_bundle_terminated()	/* nothing */
+#define mp_exit_bundle()	/* nothing */
+#define doing_multilink		0
+#define multilink_master	0
+#endif
 
 /* Procedures exported from sys-*.c */
 void sys_init __P((void));	/* Do system-dependent initialization */
@@ -573,6 +637,7 @@ int  generic_establish_ppp __P((int dev_fd)); /* Make a ppp interface */
 void make_new_bundle __P((int, int, int, int)); /* Create new bundle */
 int  bundle_attach __P((int));	/* Attach link to existing bundle */
 void cfg_bundle __P((int, int, int, int)); /* Configure existing bundle */
+void destroy_bundle __P((void)); /* Tell driver to destroy bundle */
 void clean_check __P((void));	/* Check if line was 8-bit clean */
 void set_up_tty __P((int, int)); /* Set up port's speed, parameters, etc. */
 void restore_tty __P((int));	/* Restore port's original parameters */
@@ -617,10 +682,11 @@ int  sif6addr __P((int, eui64_t, eui64_t));
 int  cif6addr __P((int, eui64_t, eui64_t));
 				/* Remove an IPv6 address from i/f */
 #endif
-int  sifdefaultroute __P((int, u_int32_t, u_int32_t));
+int  sifdefaultroute __P((int, u_int32_t, u_int32_t, u_int32_t, bool));
 				/* Create default route through i/f */
 int  cifdefaultroute __P((int, u_int32_t, u_int32_t));
 				/* Delete default route through i/f */
+int  rtmetricfixup __P((int, u_int32_t, u_int32_t));
 int  sifproxyarp __P((int, u_int32_t));
 				/* Add proxy ARP entry for peer */
 int  cifproxyarp __P((int, u_int32_t));
@@ -877,10 +943,6 @@ extern void (*snoop_send_hook) __P((unsigned char *p, int len));
 
 #ifndef offsetof
 #define offsetof(type, member) ((size_t) &((type *)0)->member)
-#endif
-
-#ifdef EMBED
-#define safe_fork()	vfork()
 #endif
 
 #endif /* __PPP_H__ */

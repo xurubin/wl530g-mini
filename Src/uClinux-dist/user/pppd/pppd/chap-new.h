@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -63,19 +58,16 @@
 #define MDTYPE_MICROSOFT_V2	0x1
 #define MDTYPE_MICROSOFT	0x2
 #define MDTYPE_MD5		0x4
+#define MDTYPE_NONE		0
 
-#ifdef CHAPMS
-#define MDTYPE_ALL (MDTYPE_MICROSOFT_V2 | MDTYPE_MICROSOFT | MDTYPE_MD5)
-#else
-#define MDTYPE_ALL (MDTYPE_MD5)
-#endif
-#define MDTYPE_NONE 0
+/* hashes supported by this instance of pppd */
+extern int chap_mdtype_all;
 
 /* Return the digest alg. ID for the most preferred digest type. */
 #define CHAP_DIGEST(mdtype) \
+    ((mdtype) & MDTYPE_MD5)? CHAP_MD5: \
     ((mdtype) & MDTYPE_MICROSOFT_V2)? CHAP_MICROSOFT_V2: \
     ((mdtype) & MDTYPE_MICROSOFT)? CHAP_MICROSOFT: \
-    ((mdtype) & MDTYPE_MD5)? CHAP_MD5: \
     0
 
 /* Return the bit flag (lsb set) for our most preferred digest type. */
@@ -123,7 +115,7 @@ struct chap_digest_type {
 extern int (*chap_verify_hook)(char *name, char *ourname, int id,
 			struct chap_digest_type *digest,
 			unsigned char *challenge, unsigned char *response,
-			unsigned char *message, int message_space);
+			char *message, int message_space);
 
 /* Called by digest code to register a digest type */
 extern void chap_register_digest(struct chap_digest_type *);

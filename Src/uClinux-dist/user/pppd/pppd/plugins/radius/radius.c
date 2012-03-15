@@ -24,7 +24,7 @@
 *
 ***********************************************************************/
 static char const RCSID[] =
-"$Id: radius.c,v 1.22 2004/01/11 08:01:30 paulus Exp $";
+"$Id: radius.c,v 1.31 2006/05/22 00:01:40 paulus Exp $";
 
 #include "pppd.h"
 #include "chap-new.h"
@@ -41,6 +41,8 @@ static char const RCSID[] =
 #include <sys/types.h>
 #include <sys/time.h>
 #include <string.h>
+#include <netinet/in.h>
+#include <stdlib.h>
 
 #define BUF_LEN 1024
 
@@ -52,10 +54,15 @@ static struct avpopt {
     char *vpstr;
     struct avpopt *next;
 } *avpopt = NULL;
+static bool portnummap = 0;
 
 static option_t Options[] = {
     { "radius-config-file", o_string, &config_file },
     { "avpair", o_special, add_avp },
+    { "map-to-ttyname", o_bool, &portnummap,
+	"Set Radius NAS-Port attribute value via libradiusclient library", OPT_PRIO | 1 },
+    { "map-to-ifname", o_bool, &portnummap,
+	"Set Radius NAS-Port attribute to number as in interface name (Default)", OPT_PRIOSUB | 0 },
     { NULL }
 };
 
@@ -69,7 +76,7 @@ static int radius_chap_verify(char *user, char *ourname, int id,
 			      struct chap_digest_type *digest,
 			      unsigned char *challenge,
 			      unsigned char *response,
-			      unsigned char *message, int message_space);
+			      char *message, int message_space);
 
 static void radius_ip_up(void *opaque, int arg);
 static void radius_ip_down(void *opaque, int arg);
@@ -127,7 +134,7 @@ void (*radius_pre_auth_hook)(char const *user,
 
 static struct radius_state rstate;
 
-char pppd_version[] = VERSION;
+char radius_pppd_version[] = VERSION;
 
 /**********************************************************************
 * %FUNCTION: plugin_init
@@ -138,8 +145,11 @@ char pppd_version[] = VERSION;
 * %DESCRIPTION:
 *  Initializes RADIUS plugin.
 ***********************************************************************/
-void
-plugin_init(void)
+#ifdef DYNAMIC_PLUGINS
+#define	radius_plugin_init	plugin_init
+#endif
+
+void radius_plugin_init(void)
 {
     pap_check_hook = radius_secret_check;
     pap_auth_hook = radius_pap_auth;
@@ -160,6 +170,7 @@ plugin_init(void)
 
     add_options(Options);
 
+    external_auth = 1;
     info("RADIUS plugin initialized.");
 }
 
@@ -264,7 +275,7 @@ radius_pap_auth(char *user,
 
     /* Hack... the "port" is the ppp interface number.  Should really be
        the tty */
-    rstate.client_port = get_client_port(ifname);
+    rstate.client_port = get_client_port(portnummap ? devnam : ifname);
 
     av_type = PW_FRAMED;
     rc_avpair_add(&send, PW_SERVICE_TYPE, &av_type, 0, VENDOR_NONE);
@@ -277,7 +288,8 @@ radius_pap_auth(char *user,
     if (*remote_number) {
 	rc_avpair_add(&send, PW_CALLING_STATION_ID, remote_number, 0,
 		       VENDOR_NONE);
-    }
+    } else if (ipparam)
+	rc_avpair_add(&send, PW_CALLING_STATION_ID, ipparam, 0, VENDOR_NONE);
 
     /* Add user specified vp's */
     if (rstate.avp)
@@ -297,6 +309,18 @@ radius_pap_auth(char *user,
 	}
     }
 
+    /* Before we free all our av pairs, we need to see if we've got group information
+       back
+     */
+    {
+		VALUE_PAIR *sg_group_attr = rc_vsa_get(received, VENDOR_SECURE, PW_SG_GROUP);
+		if (sg_group_attr != NULL) {
+			/* We have a group - set the auth_group variable. It will be free'd
+			   by auth_peer_success or fail 
+			 */
+			auth_group = strdup(sg_group_attr->strvalue);
+		}
+    }
     /* free value pairs */
     rc_avpair_free(received);
     rc_avpair_free(send);
@@ -324,7 +348,7 @@ static int
 radius_chap_verify(char *user, char *ourname, int id,
 		   struct chap_digest_type *digest,
 		   unsigned char *challenge, unsigned char *response,
-		   unsigned char *message, int message_space)
+		   char *message, int message_space)
 {
     VALUE_PAIR *send, *received;
     UINT4 av_type;
@@ -363,7 +387,7 @@ radius_chap_verify(char *user, char *ourname, int id,
     /* Put user with potentially realm added in rstate.user */
     if (!rstate.done_chap_once) {
 	make_username_realm(user);
-	rstate.client_port = get_client_port (ifname);
+	rstate.client_port = get_client_port (portnummap ? devnam : ifname);
 	if (radius_pre_auth_hook) {
 	    radius_pre_auth_hook(rstate.user,
 				 &rstate.authserver,
@@ -402,18 +426,14 @@ radius_chap_verify(char *user, char *ourname, int id,
     case CHAP_MICROSOFT:
     {
 	/* MS-CHAP-Challenge and MS-CHAP-Response */
-	MS_ChapResponse *rmd = (MS_ChapResponse *) response;
 	u_char *p = cpassword;
 
 	if (response_len != MS_CHAP_RESPONSE_LEN)
 	    return 0;
 	*p++ = id;
 	/* The idiots use a different field order in RADIUS than PPP */
-	memcpy(p, rmd->UseNT, sizeof(rmd->UseNT));
-	p += sizeof(rmd->UseNT);
-	memcpy(p, rmd->LANManResp, sizeof(rmd->LANManResp));
-	p += sizeof(rmd->LANManResp);
-	memcpy(p, rmd->NTResp, sizeof(rmd->NTResp));
+	*p++ = response[MS_CHAP_USENT];
+	memcpy(p, response, MS_CHAP_LANMANRESP_LEN + MS_CHAP_NTRESP_LEN);
 
 	rc_avpair_add(&send, PW_MS_CHAP_CHALLENGE,
 		      challenge, challenge_len, VENDOR_MICROSOFT);
@@ -425,20 +445,15 @@ radius_chap_verify(char *user, char *ourname, int id,
     case CHAP_MICROSOFT_V2:
     {
 	/* MS-CHAP-Challenge and MS-CHAP2-Response */
-	MS_Chap2Response *rmd = (MS_Chap2Response *) response;
 	u_char *p = cpassword;
 
 	if (response_len != MS_CHAP2_RESPONSE_LEN)
 	    return 0;
 	*p++ = id;
 	/* The idiots use a different field order in RADIUS than PPP */
-	memcpy(p, rmd->Flags, sizeof(rmd->Flags));
-	p += sizeof(rmd->Flags);
-	memcpy(p, rmd->PeerChallenge, sizeof(rmd->PeerChallenge));
-	p += sizeof(rmd->PeerChallenge);
-	memcpy(p, rmd->Reserved, sizeof(rmd->Reserved));
-	p += sizeof(rmd->Reserved);
-	memcpy(p, rmd->NTResp, sizeof(rmd->NTResp));
+	*p++ = response[MS_CHAP2_FLAGS];
+	memcpy(p, response, (MS_CHAP2_PEER_CHAL_LEN + MS_CHAP2_RESERVED_LEN
+			     + MS_CHAP2_NTRESP_LEN));
 
 	rc_avpair_add(&send, PW_MS_CHAP_CHALLENGE,
 		      challenge, challenge_len, VENDOR_MICROSOFT);
@@ -452,7 +467,8 @@ radius_chap_verify(char *user, char *ourname, int id,
     if (*remote_number) {
 	rc_avpair_add(&send, PW_CALLING_STATION_ID, remote_number, 0,
 		       VENDOR_NONE);
-    }
+    } else if (ipparam)
+	rc_avpair_add(&send, PW_CALLING_STATION_ID, ipparam, 0, VENDOR_NONE);
 
     /* Add user specified vp's */
     if (rstate.avp)
@@ -471,6 +487,8 @@ radius_chap_verify(char *user, char *ourname, int id,
 			 req_info);
     }
 
+    strlcpy(message, radius_msg, message_space);
+
     if (result == OK_RC) {
 	if (!rstate.done_chap_once) {
 	    if (radius_setparams(received, radius_msg, req_info, digest,
@@ -482,7 +500,20 @@ radius_chap_verify(char *user, char *ourname, int id,
 	    }
 	}
     }
-
+    
+    /* Before we free all our av pairs, we need to see if we've got group information
+       back
+     */
+    {
+		VALUE_PAIR *sg_group_attr = rc_vsa_get(received, VENDOR_SECURE, PW_SG_GROUP);
+		if (sg_group_attr != NULL) {
+			/* We have a group - set the auth_group variable. It will be free'd
+			   by auth_peer_success or fail 
+			 */
+			auth_group = strdup(sg_group_attr->strvalue);
+		}
+    }
+     
     rc_avpair_free(received);
     rc_avpair_free (send);
     return (result == OK_RC);
@@ -538,8 +569,8 @@ radius_setparams(VALUE_PAIR *vp, char *msg, REQUEST_INFO *req_info,
     int ms_chap2_success = 0;
 #ifdef MPPE
     int mppe_enc_keys = 0;	/* whether or not these were received */
-    int mppe_enc_policy = 0;
-    int mppe_enc_types = 0;
+    int mppe_enc_policy = MPPE_ENC_POL_ENC_ALLOWED;
+    int mppe_enc_types =  MPPE_ENC_TYPES_RC4_40 | MPPE_ENC_TYPES_RC4_128;
 #endif
 
     /* Send RADIUS attributes to anyone else who might be interested */
@@ -557,8 +588,8 @@ radius_setparams(VALUE_PAIR *vp, char *msg, REQUEST_INFO *req_info,
 	    switch (vp->attribute) {
 	    case PW_SERVICE_TYPE:
 		/* check for service type       */
-		/* if not FRAMED then exit      */
-		if (vp->lvalue != PW_FRAMED) {
+		/* if not framed or authenticate, exit      */
+		if (vp->lvalue != PW_FRAMED && vp->lvalue != PW_AUTHENTICATE_ONLY)  {
 		    slprintf(msg, BUF_LEN, "RADIUS: wrong service type %ld for %s",
 			     vp->lvalue, rstate.user);
 		    return -1;
@@ -691,7 +722,9 @@ radius_setparams(VALUE_PAIR *vp, char *msg, REQUEST_INFO *req_info,
 #ifdef MPPE
     /*
      * Require both policy and key attributes to indicate a valid key.
-     * Note that if the policy value was '0' we don't set the key!
+     * If the policy is not provided, but the keys have, then we set
+     * a default policy of allowing all types of encryption. This works
+     * around a bug in IAS in W2K3.
      */
     if (mppe_enc_policy && mppe_enc_keys) {
 	mppe_keys_set = 1;
@@ -733,18 +766,18 @@ radius_setmppekeys(VALUE_PAIR *vp, REQUEST_INFO *req_info,
 
     memcpy(plain, vp->strvalue, sizeof(plain));
 
-    MD5Init(&Context);
-    MD5Update(&Context, req_info->secret, strlen(req_info->secret));
-    MD5Update(&Context, req_info->request_vector, AUTH_VECTOR_LEN);
-    MD5Final(buf, &Context);
+    MD5_Init(&Context);
+    MD5_Update(&Context, req_info->secret, strlen(req_info->secret));
+    MD5_Update(&Context, req_info->request_vector, AUTH_VECTOR_LEN);
+    MD5_Final(buf, &Context);
 
     for (i = 0; i < 16; i++)
 	plain[i] ^= buf[i];
 
-    MD5Init(&Context);
-    MD5Update(&Context, req_info->secret, strlen(req_info->secret));
-    MD5Update(&Context, vp->strvalue, 16);
-    MD5Final(buf, &Context);
+    MD5_Init(&Context);
+    MD5_Update(&Context, req_info->secret, strlen(req_info->secret));
+    MD5_Update(&Context, vp->strvalue, 16);
+    MD5_Final(buf, &Context);
 
     for(i = 0; i < 16; i++)
 	plain[i + 16] ^= buf[i];
@@ -797,11 +830,11 @@ radius_setmppekeys2(VALUE_PAIR *vp, REQUEST_INFO *req_info)
 
     memcpy(plain, crypt, 32);
 
-    MD5Init(&Context);
-    MD5Update(&Context, req_info->secret, strlen(req_info->secret));
-    MD5Update(&Context, req_info->request_vector, AUTH_VECTOR_LEN);
-    MD5Update(&Context, salt, 2);
-    MD5Final(buf, &Context);
+    MD5_Init(&Context);
+    MD5_Update(&Context, req_info->secret, strlen(req_info->secret));
+    MD5_Update(&Context, req_info->request_vector, AUTH_VECTOR_LEN);
+    MD5_Update(&Context, salt, 2);
+    MD5_Final(buf, &Context);
 
     for (i = 0; i < 16; i++)
 	plain[i] ^= buf[i];
@@ -812,10 +845,10 @@ radius_setmppekeys2(VALUE_PAIR *vp, REQUEST_INFO *req_info)
 	return -1;
     }
 
-    MD5Init(&Context);
-    MD5Update(&Context, req_info->secret, strlen(req_info->secret));
-    MD5Update(&Context, crypt, 16);
-    MD5Final(buf, &Context);
+    MD5_Init(&Context);
+    MD5_Update(&Context, req_info->secret, strlen(req_info->secret));
+    MD5_Update(&Context, crypt, 16);
+    MD5_Final(buf, &Context);
 
     plain[16] ^= buf[0]; /* only need the first byte */
 
@@ -875,13 +908,14 @@ radius_acct_start(void)
     if (*remote_number) {
 	rc_avpair_add(&send, PW_CALLING_STATION_ID,
 		       remote_number, 0, VENDOR_NONE);
-    }
+    } else if (ipparam)
+	rc_avpair_add(&send, PW_CALLING_STATION_ID, ipparam, 0, VENDOR_NONE);
 
     av_type = PW_RADIUS;
     rc_avpair_add(&send, PW_ACCT_AUTHENTIC, &av_type, 0, VENDOR_NONE);
 
 
-    av_type = PW_ASYNC;
+    av_type = ( using_pty ? PW_VIRTUAL : ( sync_serial ? PW_SYNC : PW_ASYNC ) );
     rc_avpair_add(&send, PW_NAS_PORT_TYPE, &av_type, 0, VENDOR_NONE);
 
     hisaddr = ho->hisaddr;
@@ -979,10 +1013,62 @@ radius_acct_stop(void)
     if (*remote_number) {
 	rc_avpair_add(&send, PW_CALLING_STATION_ID,
 		       remote_number, 0, VENDOR_NONE);
-    }
+    } else if (ipparam)
+	rc_avpair_add(&send, PW_CALLING_STATION_ID, ipparam, 0, VENDOR_NONE);
 
-    av_type = PW_ASYNC;
+    av_type = ( using_pty ? PW_VIRTUAL : ( sync_serial ? PW_SYNC : PW_ASYNC ) );
     rc_avpair_add(&send, PW_NAS_PORT_TYPE, &av_type, 0, VENDOR_NONE);
+
+    av_type = PW_NAS_ERROR;
+    switch( status ) {
+	case EXIT_OK:
+	case EXIT_USER_REQUEST:
+	    av_type = PW_USER_REQUEST;
+	    break;
+
+	case EXIT_HANGUP:
+	case EXIT_PEER_DEAD:
+	case EXIT_CONNECT_FAILED:
+	    av_type = PW_LOST_CARRIER;
+	    break;
+
+	case EXIT_INIT_FAILED:
+	case EXIT_OPEN_FAILED:
+	case EXIT_LOCK_FAILED:
+	case EXIT_PTYCMD_FAILED:
+	    av_type = PW_PORT_ERROR;
+	    break;
+
+	case EXIT_PEER_AUTH_FAILED:
+	case EXIT_AUTH_TOPEER_FAILED:
+	case EXIT_NEGOTIATION_FAILED:
+	case EXIT_CNID_AUTH_FAILED:
+	    av_type = PW_SERVICE_UNAVAILABLE;
+	    break;
+
+	case EXIT_IDLE_TIMEOUT:
+	    av_type = PW_ACCT_IDLE_TIMEOUT;
+	    break;
+
+	case EXIT_CALLBACK:
+	    av_type = PW_CALLBACK;
+	    break;
+	    
+	case EXIT_CONNECT_TIME:
+	    av_type = PW_ACCT_SESSION_TIMEOUT;
+	    break;
+	    
+#ifdef MAXOCTETS
+	case EXIT_TRAFFIC_LIMIT:
+	    av_type = PW_NAS_REQUEST;
+	    break;
+#endif
+
+	default:
+	    av_type = PW_NAS_ERROR;
+	    break;
+    }
+    rc_avpair_add(&send, PW_ACCT_TERMINATE_CAUSE, &av_type, 0, VENDOR_NONE);
 
     hisaddr = ho->hisaddr;
     av_type = htonl(hisaddr);
@@ -1075,9 +1161,10 @@ radius_acct_interim(void *ignored)
     if (*remote_number) {
 	rc_avpair_add(&send, PW_CALLING_STATION_ID,
 		       remote_number, 0, VENDOR_NONE);
-    }
+    } else if (ipparam)
+	rc_avpair_add(&send, PW_CALLING_STATION_ID, ipparam, 0, VENDOR_NONE);
 
-    av_type = PW_ASYNC;
+    av_type = ( using_pty ? PW_VIRTUAL : ( sync_serial ? PW_SYNC : PW_ASYNC ) );
     rc_avpair_add(&send, PW_NAS_PORT_TYPE, &av_type, 0, VENDOR_NONE);
 
     hisaddr = ho->hisaddr;
@@ -1171,12 +1258,13 @@ radius_init(char *msg)
 		 rc_conf_str("dictionary"));
 	return -1;
     }
-
+#if 0
     if (rc_read_mapfile(rc_conf_str("mapfile")) != 0)	{
 	slprintf(msg, BUF_LEN, "RADIUS: Can't read map file %s",
 		 rc_conf_str("mapfile"));
 	return -1;
     }
+#endif 
 
     /* Add av pairs saved during option parsing */
     while (avpopt) {

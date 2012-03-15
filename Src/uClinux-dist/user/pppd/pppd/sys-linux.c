@@ -2,7 +2,7 @@
  * sys-linux.c - System-dependent procedures for setting up
  * PPP interfaces on Linux systems
  *
- * Copyright (c) 1994-2002 Paul Mackerras. All rights reserved.
+ * Copyright (c) 1994-2004 Paul Mackerras. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,16 +11,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -141,7 +136,7 @@
 #endif /* IPX_CHANGE */
 
 #ifdef PPP_FILTER
-#include <net/bpf.h>
+#include <pcap-bpf.h>
 #include <linux/filter.h>
 #endif /* PPP_FILTER */
 
@@ -178,8 +173,8 @@ static int ppp_disc = N_PPP;	/* The PPP discpline */
 static int initfdflags = -1;	/* Initial file descriptor flags for fd */
 static int ppp_fd = -1;		/* fd which is set to PPP discipline */
 static int sock_fd = -1;	/* socket for doing interface ioctls */
-static int slave_fd = -1;
-static int master_fd = -1;
+static int slave_fd = -1;	/* pty for old-style demand mode, slave */
+static int master_fd = -1;	/* pty for old-style demand mode, master */
 #ifdef INET6
 static int sock6_fd = -1;
 #endif /* INET6 */
@@ -210,7 +205,7 @@ static char loop_name[20];
 static unsigned char inbuf[512]; /* buffer for chars read from loopback */
 
 static int	if_is_up;	/* Interface has been marked up */
-static u_int32_t default_route_gateway;	/* Gateway for default route added */
+static int	have_default_route;	/* Gateway for default route added */
 static u_int32_t proxy_arp_addr;	/* Addr for proxy arp entry added */
 static char proxy_arp_dev[16];		/* Device for proxy arp entry */
 static u_int32_t our_old_addr;		/* for detecting address changes */
@@ -265,7 +260,6 @@ extern int hungup;
 /* new_fd is the fd of a tty */
 static void set_ppp_fd (int new_fd)
 {
-	SYSDEBUG ((LOG_DEBUG, "setting ppp_fd to %d\n", new_fd));
 	ppp_fd = new_fd;
 	if (!new_style_driver)
 		ppp_dev_fd = new_fd;
@@ -347,8 +341,8 @@ void sys_cleanup(void)
 /*
  * Delete any routes through the device.
  */
-    if (default_route_gateway != 0)
-	cifdefaultroute(0, 0, default_route_gateway);
+    if (have_default_route)
+	cifdefaultroute(0, 0, 0);
 
     if (has_proxy_arp)
 	cifproxyarp(0, proxy_arp_addr);
@@ -389,8 +383,6 @@ static int set_kdebugflag (int requested_level)
 	    error("ioctl(PPPIOCSDEBUG): %m (line %d)", __LINE__);
 	return (0);
     }
-    SYSDEBUG ((LOG_INFO, "set kernel debugging level to %d",
-		requested_level));
     return (1);
 }
 
@@ -537,9 +529,6 @@ int generic_establish_ppp (int fd)
 
     looped = 0;
 
-    SYSDEBUG ((LOG_NOTICE, "Using version %d.%d.%d of PPP driver",
-	    driver_version, driver_modification, driver_patch));
-
     return ppp_fd;
 
  err_close:
@@ -604,7 +593,7 @@ void generic_disestablish_ppp(int dev_fd)
 	if (demand) {
 	    modify_flags(ppp_dev_fd, 0, SC_LOOP_TRAFFIC);
 	    looped = 1;
-	} else if (ppp_dev_fd >= 0) {
+	} else if (!doing_multilink && ppp_dev_fd >= 0) {
 	    close(ppp_dev_fd);
 	    remove_fd(ppp_dev_fd);
 	    ppp_dev_fd = -1;
@@ -721,6 +710,18 @@ int bundle_attach(int ifnum)
 
 	ifunit = ifnum;
 	return 1;
+}
+
+/*
+ * destroy_bundle - tell the driver to destroy our bundle.
+ */
+void destroy_bundle(void)
+{
+	if (ppp_dev_fd >= 0) {
+		close(ppp_dev_fd);
+		remove_fd(ppp_dev_fd);
+		ppp_dev_fd = -1;
+	}
 }
 
 /********************************************************************
@@ -956,8 +957,8 @@ void set_up_tty(int tty_fd, int local)
 	    fatal("Baud rate for %s is 0; need explicit baud rate", devnam);
     }
 
-    if (tcsetattr(tty_fd, TCSAFLUSH, &tios) < 0)
-	if (!ok_error(errno))
+    while (tcsetattr(tty_fd, TCSAFLUSH, &tios) < 0 && !ok_error(errno))
+	if (errno != EINTR)
 	    fatal("tcsetattr: %m (line %d)", __LINE__);
 
     baud_rate    = baud_rate_of(speed);
@@ -1044,7 +1045,6 @@ void wait_input(struct timeval *timo)
 {
     fd_set ready, exc;
     int n;
-	int i; //eric++
 
     ready = in_fds;
     exc = in_fds;
@@ -1098,15 +1098,21 @@ int read_packet (unsigned char *buf)
 	if (nr < 0 && errno == ENXIO)
 	    return 0;
     }
-    if (nr < 0 && new_style_driver && ppp_dev_fd >= 0) {
+    if (nr < 0 && new_style_driver && ppp_dev_fd >= 0 && !bundle_eof) {
 	/* N.B. we read ppp_fd first since LCP packets come in there. */
 	nr = read(ppp_dev_fd, buf, len);
 	if (nr < 0 && errno != EWOULDBLOCK && errno != EAGAIN
 	    && errno != EIO && errno != EINTR)
 	    error("read /dev/ppp: %m");
 	if (nr < 0 && errno == ENXIO)
-	    return 0;
+	    nr = 0;
+	if (nr == 0 && doing_multilink) {
+	    remove_fd(ppp_dev_fd);
+	    bundle_eof = 1;
+	}
     }
+    if (new_style_driver && ppp_fd < 0 && ppp_dev_fd < 0)
+	nr = 0;
     return (new_style_driver && nr > 0)? nr+2: nr;
 }
 
@@ -1149,8 +1155,6 @@ void
 netif_set_mtu(int unit, int mtu)
 {
     struct ifreq ifr;
-
-    SYSDEBUG ((LOG_DEBUG, "netif_set_mtu: mtu = %d\n", mtu));
 
     memset (&ifr, '\0', sizeof (ifr));
     strlcpy(ifr.ifr_name, ifname, sizeof (ifr.ifr_name));
@@ -1210,9 +1214,6 @@ void tty_send_config(int mtu, u_int32_t asyncmap, int pcomp, int accomp)
 
 void tty_set_xaccm (ext_accm accm)
 {
-    SYSDEBUG ((LOG_DEBUG, "set_xaccm: %08lx %08lx %08lx %08lx\n",
-		accm[0], accm[1], accm[2], accm[3]));
-
     if (!still_ppp())
 	return;
     if (ioctl(ppp_fd, PPPIOCSXASYNCMAP, accm) < 0 && errno != ENOTTY) {
@@ -1583,40 +1584,39 @@ int have_route_to(u_int32_t addr)
  * sifdefaultroute - assign a default route through the address given.
  */
 
-int sifdefaultroute (int unit, u_int32_t ouraddr, u_int32_t gateway)
+int sifdefaultroute (int unit, u_int32_t ouraddr, u_int32_t gateway, u_int32_t metric, bool force)
 {
     struct rtentry rt;
 
-    if (defaultroute_exists(&rt) && strcmp(rt.rt_dev, ifname) != 0) {
-	u_int32_t old_gateway = SIN_ADDR(rt.rt_gateway);
-
-	if (old_gateway != gateway)
-	    error("not replacing existing default route to %s [%I]",
-		  rt.rt_dev, old_gateway);
+    if (!force && defaultroute_exists(&rt) && strcmp(rt.rt_dev, ifname) != 0) {
+	if (rt.rt_flags & RTF_GATEWAY)
+	    error("not replacing existing default route via %I",
+		  SIN_ADDR(rt.rt_gateway));
+	else
+	    error("not replacing existing default route through %s",
+		  rt.rt_dev);
 	return 0;
     }
 
-    memset (&rt, '\0', sizeof (rt));
-    SET_SA_FAMILY (rt.rt_dst,     AF_INET);
-    SET_SA_FAMILY (rt.rt_gateway, AF_INET);
+    memset (&rt, 0, sizeof (rt));
+    SET_SA_FAMILY (rt.rt_dst, AF_INET);
 
     rt.rt_dev = ifname;
+    rt.rt_metric = metric + 1;
 
     if (kernel_version > KVERSION(2,1,0)) {
 	SET_SA_FAMILY (rt.rt_genmask, AF_INET);
 	SIN_ADDR(rt.rt_genmask) = 0L;
     }
 
-    SIN_ADDR(rt.rt_gateway) = gateway;
-
-    rt.rt_flags = RTF_UP | RTF_GATEWAY;
+    rt.rt_flags = RTF_UP;
     if (ioctl(sock_fd, SIOCADDRT, &rt) < 0) {
 	if ( ! ok_error ( errno ))
 	    error("default route ioctl(SIOCADDRT): %m");
 	return 0;
     }
 
-    default_route_gateway = gateway;
+    have_default_route = 1;
     return 1;
 }
 
@@ -1629,20 +1629,20 @@ int cifdefaultroute (int unit, u_int32_t ouraddr, u_int32_t gateway)
 {
     struct rtentry rt;
 
-    default_route_gateway = 0;
+    have_default_route = 0;
 
     memset (&rt, '\0', sizeof (rt));
     SET_SA_FAMILY (rt.rt_dst,     AF_INET);
     SET_SA_FAMILY (rt.rt_gateway, AF_INET);
+
+    rt.rt_dev = ifname;
 
     if (kernel_version > KVERSION(2,1,0)) {
 	SET_SA_FAMILY (rt.rt_genmask, AF_INET);
 	SIN_ADDR(rt.rt_genmask) = 0L;
     }
 
-    SIN_ADDR(rt.rt_gateway) = gateway;
-
-    rt.rt_flags = RTF_UP | RTF_GATEWAY;
+    rt.rt_flags = RTF_UP;
     if (ioctl(sock_fd, SIOCDELRT, &rt) < 0 && errno != ESRCH) {
 	if (still_ppp()) {
 	    if ( ! ok_error ( errno ))
@@ -1651,6 +1651,31 @@ int cifdefaultroute (int unit, u_int32_t ouraddr, u_int32_t gateway)
 	}
     }
 
+    return 1;
+}
+
+int rtmetricfixup(int unit, u_int32_t hisaddr, u_int32_t metric)
+{
+    struct rtentry rt;
+
+    memset(&rt, '\0', sizeof(rt));
+    SET_SA_FAMILY (rt.rt_dst,     AF_INET);
+    SET_SA_FAMILY (rt.rt_gateway, AF_INET);
+    if (kernel_version > KVERSION(2,1,0)) {
+	SET_SA_FAMILY (rt.rt_genmask, AF_INET);
+	((struct sockaddr_in *) &rt.rt_genmask)->sin_addr.s_addr = ~0L;
+    }
+    rt.rt_dev = ifname;
+    ((struct sockaddr_in *) &rt.rt_gateway)->sin_addr.s_addr = 0L;
+    ((struct sockaddr_in *) &rt.rt_dst)->sin_addr.s_addr     = hisaddr;
+    rt.rt_flags = RTF_UP | RTF_HOST;
+    if (ioctl(sock_fd, SIOCDELRT, &rt) < 0) {
+	error("ioctl(SIOCDELRT): %m(%d)", errno);
+    }
+    rt.rt_metric = metric + 1;
+    if (ioctl(sock_fd, SIOCADDRT, &rt) < 0) {
+	warn("ioctl(SIOCADDRT): %m(%d)", errno);
+    }
     return 1;
 }
 
@@ -1759,8 +1784,6 @@ static int get_ether_addr (u_int32_t ipaddr,
 	return 0;
     }
 
-    SYSDEBUG ((LOG_DEBUG, "proxy arp: scanning %d interfaces for IP %s",
-		ifc.ifc_len / sizeof(struct ifreq), ip_ntoa(ipaddr)));
 /*
  * Scan through looking for an interface with an Internet
  * address on the same subnet as `ipaddr'.
@@ -1770,8 +1793,6 @@ static int get_ether_addr (u_int32_t ipaddr,
 	if (ifr->ifr_addr.sa_family == AF_INET) {
 	    ina = SIN_ADDR(ifr->ifr_addr);
 	    strlcpy(ifreq.ifr_name, ifr->ifr_name, sizeof(ifreq.ifr_name));
-	    SYSDEBUG ((LOG_DEBUG, "proxy arp: examining interface %s",
-			ifreq.ifr_name));
 /*
  * Check that the interface is up, and not point-to-point
  * nor loopback.
@@ -1788,8 +1809,6 @@ static int get_ether_addr (u_int32_t ipaddr,
 		continue;
 
 	    mask = SIN_ADDR(ifreq.ifr_addr);
-	    SYSDEBUG ((LOG_DEBUG, "proxy arp: interface addr %s mask %lx",
-		       ip_ntoa(ina), ntohl(mask)));
 
 	    if (((ipaddr ^ ina) & mask) != 0)
 		continue; /* no match */
@@ -1827,16 +1846,6 @@ static int get_ether_addr (u_int32_t ipaddr,
 	    &bestifreq.ifr_hwaddr,
 	    sizeof (struct sockaddr));
 
-    SYSDEBUG ((LOG_DEBUG,
-	   "proxy arp: found hwaddr %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-		(int) ((unsigned char *) &hwaddr->sa_data)[0],
-		(int) ((unsigned char *) &hwaddr->sa_data)[1],
-		(int) ((unsigned char *) &hwaddr->sa_data)[2],
-		(int) ((unsigned char *) &hwaddr->sa_data)[3],
-		(int) ((unsigned char *) &hwaddr->sa_data)[4],
-		(int) ((unsigned char *) &hwaddr->sa_data)[5],
-		(int) ((unsigned char *) &hwaddr->sa_data)[6],
-		(int) ((unsigned char *) &hwaddr->sa_data)[7]));
     return 1;
 }
 
@@ -2648,7 +2657,6 @@ open_ppp_loopback(void)
 
     if (!get_pty(&master_fd, &slave_fd, loop_name, 0))
 	fatal("No free pty for loopback");
-    SYSDEBUG(("using %s for loopback", loop_name));
 
     set_ppp_fd(slave_fd);
 
@@ -2824,7 +2832,8 @@ sys_check_options(void)
 
     if (ipxcp_protent.enabled_flag) {
 	struct stat stat_buf;
-	if ((path = path_to_procfs("/net/ipx_interface")) == 0
+	if (  ((path = path_to_procfs("/net/ipx/interface")) == NULL
+	    && (path = path_to_procfs("/net/ipx_interface")) == NULL)
 	    || lstat(path, &stat_buf) < 0) {
 	    error("IPX support is not present in the kernel\n");
 	    ipxcp_protent.enabled_flag = 0;

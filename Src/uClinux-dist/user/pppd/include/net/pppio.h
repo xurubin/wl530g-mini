@@ -32,7 +32,7 @@
  * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $Id: pppio.h,v 1.9 2002/12/06 09:49:15 paulus Exp $
+ * $Id: pppio.h,v 1.2 2007-06-08 04:02:37 gerg Exp $
  */
 
 #define _PPPIO(n)	(('p' << 8) + (n))

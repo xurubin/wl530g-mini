@@ -1,7 +1,7 @@
 /*
  * tty.c - code for handling serial ports in pppd.
  *
- * Copyright (C) 2000-2002 Paul Mackerras. All rights reserved.
+ * Copyright (C) 2000-2004 Paul Mackerras. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -73,7 +68,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: tty.c,v 1.13 2004/01/13 04:17:59 paulus Exp $"
+#define RCSID	"$Id: tty.c,v 1.25 2006/06/04 07:04:57 paulus Exp $"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -116,12 +111,14 @@ static int setxonxoff __P((char **));
 static int setescape __P((char **));
 static void printescape __P((option_t *, void (*)(void *, char *,...),void *));
 static void finish_tty __P((void));
+#ifndef __uClinux__
 static int start_charshunt __P((int, int));
 static void stop_charshunt __P((void *, int));
 static void charshunt_done __P((void *));
 static void charshunt __P((int, int, char *));
 static int record_write __P((FILE *, int code, u_char *buf, int nb,
 			     struct timeval *));
+#endif
 static int open_socket __P((char *));
 static void maybe_relock __P((void *, int));
 
@@ -157,6 +154,8 @@ int	using_pty = 0;		/* we're allocating a pty as the device */
 
 extern uid_t uid;
 extern int kill_link;
+extern int asked_to_quit;
+extern int got_sigterm;
 
 /* XXX */
 extern int privopen;		/* don't lock, open device as root */
@@ -300,7 +299,7 @@ setdevname(cp, argv, doit)
 	if (*cp == 0)
 		return 0;
 
-	if (strncmp("/dev/", cp, 5) != 0) {
+	if (*cp != '/') {
 		strlcpy(dev, "/dev/", sizeof(dev));
 		strlcat(dev, cp, sizeof(dev));
 		cp = dev;
@@ -448,7 +447,12 @@ tty_check_options()
 	struct stat statbuf;
 	int fdflags;
 
-	if (demand && connect_script == 0) {
+	if (demand && notty) {
+		option_error("demand-dialling is incompatible with notty");
+		exit(EXIT_OPTION_ERROR);
+	}
+	if (demand && connect_script == 0 && ptycommand == NULL
+	    && pty_socket == NULL) {
 		option_error("connect script is required for demand-dialling\n");
 		exit(EXIT_OPTION_ERROR);
 	}
@@ -459,7 +463,7 @@ tty_check_options()
 	if (using_pty) {
 		if (!default_device) {
 			option_error("%s option precludes specifying device name",
-				     notty? "notty": "pty");
+				     pty_socket? "socket": notty? "notty": "pty");
 			exit(EXIT_OPTION_ERROR);
 		}
 		if (ptycommand != NULL && notty) {
@@ -512,7 +516,9 @@ int connect_tty()
 {
 	char *connector;
 	int fdflags;
+#ifndef __linux__
 	struct stat statbuf;
+#endif
 	char numbuf[16];
 
 	/*
@@ -531,13 +537,14 @@ int connect_tty()
 		}
 		set_up_tty(pty_slave, 1);
 	}
+
 	/*
 	 * Lock the device if we've been asked to.
 	 */
 	status = EXIT_LOCK_FAILED;
 	if (lockflag && !privopen) {
 		if (lock(devnam) < 0)
-			return -1;
+			goto errret;
 		locked = 1;
 	}
 
@@ -549,7 +556,7 @@ int connect_tty()
 	 * in order to wait for the carrier detect signal from the modem.
 	 */
 	hungup = 0;
-	kill_link = 0;
+	got_sigterm = 0;
 	connector = doing_callback? callback_script: connect_script;
 	if (devnam[0] != 0) {
 		for (;;) {
@@ -558,13 +565,17 @@ int connect_tty()
 			int err, prio;
 
 			prio = privopen? OPRIO_ROOT: tty_options[0].priority;
-			if (prio < OPRIO_ROOT)
-				seteuid(uid);
-			ttyfd = open(devnam, O_NONBLOCK | O_RDWR, 0);
+			if (prio < OPRIO_ROOT && seteuid(uid) == -1) {
+				error("Unable to drop privileges before opening %s: %m\n",
+				      devnam);
+				status = EXIT_OPEN_FAILED;
+				goto errret;
+			}
+			real_ttyfd = open(devnam, O_NONBLOCK | O_RDWR, 0);
 			err = errno;
-			if (prio < OPRIO_ROOT)
-				seteuid(0);
-			if (ttyfd >= 0)
+			if (prio < OPRIO_ROOT && seteuid(0) == -1)
+				fatal("Unable to regain privileges");
+			if (real_ttyfd >= 0)
 				break;
 			errno = err;
 			if (err != EINTR) {
@@ -572,9 +583,9 @@ int connect_tty()
 				status = EXIT_OPEN_FAILED;
 			}
 			if (!persist || err != EINTR)
-				return -1;
+				goto errret;
 		}
-		real_ttyfd = ttyfd;
+		ttyfd = real_ttyfd;
 		if ((fdflags = fcntl(ttyfd, F_GETFL)) == -1
 		    || fcntl(ttyfd, F_SETFL, fdflags & ~O_NONBLOCK) < 0)
 			warn("Couldn't reset non-blocking mode on device: %m");
@@ -614,6 +625,7 @@ int connect_tty()
 	 */
 	status = EXIT_PTYCMD_FAILED;
 	if (ptycommand != NULL) {
+#ifndef __uClinux__
 		if (record_file != NULL) {
 			int ipipe[2], opipe[2], ok;
 
@@ -631,26 +643,40 @@ int connect_tty()
 			close(opipe[0]);
 			close(opipe[1]);
 			if (!ok)
-				return -1;
+				goto errret;
 		} else {
+#endif /* !__uClinux__ */
 			if (device_script(ptycommand, pty_master, pty_master, 1) < 0)
-				return -1;
-			ttyfd = pty_slave;
-			close(pty_master);
-			pty_master = -1;
+				goto errret;
+#ifndef __uClinux__
 		}
 	} else if (pty_socket != NULL) {
 		int fd = open_socket(pty_socket);
 		if (fd < 0)
-			return -1;
+			goto errret;
 		if (!start_charshunt(fd, fd))
-			return -1;
+			goto errret;
+		close(fd);
 	} else if (notty) {
 		if (!start_charshunt(0, 1))
-			return -1;
+			goto errret;
+		dup2(fd_devnull, 0);
+		dup2(fd_devnull, 1);
+		if (log_to_fd == 1)
+			log_to_fd = -1;
+		if (log_to_fd != 2)
+			dup2(fd_devnull, 2);
 	} else if (record_file != NULL) {
-		if (!start_charshunt(ttyfd, ttyfd))
-			return -1;
+		int fd = dup(ttyfd);
+		if (!start_charshunt(fd, fd))
+			goto errret;
+#endif /* !__uClinux__ */
+	}
+
+	if (using_pty || record_file != NULL) {
+		ttyfd = pty_slave;
+		close(pty_master);
+		pty_master = -1;
 	}
 
 	/* run connection script */
@@ -668,11 +694,11 @@ int connect_tty()
 			if (device_script(initializer, ttyfd, ttyfd, 0) < 0) {
 				error("Initializer script failed");
 				status = EXIT_INIT_FAILED;
-				return -1;
+				goto errret;
 			}
-			if (kill_link) {
+			if (got_sigterm) {
 				disconnect_tty();
-				return -1;
+				goto errret;
 			}
 			info("Serial port initialized.");
 		}
@@ -681,11 +707,11 @@ int connect_tty()
 			if (device_script(connector, ttyfd, ttyfd, 0) < 0) {
 				error("Connect script failed");
 				status = EXIT_CONNECT_FAILED;
-				return -1;
+				goto errret;
 			}
-			if (kill_link) {
+			if (got_sigterm) {
 				disconnect_tty();
-				return -1;
+				goto errret;
 			}
 			info("Serial connection established.");
 		}
@@ -709,8 +735,8 @@ int connect_tty()
 				error("Failed to reopen %s: %m", devnam);
 				status = EXIT_OPEN_FAILED;
 			}
-			if (!persist || errno != EINTR || hungup || kill_link)
-				return -1;
+			if (!persist || errno != EINTR || hungup || got_sigterm)
+				goto errret;
 		}
 		close(i);
 	}
@@ -729,10 +755,20 @@ int connect_tty()
 	 * time for something from the peer.  This can avoid bouncing
 	 * our packets off his tty before he has it set up.
 	 */
-	if (connector != NULL || ptycommand != NULL)
+	if (connector != NULL || ptycommand != NULL || pty_socket != NULL)
 		listen_time = connect_delay;
 
 	return ttyfd;
+
+ errret:
+	if (pty_master >= 0) {
+		close(pty_master);
+		pty_master = -1;
+	}
+	ttyfd = -1;
+	if (got_sigterm)
+		asked_to_quit = 1;
+	return -1;
 }
 
 
@@ -747,12 +783,13 @@ void disconnect_tty()
 	} else {
 		info("Serial link disconnected.");
 	}
+#ifndef __uClinux__
+	stop_charshunt(NULL, 0);
+#endif
 }
 
 void tty_close_fds()
 {
-	if (pty_master >= 0)
-		close(pty_master);
 	if (pty_slave >= 0)
 		close(pty_slave);
 	if (real_ttyfd >= 0) {
@@ -807,10 +844,8 @@ finish_tty()
 
 #ifndef __linux__
 	if (tty_mode != (mode_t) -1) {
-		if (fchmod(real_ttyfd, tty_mode) != 0) {
-			/* XXX if devnam is a symlink, this will change the link */
-			chmod(devnam, tty_mode);
-		}
+		if (fchmod(real_ttyfd, tty_mode) != 0)
+			error("Couldn't restore tty permissions");
 	}
 #endif /* __linux__ */
 
@@ -884,6 +919,7 @@ open_socket(dest)
     return sock;
 }
 
+#ifndef __uClinux__
 
 /*
  * start_charshunt - create a child process to run the character shunt.
@@ -894,28 +930,26 @@ start_charshunt(ifd, ofd)
 {
     int cpid;
 
-    cpid = safe_fork();
+    cpid = safe_fork(ifd, ofd, (log_to_fd >= 0? log_to_fd: 2));
     if (cpid == -1) {
 	error("Can't fork process for character shunt: %m");
 	return 0;
     }
     if (cpid == 0) {
 	/* child */
-	close(pty_slave);
+	reopen_log();
+	if (!nodetach)
+	    log_to_fd = -1;
+	else if (log_to_fd >= 0)
+	    log_to_fd = 2;
+	setgid(getgid());
 	setuid(uid);
 	if (getuid() != uid)
 	    fatal("setuid failed");
-	setgid(getgid());
-	if (!nodetach)
-	    log_to_fd = -1;
-	charshunt(ifd, ofd, record_file);
+	charshunt(0, 1, record_file);
 	exit(0);
     }
     charshunt_pid = cpid;
-    add_notifier(&sigreceived, stop_charshunt, 0);
-    close(pty_master);
-    pty_master = -1;
-    ttyfd = pty_slave;
     record_child(cpid, "pppd (charshunt)", charshunt_done, NULL);
     return 1;
 }
@@ -1112,9 +1146,6 @@ charshunt(ifd, ofd, record_file)
 	    } else if (nibuf == 0) {
 		/* end of file from stdin */
 		stdin_readable = 0;
-		/* do a 0-length write, hopefully this will generate
-		   an EOF (hangup) on the slave side. */
-		write(pty_master, inpacket_buf, 0);
 		if (recordf)
 		    if (!record_write(recordf, 4, NULL, 0, &lasttime))
 			recordf = NULL;
@@ -1151,7 +1182,8 @@ charshunt(ifd, ofd, record_file)
 		    if (!record_write(recordf, 1, obufp, nobuf, &lasttime))
 			recordf = NULL;
 	    }
-	}
+	} else if (!stdin_readable)
+	    pty_readable = 0;
 	if (FD_ISSET(ofd, &writey)) {
 	    n = nobuf;
 	    if (olevel + n > max_level)
@@ -1234,3 +1266,5 @@ record_write(f, code, buf, nb, tp)
     }
     return 1;
 }
+
+#endif /* !__uClinux__ */

@@ -40,7 +40,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: ipcp.c,v 1.65 2004/01/13 03:59:06 paulus Exp $"
+#define RCSID	"$Id: ipcp.c,v 1.18 2007/06/08 04:02:38 gerg Exp $"
 
 /*
  * TODO:
@@ -50,11 +50,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <netdb.h>
+#include <syslog.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 
 #include "pppd.h"
 #include "fsm.h"
@@ -103,7 +105,7 @@ static void ipcp_resetci __P((fsm *));	/* Reset our CI */
 static int  ipcp_cilen __P((fsm *));	        /* Return length of our CI */
 static void ipcp_addci __P((fsm *, u_char *, int *)); /* Add our CI */
 static int  ipcp_ackci __P((fsm *, u_char *, int));	/* Peer ack'd our CI */
-static int  ipcp_nakci __P((fsm *, u_char *, int));	/* Peer nak'd our CI */
+static int  ipcp_nakci __P((fsm *, u_char *, int, int));/* Peer nak'd our CI */
 static int  ipcp_rejci __P((fsm *, u_char *, int));	/* Peer rej'd our CI */
 static int  ipcp_reqci __P((fsm *, u_char *, int *, int)); /* Rcv CI */
 static void ipcp_up __P((fsm *));		/* We're UP */
@@ -168,6 +170,11 @@ static option_t ipcp_option_list[] = {
     { "ipcp-accept-remote", o_bool, &ipcp_wantoptions[0].accept_remote,
       "Accept peer's address for it", 1 },
 
+    { "ip-up", o_string, &ip_up,
+      "Set ip-up script name", OPT_PRIV },
+    { "ip-down", o_string, &ip_down,
+      "Set ip-down script name", OPT_PRIV },
+
     { "ipparam", o_string, &ipparam,
       "Set ip script parameter", OPT_PRIO },
 
@@ -196,6 +203,12 @@ static option_t ipcp_option_list[] = {
     { "-defaultroute", o_bool, &ipcp_allowoptions[0].default_route,
       "disable defaultroute option", OPT_ALIAS | OPT_A2CLR,
       &ipcp_wantoptions[0].default_route },
+
+    { "forcedefaultroute", o_bool, &ipcp_wantoptions[0].force_default_route,
+      "Always add default route", OPT_ENABLE|1, &ipcp_allowoptions[0].force_default_route },
+    { "noforcedefaultroute", o_bool, &ipcp_allowoptions[0].force_default_route,
+      "disable forcedefaultroute option", OPT_A2CLR,
+      &ipcp_wantoptions[0].force_default_route },
 
     { "proxyarp", o_bool, &ipcp_wantoptions[0].proxy_arp,
       "Add proxy ARP entry", OPT_ENABLE|1, &ipcp_allowoptions[0].proxy_arp },
@@ -264,7 +277,9 @@ struct protent ipcp_protent = {
 };
 
 static void ipcp_clear_addrs __P((int, u_int32_t, u_int32_t));
-static void ipcp_script __P((char *));		/* Run an up/down script */
+static void ipcp_script_up __P((void));
+static void ipcp_script_down __P((void));
+static void ipcp_script __P((char *, int));	/* Run an up/down script */
 static void ipcp_script_done __P((void *));
 
 /*
@@ -592,6 +607,7 @@ ipcp_init(unit)
      */
     ao->proxy_arp = 1;
     ao->default_route = 1;
+    ao->force_default_route = 1;
 }
 
 
@@ -696,6 +712,7 @@ ipcp_resetci(f)
 	    wo->accept_remote = 0;
 	}
     }
+    BZERO(&ipcp_hisoptions[f->unit], sizeof(ipcp_options));
 }
 
 
@@ -720,10 +737,8 @@ ipcp_cilen(f)
      * First see if we want to change our options to the old
      * forms because we have received old forms from the peer.
      */
-    if ((wo->neg_addr || wo->old_addrs) && !go->neg_addr && !go->old_addrs) {
-	/* use the old style of address negotiation */
-	go->old_addrs = 1;
-    }
+    if (go->neg_addr && go->old_addrs && !ho->neg_addr && ho->old_addrs)
+	go->neg_addr = 0;
     if (wo->neg_vj && !go->neg_vj && !go->old_vj) {
 	/* try an older style of VJ negotiation */
 	/* use the old style only if the peer did */
@@ -962,10 +977,11 @@ bad:
  *	1 - Nak was good.
  */
 static int
-ipcp_nakci(f, p, len)
+ipcp_nakci(f, p, len, treat_as_reject)
     fsm *f;
     u_char *p;
     int len;
+    int treat_as_reject;
 {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     u_char cimaxslotindex, cicflag;
@@ -1041,11 +1057,17 @@ ipcp_nakci(f, p, len)
      * from our idea, only if the accept_{local,remote} flag is set.
      */
     NAKCIADDRS(CI_ADDRS, !go->neg_addr && go->old_addrs,
-	       if (go->accept_local && ciaddr1) { /* Do we know our address? */
-		   try.ouraddr = ciaddr1;
-	       }
-	       if (go->accept_remote && ciaddr2) { /* Does he know his? */
-		   try.hisaddr = ciaddr2;
+	       if (treat_as_reject) {
+		   try.old_addrs = 0;
+	       } else {
+		   if (go->accept_local && ciaddr1) {
+		       /* take his idea of our address */
+		       try.ouraddr = ciaddr1;
+		   }
+		   if (go->accept_remote && ciaddr2) {
+		       /* take his idea of his address */
+		       try.hisaddr = ciaddr2;
+		   }
 	       }
 	);
 
@@ -1056,7 +1078,9 @@ ipcp_nakci(f, p, len)
      * the peer wants.
      */
     NAKCIVJ(CI_COMPRESSTYPE, neg_vj,
-	    if (cilen == CILEN_VJ) {
+	    if (treat_as_reject) {
+		try.neg_vj = 0;
+	    } else if (cilen == CILEN_VJ) {
 		GETCHAR(cimaxslotindex, p);
 		GETCHAR(cicflag, p);
 		if (cishort == IPCP_VJ_COMP) {
@@ -1079,18 +1103,30 @@ ipcp_nakci(f, p, len)
 	    );
 
     NAKCIADDR(CI_ADDR, neg_addr,
-	      if (go->accept_local && ciaddr1) { /* Do we know our address? */
+	      if (treat_as_reject) {
+		  try.neg_addr = 0;
+		  try.old_addrs = 0;
+	      } else if (go->accept_local && ciaddr1) {
+		  /* take his idea of our address */
 		  try.ouraddr = ciaddr1;
 	      }
 	      );
 
     NAKCIDNS(CI_MS_DNS1, req_dns1,
-	    try.dnsaddr[0] = cidnsaddr;
-	    );
+	     if (treat_as_reject) {
+		 try.req_dns1 = 0;
+	     } else {
+		 try.dnsaddr[0] = cidnsaddr;
+	     }
+	     );
 
     NAKCIDNS(CI_MS_DNS2, req_dns2,
-	    try.dnsaddr[1] = cidnsaddr;
-	    );
+	     if (treat_as_reject) {
+		 try.req_dns2 = 0;
+	     } else {
+		 try.dnsaddr[1] = cidnsaddr;
+	     }
+	     );
 
     /*
      * There may be remaining CIs, if the peer is requesting negotiation
@@ -1634,13 +1670,17 @@ ip_demand_conf(u)
     }
     if (!sifaddr(u, wo->ouraddr, wo->hisaddr, GetMask(wo->ouraddr)))
 	return 0;
+    ipcp_script(_PATH_IPPREUP, 1);
     if (!sifup(u))
 	return 0;
+
+    rtmetricfixup(u, wo->hisaddr, metric);
+
     if (!sifnpmode(u, PPP_IP, NPMODE_QUEUE))
 	return 0;
     if (wo->default_route)
-		if (sifdefaultroute(u, wo->ouraddr, wo->hisaddr))
-		    default_route_set[u] = 1;
+	if (sifdefaultroute(u, wo->ouraddr, wo->hisaddr, drmetric, wo->force_default_route))
+	    default_route_set[u] = 1;
     if (wo->proxy_arp)
 	if (sifproxyarp(u, wo->hisaddr))
 	    proxy_arp_set[u] = 1;
@@ -1674,6 +1714,12 @@ ipcp_up(f)
     if (!ho->neg_addr && !ho->old_addrs)
 	ho->hisaddr = wo->hisaddr;
 
+    if (!(go->neg_addr || go->old_addrs) && (wo->neg_addr || wo->old_addrs)
+	&& wo->ouraddr != 0) {
+	error("Peer refused to agree to our IP address");
+	ipcp_close(f->unit, "Refused our IP address");
+	return;
+    }
     if (go->ouraddr == 0) {
 	error("Could not determine local IP address");
 	ipcp_close(f->unit, "Could not determine local IP address");
@@ -1738,10 +1784,12 @@ ipcp_up(f)
 		return;
 	    }
 
+	    rtmetricfixup(f->unit, ho->hisaddr, metric);
+
 	    /* assign a default route through the interface if required */
-	    if (ipcp_wantoptions[f->unit].default_route)
-			if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr))
-			    default_route_set[f->unit] = 1;
+	    if (ipcp_wantoptions[f->unit].default_route) 
+		if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr, drmetric, ipcp_wantoptions[f->unit].force_default_route))
+		    default_route_set[f->unit] = 1;
 
 	    /* Make a proxy ARP entry if requested. */
 	    if (ipcp_wantoptions[f->unit].proxy_arp)
@@ -1767,6 +1815,9 @@ ipcp_up(f)
 	}
 #endif
 
+	/* run the pre-up script, if any, and wait for it to finish */
+	ipcp_script(_PATH_IPPREUP, 1);
+
 	/* bring the interface up for IP */
 	if (!sifup(f->unit)) {
 	    if (debug)
@@ -1783,11 +1834,12 @@ ipcp_up(f)
 	    return;
 	}
 #endif
+	rtmetricfixup(f->unit, ho->hisaddr, metric);
 	sifnpmode(f->unit, PPP_IP, NPMODE_PASS);
 
 	/* assign a default route through the interface if required */
 	if (ipcp_wantoptions[f->unit].default_route) 
-	    if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr))
+	    if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr, drmetric, ipcp_wantoptions[f->unit].force_default_route))
 		default_route_set[f->unit] = 1;
 
 	/* Make a proxy ARP entry if requested. */
@@ -1805,6 +1857,8 @@ ipcp_up(f)
 	    notice("secondary DNS address %I", go->dnsaddr[1]);
     }
 
+    reset_link_stats(f->unit);
+
     np_up(f->unit, PPP_IP);
     ipcp_is_up = 1;
 
@@ -1818,7 +1872,7 @@ ipcp_up(f)
      */
     if (ipcp_script_state == s_down && ipcp_script_pid == 0) {
 	ipcp_script_state = s_up;
-	ipcp_script(_PATH_IPUP);
+	ipcp_script_up();
     }
 }
 
@@ -1836,6 +1890,8 @@ ipcp_down(f)
     IPCPDEBUG(("ipcp: down"));
     /* XXX a bit IPv4-centric here, we only need to get the stats
      * before the interface is marked down. */
+    /* XXX more correct: we must get the stats before running the notifiers,
+     * at least for the radius plugin */
     update_link_stats(f->unit);
     notify(ip_down_notifier, 0);
     if (ip_down_hook)
@@ -1845,6 +1901,10 @@ ipcp_down(f)
 	np_down(f->unit, PPP_IP);
     }
     sifvjcomp(f->unit, 0, 0, 0);
+
+    print_link_stats(); /* _after_ running the notifiers and ip_down_hook(),
+			 * because print_link_stats() sets link_stats_valid
+			 * to 0 (zero) */
 
     /*
      * If we are doing dial-on-demand, set the interface
@@ -1862,7 +1922,7 @@ ipcp_down(f)
     /* Execute the ip-down script */
     if (ipcp_script_state == s_up && ipcp_script_pid == 0) {
 	ipcp_script_state = s_down;
-	ipcp_script(_PATH_IPDOWN);
+	ipcp_script_down();
     }
 }
 
@@ -1903,6 +1963,44 @@ ipcp_finished(f)
 }
 
 
+static void
+ipcp_script_up()
+{
+#ifdef PATH_ETC_CONFIG
+    if (ip_up)
+	ipcp_script(ip_up, 0);
+    else {
+	struct stat st;
+	if (stat(_PATH_IPUP, &st) == 0 && (st.st_mode & S_IXUSR))
+	    ipcp_script(_PATH_IPUP, 0);
+	else
+	    ipcp_script(_PATH_DEFAULT_IPUP, 0);
+    }       
+#else
+    ipcp_script(ip_up ? ip_up : _PATH_IPUP, 0);
+#endif
+}
+
+
+static void
+ipcp_script_down()
+{
+#ifdef PATH_ETC_CONFIG
+    if (ip_down)
+	ipcp_script(ip_down, 0);
+    else {
+	struct stat st;
+	if (stat(_PATH_IPDOWN, &st) == 0 && (st.st_mode & S_IXUSR))
+	    ipcp_script(_PATH_IPDOWN, 0);
+	else
+	    ipcp_script(_PATH_DEFAULT_IPDOWN, 0);
+    }       
+#else
+    ipcp_script(ip_down ? ip_down : _PATH_IPDOWN, 0);
+#endif
+}
+
+
 /*
  * ipcp_script_done - called when the ip-up or ip-down script
  * has finished.
@@ -1916,13 +2014,13 @@ ipcp_script_done(arg)
     case s_up:
 	if (ipcp_fsm[0].state != OPENED) {
 	    ipcp_script_state = s_down;
-	    ipcp_script(_PATH_IPDOWN);
+	    ipcp_script(_PATH_IPDOWN, 0);
 	}
 	break;
     case s_down:
 	if (ipcp_fsm[0].state == OPENED) {
 	    ipcp_script_state = s_up;
-	    ipcp_script(_PATH_IPUP);
+	    ipcp_script(_PATH_IPUP, 0);
 	}
 	break;
     }
@@ -1934,8 +2032,9 @@ ipcp_script_done(arg)
  * interface-name tty-name speed local-IP remote-IP.
  */
 static void
-ipcp_script(script)
+ipcp_script(script, wait)
     char *script;
+    int wait;
 {
     char strspeed[32], strlocal[32], strremote[32];
     char *argv[8];
@@ -1952,7 +2051,11 @@ ipcp_script(script)
     argv[5] = strremote;
     argv[6] = ipparam;
     argv[7] = NULL;
-    ipcp_script_pid = run_program(script, argv, 0, ipcp_script_done, NULL);
+    if (wait)
+	run_program(script, argv, 0, NULL, NULL, 1);
+    else
+	ipcp_script_pid = run_program(script, argv, 0, ipcp_script_done,
+				      NULL, 0);
 }
 
 /*
@@ -1963,21 +2066,26 @@ create_resolv(peerdns1, peerdns2)
     u_int32_t peerdns1, peerdns2;
 {
     FILE *f;
+    char pathname[MAXPATHLEN];
 
-    f = fopen(_PATH_RESOLV, "w");
+    slprintf(pathname, sizeof(pathname), _PATH_RESOLV, ifname);
+
+    f = fopen(pathname, "w");
     if (f == NULL) {
-	error("Failed to create %s: %m", _PATH_RESOLV);
+	error("Failed to create %s: %m", pathname);
 	return;
     }
 
-    if (peerdns1)
+    if (peerdns1) {
+	syslog(LOG_INFO, "Adding resolv.conf for %s",ip_ntoa(peerdns1));
 	fprintf(f, "nameserver %s\n", ip_ntoa(peerdns1));
+    }
 
     if (peerdns2)
 	fprintf(f, "nameserver %s\n", ip_ntoa(peerdns2));
 
     if (ferror(f))
-	error("Write failed to %s: %m", _PATH_RESOLV);
+	error("Write failed to %s: %m", pathname);
 
     fclose(f);
 }

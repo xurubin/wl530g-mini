@@ -40,7 +40,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: fsm.c,v 1.20 2003/06/29 10:06:14 paulus Exp $"
+#define RCSID	"$Id: fsm.c,v 1.3 2007-06-08 04:02:38 gerg Exp $"
 
 /*
  * TODO:
@@ -70,8 +70,6 @@ static void fsm_sconfreq __P((fsm *, int));
 
 int peer_mru[NUM_PPP];
 
-/* JYWeng 20031216: add to wanstatus.log */
-void saveWANStatus(char *currentstatus, int statusindex);
 
 /*
  * fsm_init - Initialize fsm.
@@ -203,6 +201,44 @@ fsm_open(f)
     }
 }
 
+/*
+ * terminate_layer - Start process of shutting down the FSM
+ *
+ * Cancel any timeout running, notify upper layers we're done, and
+ * send a terminate-request message as configured.
+ */
+static void
+terminate_layer(f, nextstate)
+    fsm *f;
+    int nextstate;
+{
+    if( f->state != OPENED )
+	UNTIMEOUT(fsm_timeout, f);	/* Cancel timeout */
+    else if( f->callbacks->down )
+	(*f->callbacks->down)(f);	/* Inform upper layers we're down */
+
+    /* Init restart counter and send Terminate-Request */
+    f->retransmits = f->maxtermtransmits;
+    fsm_sdata(f, TERMREQ, f->reqid = ++f->id,
+	      (u_char *) f->term_reason, f->term_reason_len);
+
+    if (f->retransmits == 0) {
+	/*
+	 * User asked for no terminate requests at all; just close it.
+	 * We've already fired off one Terminate-Request just to be nice
+	 * to the peer, but we're not going to wait for a reply.
+	 */
+	f->state = nextstate == CLOSING ? CLOSED : STOPPED;
+	if( f->callbacks->finished )
+	    (*f->callbacks->finished)(f);
+	return;
+    }
+
+    TIMEOUT(fsm_timeout, f, f->timeouttime);
+    --f->retransmits;
+
+    f->state = nextstate;
+}
 
 /*
  * fsm_close - Start closing connection.
@@ -232,19 +268,7 @@ fsm_close(f, reason)
     case ACKRCVD:
     case ACKSENT:
     case OPENED:
-	if( f->state != OPENED )
-	    UNTIMEOUT(fsm_timeout, f);	/* Cancel timeout */
-	else if( f->callbacks->down )
-	    (*f->callbacks->down)(f);	/* Inform upper layers we're down */
-
-	/* Init restart counter, send Terminate-Request */
-	f->retransmits = f->maxtermtransmits;
-	fsm_sdata(f, TERMREQ, f->reqid = ++f->id,
-		  (u_char *) f->term_reason, f->term_reason_len);
-	TIMEOUT(fsm_timeout, f, f->timeouttime);
-	--f->retransmits;
-
-	f->state = CLOSING;
+	terminate_layer(f, CLOSING);
 	break;
     }
 }
@@ -282,10 +306,6 @@ fsm_timeout(arg)
     case ACKRCVD:
     case ACKSENT:
 	if (f->retransmits <= 0) {
-/* JYWeng 20031216: add to wanstatus.log */
-	    int statusindex=0; 
-	    saveWANStatus("No response from ISP.", statusindex);
-/* JYWeng 20031216: add to wanstatus.log */
 	    warn("%s: timeout sending Config-Requests\n", PROTO_NAME(f));
 	    f->state = STOPPED;
 	    if( (f->flags & OPT_PASSIVE) == 0 && f->callbacks->finished )
@@ -476,6 +496,7 @@ fsm_rconfack(f, id, inp, len)
 	return;
     }
     f->seen_ack = 1;
+    f->rnakloops = 0;
 
     switch (f->state) {
     case CLOSED:
@@ -524,17 +545,29 @@ fsm_rconfnakrej(f, code, id, inp, len)
     u_char *inp;
     int len;
 {
-    int (*proc) __P((fsm *, u_char *, int));
     int ret;
+    int treat_as_reject;
 
     if (id != f->reqid || f->seen_ack)	/* Expected id? */
 	return;				/* Nope, toss... */
-    proc = (code == CONFNAK)? f->callbacks->nakci: f->callbacks->rejci;
-    if (!proc || !(ret = proc(f, inp, len))) {
-	/* Nak/reject is bad - ignore it */
-	error("Received bad configure-nak/rej: %P", inp, len);
-	return;
+
+    if (code == CONFNAK) {
+	++f->rnakloops;
+	treat_as_reject = (f->rnakloops >= f->maxnakloops);
+	if (f->callbacks->nakci == NULL
+	    || !(ret = f->callbacks->nakci(f, inp, len, treat_as_reject))) {
+	    error("Received bad configure-nak: %P", inp, len);
+	    return;
+	}
+    } else {
+	f->rnakloops = 0;
+	if (f->callbacks->rejci == NULL
+	    || !(ret = f->callbacks->rejci(f, inp, len))) {
+	    error("Received bad configure-rej: %P", inp, len);
+	    return;
+	}
     }
+
     f->seen_ack = 1;
 
     switch (f->state) {
@@ -695,17 +728,7 @@ fsm_protreject(f)
 	break;
 
     case OPENED:
-	if( f->callbacks->down )
-	    (*f->callbacks->down)(f);
-
-	/* Init restart counter, send Terminate-Request */
-	f->retransmits = f->maxtermtransmits;
-	fsm_sdata(f, TERMREQ, f->reqid = ++f->id,
-		  (u_char *) f->term_reason, f->term_reason_len);
-	TIMEOUT(fsm_timeout, f, f->timeouttime);
-	--f->retransmits;
-
-	f->state = STOPPING;
+	terminate_layer(f, STOPPING);
 	break;
 
     default:
@@ -731,6 +754,7 @@ fsm_sconfreq(f, retransmit)
 	if( f->callbacks->resetci )
 	    (*f->callbacks->resetci)(f);
 	f->nakloops = 0;
+	f->rnakloops = 0;
     }
 
     if( !retransmit ){

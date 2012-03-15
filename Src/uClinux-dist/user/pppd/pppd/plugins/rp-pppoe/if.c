@@ -187,7 +187,6 @@ getHWaddr(int sock, char const *ifname, unsigned char *hwaddr)
         sprintf(buffer, "interface %.16s has no ethernet address", ifname);
 	rp_fatal(buffer);
     }
-    test_func();
 }
 
 /**********************************************************************

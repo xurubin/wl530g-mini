@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -33,7 +28,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: utils.c,v 1.23 2004/01/13 04:13:08 paulus Exp $"
+#define RCSID	"$Id: utils.c,v 1.4 2007-06-08 04:02:38 gerg Exp $"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -661,8 +656,6 @@ logit(level, fmt, args)
     int n;
     char buf[1024];
 
-    return;
-
     n = vslprintf(buf, sizeof(buf), fmt, args);
     log_write(level, buf);
 }
@@ -743,7 +736,7 @@ warn __V((char *fmt, ...))
     fmt = va_arg(pvar, char *);
 #endif
 
-    logit(LOG_CRIT, fmt, pvar); //eric**
+    logit(LOG_WARNING, fmt, pvar);
     va_end(pvar);
 }
 
@@ -763,7 +756,7 @@ notice __V((char *fmt, ...))
     fmt = va_arg(pvar, char *);
 #endif
 
-    logit(LOG_CRIT, fmt, pvar); //eric**
+    logit(LOG_NOTICE, fmt, pvar);
     va_end(pvar);
 }
 
@@ -1059,23 +1052,3 @@ unlock()
     }
 }
 
-/* JYWeng 20031216: add to wanstatus.log */
-
-void saveWANStatus(char *currentstatus, int statusindex)
-{
-	FILE *STATUSFILE;
-#ifdef ONWL500G_SHELL
-	if ((req_unit == 0) && (STATUSFILE = fopen("/etc/linuxigd/wanstatus.log", "w"))!=NULL)
-	{
-		fprintf(STATUSFILE, "StatusCode=\"%d\"\n", statusindex);
-		fprintf(STATUSFILE, "StatusReason=\"%s\"\n", currentstatus);
-		fclose(STATUSFILE);
-	}
-#else
-	if ((req_unit == 0) && (STATUSFILE = fopen("/tmp/wanstatus.log", "w"))!=NULL)
-	{
-		fprintf(STATUSFILE, "%d,%s\n", statusindex, currentstatus);
-		fclose(STATUSFILE);
-	}
-#endif
-}

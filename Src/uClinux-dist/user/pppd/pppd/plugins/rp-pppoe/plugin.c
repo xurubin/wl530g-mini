@@ -22,7 +22,7 @@
 ***********************************************************************/
 
 static char const RCSID[] =
-"$Id: plugin.c,v 1.10 2004/01/13 04:03:58 paulus Exp $";
+"$Id: plugin.c,v 1.15 2006/05/29 23:29:16 paulus Exp $";
 
 #define _GNU_SOURCE 1
 #include "pppoe.h"
@@ -52,9 +52,9 @@ static char const RCSID[] =
 #include "if_ppp.h"
 #include "if_pppox.h"
 
-#define _PATH_ETHOPT         _ROOT_PATH "/ppp/options."
+#define _PATH_ETHOPT         _ROOT_PATH "/etc/ppp/options."
 
-char pppoe_pppd_version[] = VERSION;
+char pppd_version[] = VERSION;
 
 /* From sys-linux.c in pppd -- MUST FIX THIS! */
 extern int new_style_driver;
@@ -80,7 +80,7 @@ static option_t Options[] = {
       "Be verbose about discovered access concentrators"},
     { NULL }
 };
-int (*OldDevnameHook)(char *cmd, char **argv, int doit) = NULL;
+
 static PPPoEConnection *conn = NULL;
 
 /**********************************************************************
@@ -182,42 +182,15 @@ PPPOEConnectDevice(void)
 }
 
 static void
-PPPOESendConfig(int mtu,
-		u_int32_t asyncmap,
-		int pcomp,
-		int accomp)
-{
-    int sock;
-    struct ifreq ifr;
-
-    if (mtu > MAX_PPPOE_MTU) {
-    	if (mtu != PPP_MTU)
-	    warn("Couldn't increase MTU to %d", mtu);
-	mtu = MAX_PPPOE_MTU;
-    }
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
-	error("Couldn't create IP socket: %m");
-	return;
-    }
-    strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-    ifr.ifr_mtu = mtu;
-    if (ioctl(sock, SIOCSIFMTU, &ifr) < 0) {
-	error("Couldn't set interface MTU to %d: %m", mtu);
-	return;
-    }
-    (void) close (sock);
-}
-
-
-static void
 PPPOERecvConfig(int mru,
 		u_int32_t asyncmap,
 		int pcomp,
 		int accomp)
 {
-    if (mru > MAX_PPPOE_MTU && mru != PPP_MRU)
+#if 0 /* broken protocol, but no point harrassing the users I guess... */
+    if (mru > MAX_PPPOE_MTU)
 	warn("Couldn't increase MRU to %d", mru);
+#endif
 }
 
 /**********************************************************************
@@ -245,6 +218,8 @@ PPPOEDisconnectDevice(void)
 	return;
     }
     close(conn->sessionSocket);
+    /* don't send PADT?? */
+    close(conn->discoverySocket);
 }
 
 static void
@@ -278,16 +253,14 @@ PPPoEDevnameHook(char *cmd, char **argv, int doit)
     int fd;
     struct ifreq ifr;
 
-    /* Only do it if name is "ethXXX", "nasXXX", "tapXXX" or "nic-XXXX.
-       In latter case strip off the "nic-" */
-    /* Thanks to Russ Couturier for this fix */
+    /*
+     * Take any otherwise-unrecognized option as a possible device name,
+     * and test if it is the name of a network interface with a
+     * hardware address whose sa_family is ARPHRD_ETHER.
+     */
     if (strlen(cmd) > 4 && !strncmp(cmd, "nic-", 4)) {
 	/* Strip off "nic-" */
 	cmd += 4;
-    } else if (strlen(cmd) < 4 || (strncmp(cmd, "eth", 3) &&
-		strncmp(cmd, "nas", 3) && strncmp(cmd, "tap", 3))) {
-	if (OldDevnameHook) return OldDevnameHook(cmd, argv, doit);
-	return 0;
     }
 
     /* Open a socket */
@@ -305,8 +278,9 @@ PPPoEDevnameHook(char *cmd, char **argv, int doit)
 		r = 0;
 	    } else {
 		if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER) {
-		    error("Interface %s not Ethernet", cmd);
-		    r=0;
+		    if (doit)
+			error("Interface %s not Ethernet", cmd);
+		    r = 0;
 		}
 	    }
 	}
@@ -314,36 +288,18 @@ PPPoEDevnameHook(char *cmd, char **argv, int doit)
 
     /* Close socket */
     close(fd);
-    if (r) {
+    if (r && doit) {
 	strncpy(devnam, cmd, sizeof(devnam));
 	if (the_channel != &pppoe_channel) {
+
 	    the_channel = &pppoe_channel;
 	    modem = 0;
-
-	    lcp_allowoptions[0].neg_accompression = 0;
-	    lcp_wantoptions[0].neg_accompression = 0;
-
-	    lcp_allowoptions[0].neg_asyncmap = 0;
-	    lcp_wantoptions[0].neg_asyncmap = 0;
-
-	    lcp_allowoptions[0].neg_pcompression = 0;
-	    lcp_wantoptions[0].neg_pcompression = 0;
-
-	    ccp_allowoptions[0].deflate = 0 ;
-	    ccp_wantoptions[0].deflate = 0 ;
-
-	    ipcp_allowoptions[0].neg_vj=0;
-	    ipcp_wantoptions[0].neg_vj=0;
-
-	    ccp_allowoptions[0].bsd_compress = 0;
-	    ccp_wantoptions[0].bsd_compress = 0;
 
 	    PPPOEInitDevice();
 	}
 	return 1;
     }
 
-    if (OldDevnameHook) r = OldDevnameHook(cmd, argv, doit);
     return r;
 }
 
@@ -356,22 +312,18 @@ PPPoEDevnameHook(char *cmd, char **argv, int doit)
  * %DESCRIPTION:
  * Initializes hooks for pppd plugin
  ***********************************************************************/
-void 
-#ifdef EMBED
-pppoe_plugin_init(void)
-#else
-plugin_init(void)
+#ifdef DYNAMIC_PLUGINS
+#define	pppoe_plugin_init	plugin_init
 #endif
+
+void pppoe_plugin_init(void)
 {
-#ifndef EMBED
-#if _linux_
-    if (!ppp_available() && !new_style_driver)
-	fatal("Kernel doesn't support ppp_generic needed for PPPoE");
-#else
-    fatal("No PPPoE support on this OS");
-#endif
-#endif /*EMBED*/
+    if (!ppp_available() && !new_style_driver) {
+	fatal("Linux kernel does not support PPPoE -- are you running 2.4.x?");
+    }
+
     add_options(Options);
+
     info("RP-PPPoE plugin version %s compiled against pppd %s",
 	 RP_VERSION, VERSION);
 }
@@ -430,18 +382,42 @@ sysErr(char const *str)
     rp_fatal(str);
 }
 
-#if 1
+void pppoe_check_options(void)
+{
+    lcp_allowoptions[0].neg_accompression = 0;
+    lcp_wantoptions[0].neg_accompression = 0;
+
+    lcp_allowoptions[0].neg_asyncmap = 0;
+    lcp_wantoptions[0].neg_asyncmap = 0;
+
+    lcp_allowoptions[0].neg_pcompression = 0;
+    lcp_wantoptions[0].neg_pcompression = 0;
+
+    if (lcp_allowoptions[0].mru > MAX_PPPOE_MTU)
+	lcp_allowoptions[0].mru = MAX_PPPOE_MTU;
+    if (lcp_wantoptions[0].mru > MAX_PPPOE_MTU)
+	lcp_wantoptions[0].mru = MAX_PPPOE_MTU;
+
+    ccp_allowoptions[0].deflate = 0;
+    ccp_wantoptions[0].deflate = 0;
+
+    ipcp_allowoptions[0].neg_vj = 0;
+    ipcp_wantoptions[0].neg_vj = 0;
+
+    ccp_allowoptions[0].bsd_compress = 0;
+    ccp_wantoptions[0].bsd_compress = 0;
+}
+
 struct channel pppoe_channel = {
     options: Options,
     process_extra_options: &PPPOEDeviceOptions,
-    check_options: NULL,
+    check_options: pppoe_check_options,
     connect: &PPPOEConnectDevice,
     disconnect: &PPPOEDisconnectDevice,
     establish_ppp: &generic_establish_ppp,
     disestablish_ppp: &generic_disestablish_ppp,
-    send_config: &PPPOESendConfig,
+    send_config: NULL,
     recv_config: &PPPOERecvConfig,
     close: NULL,
     cleanup: NULL
 };
-#endif

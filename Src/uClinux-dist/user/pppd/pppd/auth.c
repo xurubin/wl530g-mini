@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -73,12 +68,13 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: auth.c,v 1.95 2003/06/11 23:56:26 paulus Exp $"
+#define RCSID	"$Id: auth.c,v 1.10 2007/11/23 06:12:46 asallawa Exp $"
 
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <pwd.h>
 #include <grp.h>
 #include <string.h>
@@ -87,7 +83,7 @@
 #include <sys/socket.h>
 #include <utmp.h>
 #include <fcntl.h>
-#if defined(_PATH_LASTLOG) && defined(__linux__)
+#if defined(USE_LASTLOG) && defined(_PATH_LASTLOG) && defined(__linux__)
 #include <lastlog.h>
 #endif
 
@@ -241,7 +237,15 @@ bool auth_required = 0;		/* Always require authentication from peer */
 bool allow_any_ip = 0;		/* Allow peer to use any IP address */
 bool explicit_remote = 0;	/* User specified explicit remote name */
 char remote_name[MAXNAMELEN];	/* Peer's name for authentication */
-bool tx_only;			/* JYWeng 20031216: idle time counting on tx traffic */
+#if USE_PAM
+bool explicit_pamservice = 0;	/* User specified explicit PAM service */
+char pamservice[MAXNAMELEN];	/* Service for pam_start() */
+bool obey_restrictions = 0; 	/* Obey PAM account restrictions */
+#endif
+const char *auth_group = NULL;	/* If our authentication source can provide us
+				   				   with a group, put it here */
+bool external_auth = 0;		/* If we're using an external authenticator (radius, tacas, etc)
+				   set this flag */
 
 static char *uafname;		/* name of most recent +ua file */
 
@@ -402,6 +406,13 @@ option_t auth_options[] = {
       "Set telephone number(s) which are allowed to connect",
       OPT_PRIV | OPT_A2LIST },
 
+#ifdef USE_PAM
+    { "pamservice", o_string, pamservice,
+      "Set PAM service for authentication", OPT_PRIO | OPT_STATIC,
+      &explicit_pamservice, MAXNAMELEN },
+    { "obey_acct_restrict", o_bool, &obey_restrictions,
+      "Obey any PAM account restrictions for an authed user", 1},
+#endif
     { NULL }
 };
 
@@ -414,6 +425,7 @@ setupapfile(argv)
 {
     FILE *ufile;
     int l;
+    uid_t euid;
     char u[MAXNAMELEN], p[MAXSECRETLEN];
     char *fname;
 
@@ -423,9 +435,14 @@ setupapfile(argv)
     fname = strdup(*argv);
     if (fname == NULL)
 	novm("+ua file name");
-    seteuid(getuid());
+    euid = geteuid();
+    if (seteuid(getuid()) == -1) {
+	option_error("unable to reset uid before opening %s: %m", fname);
+	return 0;
+    }
     ufile = fopen(fname, "r");
-    seteuid(0);
+    if (seteuid(euid) == -1)
+	fatal("unable to regain privileges: %m");
     if (ufile == NULL) {
 	option_error("unable to open user login data file %s", fname);
 	return 0;
@@ -531,12 +548,71 @@ set_permitted_number(argv)
 
 /*
  * An Open on LCP has requested a change from Dead to Establish phase.
- * Do what's necessary to bring the physical layer up.
  */
 void
 link_required(unit)
     int unit;
 {
+}
+
+/*
+ * Bring the link up to the point of being able to do ppp.
+ */
+void start_link(unit)
+    int unit;
+{
+    char *msg;
+
+    new_phase(PHASE_SERIALCONN);
+
+    devfd = the_channel->connect();
+    msg = "Connect script failed";
+    if (devfd < 0)
+	goto fail;
+
+    /* set up the serial device as a ppp interface */
+    /*
+     * N.B. we used to do tdb_writelock/tdb_writeunlock around this
+     * (from establish_ppp to set_ifunit).  However, we won't be
+     * doing the set_ifunit in multilink mode, which is the only time
+     * we need the atomicity that the tdb_writelock/tdb_writeunlock
+     * gives us.  Thus we don't need the tdb_writelock/tdb_writeunlock.
+     */
+    fd_ppp = the_channel->establish_ppp(devfd);
+    msg = "ppp establishment failed";
+    if (fd_ppp < 0) {
+	status = EXIT_FATAL_ERROR;
+	goto disconnect;
+    }
+
+    if (!demand && ifunit >= 0)
+	set_ifunit(1);
+
+    /*
+     * Start opening the connection and wait for
+     * incoming events (reply, timeout, etc.).
+     */
+    if (ifunit >= 0)
+	notice("Connect: %s <--> %s", ifname, ppp_devnam);
+    else
+	notice("Starting negotiation on %s", ppp_devnam);
+    add_fd(fd_ppp);
+
+    status = EXIT_NEGOTIATION_FAILED;
+    new_phase(PHASE_ESTABLISH);
+
+    lcp_lowerup(0);
+    return;
+
+ disconnect:
+    new_phase(PHASE_DISCONNECT);
+    if (the_channel->disconnect)
+	the_channel->disconnect();
+
+ fail:
+    new_phase(PHASE_DEAD);
+    if (the_channel->cleanup)
+	(*the_channel->cleanup)();
 }
 
 /*
@@ -547,16 +623,67 @@ void
 link_terminated(unit)
     int unit;
 {
-    if (phase == PHASE_DEAD)
+    if (phase == PHASE_DEAD || phase == PHASE_MASTER)
 	return;
+    new_phase(PHASE_DISCONNECT);
+
     if (pap_logout_hook) {
 	pap_logout_hook();
     } else {
 	if (logged_in)
 	    plogout();
     }
-    new_phase(PHASE_DEAD);
-    notice("Connection terminated.");
+
+    if (!doing_multilink) {
+	notice("Connection terminated.");
+	print_link_stats();
+    } else
+	notice("Link terminated.");
+
+    /*
+     * Delete pid files before disestablishing ppp.  Otherwise it
+     * can happen that another pppd gets the same unit and then
+     * we delete its pid file.
+     */
+    if (!doing_multilink && !demand)
+	remove_pidfiles();
+
+    /*
+     * If we may want to bring the link up again, transfer
+     * the ppp unit back to the loopback.  Set the
+     * real serial device back to its normal mode of operation.
+     */
+    if (fd_ppp >= 0) {
+	remove_fd(fd_ppp);
+	clean_check();
+	the_channel->disestablish_ppp(devfd);
+	if (doing_multilink)
+	    mp_exit_bundle();
+	fd_ppp = -1;
+    }
+    if (!hungup)
+	lcp_lowerdown(0);
+    if (!doing_multilink && !demand)
+	script_unsetenv("IFNAME");
+
+    /*
+     * Run disconnector script, if requested.
+     * XXX we may not be able to do this if the line has hung up!
+     */
+    if (devfd >= 0 && the_channel->disconnect) {
+	the_channel->disconnect();
+	devfd = -1;
+    }
+    if (the_channel->cleanup)
+	(*the_channel->cleanup)();
+
+    if (doing_multilink && multilink_master) {
+	if (!bundle_terminating)
+	    new_phase(PHASE_MASTER);
+	else
+	    mp_bundle_terminated();
+    } else
+	new_phase(PHASE_DEAD);
 }
 
 /*
@@ -566,16 +693,29 @@ void
 link_down(unit)
     int unit;
 {
+    if (auth_state != s_down) {
+	notify(link_down_notifier, 0);
+	auth_state = s_down;
+	if (auth_script_state == s_up && auth_script_pid == 0) {
+	    update_link_stats(unit);
+	    auth_script_state = s_down;
+	    auth_script(_PATH_AUTHDOWN);
+	}
+    }
+    if (!doing_multilink) {
+	upper_layers_down(unit);
+	if (phase != PHASE_DEAD && phase != PHASE_MASTER)
+	    new_phase(PHASE_ESTABLISH);
+    }
+    /* XXX if doing_multilink, should do something to stop
+       network-layer traffic on the link */
+}
+
+void upper_layers_down(int unit)
+{
     int i;
     struct protent *protp;
 
-    notify(link_down_notifier, 0);
-    auth_state = s_down;
-    if (auth_script_state == s_up && auth_script_pid == 0) {
-	update_link_stats(unit);
-	auth_script_state = s_down;
-	auth_script(_PATH_AUTHDOWN);
-    }
     for (i = 0; (protp = protocols[i]) != NULL; ++i) {
 	if (!protp->enabled_flag)
 	    continue;
@@ -586,8 +726,6 @@ link_down(unit)
     }
     num_np_open = 0;
     num_np_up = 0;
-    if (phase != PHASE_DEAD)
-	new_phase(PHASE_ESTABLISH);
 }
 
 /*
@@ -608,10 +746,12 @@ link_established(unit)
     /*
      * Tell higher-level protocols that LCP is up.
      */
-    for (i = 0; (protp = protocols[i]) != NULL; ++i)
-        if (protp->protocol != PPP_LCP && protp->enabled_flag
-	    && protp->lowerup != NULL)
-	    (*protp->lowerup)(unit);
+    if (!doing_multilink) {
+	for (i = 0; (protp = protocols[i]) != NULL; ++i)
+	    if (protp->protocol != PPP_LCP && protp->enabled_flag
+		&& protp->lowerup != NULL)
+		(*protp->lowerup)(unit);
+    }
 
     if (!auth_required && noauth_addrs != NULL)
 	set_allowed_addrs(unit, NULL, NULL);
@@ -628,8 +768,8 @@ link_established(unit)
 	    set_allowed_addrs(unit, NULL, NULL);
 	} else if (!wo->neg_upap || uselogin || !null_login(unit)) {
 	    warn("peer refused to authenticate: terminating link");
-	    lcp_close(unit, "peer refused to authenticate");
 	    status = EXIT_PEER_AUTH_FAILED;
+	    lcp_close(unit, "peer refused to authenticate");
 	    return;
 	}
     }
@@ -788,8 +928,13 @@ auth_peer_fail(unit, protocol)
     /*
      * Authentication failure: take the link down
      */
-    lcp_close(unit, "Authentication failed");
     status = EXIT_PEER_AUTH_FAILED;
+    if (auth_group) {
+		free(auth_group);
+		auth_group = NULL;
+    }
+
+    lcp_close(unit, "Authentication failed");
 }
 
 /*
@@ -849,6 +994,11 @@ auth_peer_success(unit, protocol, prot_flavor, name, namelen)
      */
     if ((auth_pending[unit] &= ~bit) == 0)
         network_phase(unit);
+
+    if (auth_group) {
+		free(auth_group);
+		auth_group = NULL;
+    }
 }
 
 /*
@@ -866,8 +1016,8 @@ auth_withpeer_fail(unit, protocol)
      * is no point in persisting without any way to get updated
      * authentication secrets.
      */
-    lcp_close(unit, "Failed to authenticate ourselves to peer");
     status = EXIT_AUTH_TOPEER_FAILED;
+    lcp_close(unit, "Failed to authenticate ourselves to peer");
 }
 
 /*
@@ -878,10 +1028,12 @@ auth_withpeer_success(unit, protocol, prot_flavor)
     int unit, protocol, prot_flavor;
 {
     int bit;
+    const char *prot = "";
 
     switch (protocol) {
     case PPP_CHAP:
 	bit = CHAP_WITHPEER;
+	prot = "CHAP";
 	switch (prot_flavor) {
 	case CHAP_MD5:
 	    bit |= CHAP_MD5_WITHPEER;
@@ -900,14 +1052,18 @@ auth_withpeer_success(unit, protocol, prot_flavor)
 	if (passwd_from_file)
 	    BZERO(passwd, MAXSECRETLEN);
 	bit = PAP_WITHPEER;
+	prot = "PAP";
 	break;
     case PPP_EAP:
 	bit = EAP_WITHPEER;
+	prot = "EAP";
 	break;
     default:
 	warn("auth_withpeer_success: unknown protocol %x", protocol);
 	bit = 0;
     }
+
+    notice("%s authentication succeeded", prot);
 
     /* Save the authentication method for later. */
     auth_done[unit] |= bit;
@@ -1025,9 +1181,9 @@ check_maxoctets(arg)
     diff = maxoctets - used;
     if(diff < 0) {
 	notice("Traffic limit reached. Limit: %u Used: %u", maxoctets, used);
+	status = EXIT_TRAFFIC_LIMIT;
 	lcp_close(0, "Traffic limit");
 	need_holdoff = 0;
-	status = EXIT_TRAFFIC_LIMIT;
     } else {
         TIMEOUT(check_maxoctets, NULL, maxoctets_timeout);
     }
@@ -1048,23 +1204,18 @@ check_idle(arg)
 
     if (!get_idle_time(0, &idle))
 	return;
-    if (idle_time_hook != 0) 
-    {
+    if (idle_time_hook != 0) {
 	tlim = idle_time_hook(&idle);
     } else {
-/* JYWeng 20031216: replace itime with idle.xmit_idle for only outgoing traffic is counted*/
-	if(tx_only) 
-		itime = idle.xmit_idle;
-	else
 	itime = MIN(idle.xmit_idle, idle.recv_idle);
 	tlim = idle_time_limit - itime;
     }
     if (tlim <= 0) {
 	/* link is idle: shut it down. */
 	notice("Terminating connection due to lack of activity.");
+	status = EXIT_IDLE_TIMEOUT;
 	lcp_close(0, "Link inactive");
 	need_holdoff = 0;
-	status = EXIT_IDLE_TIMEOUT;
     } else {
 	TIMEOUT(check_idle, NULL, tlim);
     }
@@ -1078,8 +1229,8 @@ connect_time_expired(arg)
     void *arg;
 {
     info("Connect time expired");
-    lcp_close(0, "Connect time expired");	/* Close connection */
     status = EXIT_CONNECT_TIME;
+    lcp_close(0, "Connect time expired");	/* Close connection */
 }
 
 /*
@@ -1115,12 +1266,14 @@ auth_check_options()
     if (auth_required) {
 	allow_any_ip = 0;
 	if (!wo->neg_chap && !wo->neg_upap && !wo->neg_eap) {
-	    wo->neg_chap = 1; wo->chap_mdtype = MDTYPE_ALL;
+	    wo->neg_chap = chap_mdtype_all != MDTYPE_NONE;
+	    wo->chap_mdtype = chap_mdtype_all;
 	    wo->neg_upap = 1;
 	    wo->neg_eap = 1;
 	}
     } else {
-	wo->neg_chap = 0; wo->chap_mdtype = MDTYPE_NONE;
+	wo->neg_chap = 0;
+	wo->chap_mdtype = MDTYPE_NONE;
 	wo->neg_upap = 0;
 	wo->neg_eap = 0;
     }
@@ -1205,6 +1358,7 @@ auth_reset(unit)
 			      our_name, 1, NULL)))
 	    go->neg_chap = 0;
     }
+
     if (go->neg_eap &&
 	(hadchap == 0 || (hadchap == -1 &&
 	    !have_chap_secret((explicit_remote? remote_name: NULL), our_name,
@@ -1257,7 +1411,8 @@ check_passwd(unit, auser, userlen, apasswd, passwdlen, msg)
     if (pap_auth_hook) {
 	ret = (*pap_auth_hook)(user, passwd, msg, &addrs, &opts);
 	if (ret >= 0) {
-	    /* note: set_allowed_addrs() saves opts (but not addrs): don't free it! */
+	    /* note: set_allowed_addrs() saves opts (but not addrs):
+	       don't free it! */
 	    if (ret)
 		set_allowed_addrs(unit, addrs, opts);
 	    else if (opts != 0)
@@ -1429,7 +1584,8 @@ plogin(user, passwd, msg)
 #ifdef USE_PAM
     int pam_error;
 
-    pam_error = pam_start ("ppp", user, &PAM_conversation, &pamh);
+    pam_error = pam_start (explicit_pamservice ? pamservice : "ppp",
+			   user, &PAM_conversation, &pamh);
     if (pam_error != PAM_SUCCESS) {
         *msg = (char *) pam_strerror (pamh, pam_error);
 	reopen_log();
@@ -1516,7 +1672,7 @@ plogin(user, passwd, msg)
 	tty += 5;
     logwtmp(tty, user, ifname);		/* Add wtmp login entry */
 
-#if defined(_PATH_LASTLOG) && !defined(USE_PAM)
+#if defined(USE_LASTLOG) && defined(_PATH_LASTLOG) && !defined(USE_PAM)
     if (pw != (struct passwd *)NULL) {
 	    struct lastlog ll;
 	    int fd;
@@ -1530,7 +1686,7 @@ plogin(user, passwd, msg)
 		(void)close(fd);
 	    }
     }
-#endif /* _PATH_LASTLOG and not USE_PAM */
+#endif /* USE_LASTLOG and _PATH_LASTLOG and not USE_PAM */
 
     info("user %s logged in", user);
     logged_in = 1;
@@ -1544,6 +1700,7 @@ plogin(user, passwd, msg)
 static void
 plogout()
 {
+    char *tty;
 #ifdef USE_PAM
     int pam_error;
 
@@ -1554,14 +1711,12 @@ plogout()
     }
     /* Apparently the pam stuff does closelog(). */
     reopen_log();
-#else /* ! USE_PAM */   
-    char *tty;
+#endif /* USE_PAM */
 
     tty = devnam;
     if (strncmp(tty, "/dev/", 5) == 0)
 	tty += 5;
     logwtmp(tty, "", "");		/* Wipe out utmp logout entry */
-#endif /* ! USE_PAM */
     logged_in = 0;
 }
 
@@ -2437,7 +2592,76 @@ auth_script(script)
     argv[3] = user_name;
     argv[4] = devnam;
     argv[5] = strspeed;
-    argv[6] = NULL;
+    argv[6] = ipparam;
+    argv[7] = NULL;
 
-    auth_script_pid = run_program(script, argv, 0, auth_script_done, NULL);
+    auth_script_pid = run_program(script, argv, 0, auth_script_done, NULL, 0);
 }
+
+#ifdef USE_PAM
+/* check_pam_account_restrictions - check if the authenticated user account is valid.
+   This is useful when doing CHAPpy things, which don't support PAM as an authentication
+   mechanism. It means we still obey PAM's account restrictions
+ */
+int check_pam_account_restrictions(const char *user) {
+	int pam_error;
+	pam_handle_t *loc_handle;
+
+	if (obey_restrictions) {
+		const char *username;
+
+		/* We should remove the domain first */
+		if ((username = strrchr(user, '\\')) != NULL)
+			++username;
+		else
+            username = user;
+		
+		pam_error = pam_start(explicit_pamservice ? pamservice : "ppp", username, &PAM_conversation, &loc_handle);
+
+		if (pam_error != PAM_SUCCESS) {
+			return 1;
+		}
+		/* If we have an authentication group, send it */
+		if (auth_group != NULL) {
+			char buf[128];
+			snprintf(buf, 128, "SG-GROUP=%s", auth_group);
+			pam_putenv(loc_handle, buf);
+		}
+		/* Call the account management function */
+		pam_error = pam_acct_mgmt(loc_handle, 0);	
+		pam_end(loc_handle, 0);
+
+		if (pam_error != PAM_SUCCESS)
+			return 1;
+	}
+
+	return 0;
+}
+#endif /* USE_PAM */
+
+#ifdef CONFIG_PROP_STATSD_STATSD
+void notify_login_failure(const char *user) {
+	char buf[500];
+        snprintf(buf, 500-1,
+        	"statsd -a incr pam_failed_%s %s \\;"
+                " push pam_last_failure_%s %s \"Permission Denied\" 0 \\;"
+                " incr pam_users %s \\; incr pam_services %s",
+                        user,
+                        explicit_pamservice ? pamservice : "ppp",
+                        user,
+			explicit_pamservice ? pamservice : "ppp",
+			user,
+			explicit_pamservice ? pamservice : "ppp");
+        if (system(buf) == -1) {
+            warn("%s - failed", buf);
+        }
+
+	if (!external_auth) {
+		/* Do the same for pcidssd */
+		snprintf(buf, 500-1, "pcidssd -f %s", user);
+		if (system(buf) == -1) {
+			warn("%s - failed", buf);
+		}
+	}          
+}
+#endif 

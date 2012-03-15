@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -32,7 +27,7 @@
  * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $Id: ccp.h,v 1.11 2002/12/04 23:03:32 paulus Exp $
+ * $Id: ccp.h,v 1.2 2007-06-08 04:02:38 gerg Exp $
  */
 
 typedef struct ccp_options {
@@ -42,17 +37,9 @@ typedef struct ccp_options {
     bool predictor_2;		/* do Predictor-2? */
     bool deflate_correct;	/* use correct code for deflate? */
     bool deflate_draft;		/* use draft RFC code for deflate? */
-    bool lzs;			/* do Stac LZS? */
-    bool mppc;			/* do MPPC? */
     bool mppe;			/* do MPPE? */
-    bool mppe_40;		/* allow 40 bit encryption? */
-    bool mppe_56;		/* allow 56 bit encryption? */
-    bool mppe_128;		/* allow 128 bit encryption? */
-    bool mppe_stateless;	/* allow stateless encryption */
     u_short bsd_bits;		/* # bits/code for BSD Compress */
     u_short deflate_size;	/* lg(window size) for Deflate */
-    u_short lzs_mode;		/* LZS check mode */
-    u_short lzs_hists;		/* number of LZS histories */
     short method;		/* code for chosen compression method */
 } ccp_options;
 

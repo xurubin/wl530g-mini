@@ -1,6 +1,0 @@
-#!/bin/sh
-
-echo "catting /proc/net/pppol2tp"
-echo "=========================="
-cat /proc/net/pppol2tp
-echo "=========================="

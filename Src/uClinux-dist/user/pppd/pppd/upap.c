@@ -40,7 +40,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: upap.c,v 1.29 2002/12/04 23:03:33 paulus Exp $"
+#define RCSID	"$Id: upap.c,v 1.4 2008-06-04 03:50:22 kwilson Exp $"
 
 /*
  * TODO:
@@ -446,7 +446,15 @@ upap_rauthreq(u, inp, id, len)
 
     /* Null terminate and clean remote name. */
     slprintf(rhostname, sizeof(rhostname), "%.*v", ruserlen, ruser);
-
+#ifdef USE_PAM
+    if (retcode == UPAP_AUTHACK) {
+		/* Check the pam account settings */
+		if (check_pam_account_restrictions(ruser)) {
+			warn("User %q failed PAM account check", ruser);
+			retcode - UPAP_AUTHNAK;
+		}
+    }
+#endif 
     if (retcode == UPAP_AUTHACK) {
 	u->us_serverstate = UPAPSS_OPEN;
 	notice("PAP peer authentication succeeded for %q", rhostname);
@@ -455,6 +463,9 @@ upap_rauthreq(u, inp, id, len)
 	u->us_serverstate = UPAPSS_BADAUTH;
 	warn("PAP peer authentication failed for %q", rhostname);
 	auth_peer_fail(u->us_unit, PPP_PAP);
+#ifdef CONFIG_PROP_STATSD_STATSD
+	notify_login_failure(ruser);
+#endif
     }
 
     if (u->us_reqtimeout > 0)
@@ -498,7 +509,6 @@ upap_rauthack(u, inp, id, len)
 
     u->us_clientstate = UPAPCS_OPEN;
 
-    notice("PAP authentication succeeded");
     auth_withpeer_success(u->us_unit, PPP_PAP, 0);
 }
 

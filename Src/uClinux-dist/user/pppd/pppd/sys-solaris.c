@@ -27,16 +27,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -90,7 +85,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: sys-solaris.c,v 1.11 2003/04/07 00:01:46 paulus Exp $"
+#define RCSID	"$Id: sys-solaris.c,v 1.14 2005/05/04 21:31:20 carlsonj Exp $"
 
 #include <limits.h>
 #include <stdio.h>
@@ -107,6 +102,7 @@
 #endif
 #include <signal.h>
 #include <utmpx.h>
+#include <stropts.h>
 #include <sys/types.h>
 #include <sys/ioccom.h>
 #include <sys/stream.h>
@@ -198,7 +194,7 @@ static int	if6_is_up = 0;	/* IPv6 interface has been marked up */
 	eui64_copy(eui64, s->sin6_addr.s6_addr32[2]);	\
 	s->sin6_family = AF_INET6;		\
 	l.lifr_addr.ss_family = AF_INET6;	\
-	l.lifr_addrlen = 10;			\
+	l.lifr_addrlen = 64;			\
 	l.lifr_addr = laddr;			\
 	} while (0)
 

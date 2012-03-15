@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -33,7 +28,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: demand.c,v 1.17 2003/03/03 05:11:45 paulus Exp $"
+#define RCSID	"$Id: demand.c,v 1.2 2007-06-08 04:02:38 gerg Exp $"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,9 +44,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #ifdef PPP_FILTER
-#include <net/if.h>
-#include <net/bpf.h>
-#include <pcap.h>
+#include <pcap-bpf.h>
 #endif
 
 #include "pppd.h"
@@ -348,12 +341,15 @@ active_packet(p, len)
 	return 0;
     proto = PPP_PROTOCOL(p);
 #ifdef PPP_FILTER
-    if (pass_filter.bf_len != 0
-	&& bpf_filter(pass_filter.bf_insns, p, len, len) == 0)
+    p[0] = 1;		/* outbound packet indicator */
+    if ((pass_filter.bf_len != 0
+	 && bpf_filter(pass_filter.bf_insns, p, len, len) == 0)
+	|| (active_filter.bf_len != 0
+	    && bpf_filter(active_filter.bf_insns, p, len, len) == 0)) {
+	p[0] = 0xff;
 	return 0;
-    if (active_filter.bf_len != 0
-	&& bpf_filter(active_filter.bf_insns, p, len, len) == 0)
-	return 0;
+    }
+    p[0] = 0xff;
 #endif
     for (i = 0; (protp = protocols[i]) != NULL; ++i) {
 	if (protp->protocol < 0xC000 && (protp->protocol & ~0x8000) == proto) {

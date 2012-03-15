@@ -10,16 +10,11 @@
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The name(s) of the authors of this software must not be used to
+ * 2. The name(s) of the authors of this software must not be used to
  *    endorse or promote products derived from this software without
  *    prior written permission.
  *
- * 4. Redistributions of any form whatsoever must retain the following
+ * 3. Redistributions of any form whatsoever must retain the following
  *    acknowledgment:
  *    "This product includes software developed by Paul Mackerras
  *     <paulus@samba.org>".
@@ -33,7 +28,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: chap-new.c,v 1.3 2003/11/27 22:22:36 paulus Exp $"
+#define RCSID	"$Id: chap-new.c,v 1.8 2005/07/13 10:41:58 paulus Exp $"
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,13 +38,18 @@
 
 #ifdef CHAPMS
 #include "chap_ms.h"
+#define MDTYPE_ALL (MDTYPE_MICROSOFT_V2 | MDTYPE_MICROSOFT | MDTYPE_MD5)
+#else
+#define MDTYPE_ALL (MDTYPE_MD5)
 #endif
+
+int chap_mdtype_all = MDTYPE_ALL;
 
 /* Hook for a plugin to validate CHAP challenge */
 int (*chap_verify_hook)(char *name, char *ourname, int id,
 			struct chap_digest_type *digest,
 			unsigned char *challenge, unsigned char *response,
-			unsigned char *message, int message_space) = NULL;
+			char *message, int message_space) = NULL;
 
 /*
  * Option variables.
@@ -96,6 +96,7 @@ static struct chap_server_state {
 	int challenge_xmits;
 	int challenge_pktlen;
 	unsigned char challenge[CHAL_MAX_PKTLEN];
+	char message[256];
 } server;
 
 /* Values for flags in chap_client_state and chap_server_state */
@@ -119,7 +120,7 @@ static void chap_handle_response(struct chap_server_state *ss, int code,
 static int chap_verify_response(char *name, char *ourname, int id,
 		struct chap_digest_type *digest,
 		unsigned char *challenge, unsigned char *response,
-		unsigned char *message, int message_space);
+		char *message, int message_space);
 static void chap_respond(struct chap_client_state *cs, int id,
 		unsigned char *pkt, int len);
 static void chap_handle_status(struct chap_client_state *cs, int code, int id,
@@ -306,27 +307,23 @@ chap_handle_response(struct chap_server_state *ss, int id,
 {
 	int response_len, ok, mlen;
 	unsigned char *response, *p;
-	unsigned char *name = NULL;	/* initialized to shut gcc up */
+	char *name = NULL;	/* initialized to shut gcc up */
 	int (*verifier)(char *, char *, int, struct chap_digest_type *,
-		unsigned char *, unsigned char *, unsigned char *, int);
+		unsigned char *, unsigned char *, char *, int);
 	char rname[MAXNAMELEN+1];
-	unsigned char message[256];
 
 	if ((ss->flags & LOWERUP) == 0)
 		return;
 	if (id != ss->challenge[PPP_HDRLEN+1] || len < 2)
 		return;
-	if ((ss->flags & AUTH_DONE) == 0) {
-		if ((ss->flags & CHALLENGE_VALID) == 0)
-			return;
+	if (ss->flags & CHALLENGE_VALID) {
 		response = pkt;
 		GETCHAR(response_len, pkt);
 		len -= response_len + 1;	/* length of name */
-		name = pkt + response_len;
+		name = (char *)pkt + response_len;
 		if (len < 0)
 			return;
 
-		ss->flags &= ~CHALLENGE_VALID;
 		if (ss->flags & TIMEOUT_PENDING) {
 			ss->flags &= ~TIMEOUT_PENDING;
 			UNTIMEOUT(chap_timeout, ss);
@@ -346,39 +343,57 @@ chap_handle_response(struct chap_server_state *ss, int id,
 			verifier = chap_verify_response;
 		ok = (*verifier)(name, ss->name, id, ss->digest,
 				 ss->challenge + PPP_HDRLEN + CHAP_HDRLEN,
-				 response, message, sizeof(message));
+				 response, ss->message, sizeof(ss->message));
 		if (!ok || !auth_number()) {
 			ss->flags |= AUTH_FAILED;
 			warn("Peer %q failed CHAP authentication", name);
 		}
-	}
+#ifdef USE_PAM
+		if (!(ss->flags & AUTH_FAILED)) {
+			if (check_pam_account_restrictions(name)) {
+				ss->flags |= AUTH_FAILED;
+				warn("Peer %q failed PAM Account provisions", name);
+			}
+		}
+#endif 
+
+#ifdef CONFIG_PROP_STATSD_STATSD
+		if (ss->flags & AUTH_FAILED) {
+			notify_login_failure(name);
+		}
+#endif
+	} else if ((ss->flags & AUTH_DONE) == 0)
+		return;
 
 	/* send the response */
 	p = outpacket_buf;
 	MAKEHEADER(p, PPP_CHAP);
-	mlen = strlen(message);
+	mlen = strlen(ss->message);
 	len = CHAP_HDRLEN + mlen;
 	p[0] = (ss->flags & AUTH_FAILED)? CHAP_FAILURE: CHAP_SUCCESS;
 	p[1] = id;
 	p[2] = len >> 8;
 	p[3] = len;
 	if (mlen > 0)
-		memcpy(p + CHAP_HDRLEN, message, mlen);
+		memcpy(p + CHAP_HDRLEN, ss->message, mlen);
 	output(0, outpacket_buf, PPP_HDRLEN + len);
 
-	if ((ss->flags & AUTH_DONE) == 0) {
-		ss->flags |= AUTH_DONE;
+	if (ss->flags & CHALLENGE_VALID) {
+		ss->flags &= ~CHALLENGE_VALID;
 		if (ss->flags & AUTH_FAILED) {
 			auth_peer_fail(0, PPP_CHAP);
 		} else {
-			auth_peer_success(0, PPP_CHAP, ss->digest->code,
-					  name, strlen(name));
+			if ((ss->flags & AUTH_DONE) == 0)
+				auth_peer_success(0, PPP_CHAP,
+						  ss->digest->code,
+						  name, strlen(name));
 			if (chap_rechallenge_time) {
 				ss->flags |= TIMEOUT_PENDING;
 				TIMEOUT(chap_timeout, ss,
 					chap_rechallenge_time);
 			}
 		}
+		ss->flags |= AUTH_DONE;
 	}
 }
 
@@ -391,14 +406,14 @@ static int
 chap_verify_response(char *name, char *ourname, int id,
 		     struct chap_digest_type *digest,
 		     unsigned char *challenge, unsigned char *response,
-		     unsigned char *message, int message_space)
+		     char *message, int message_space)
 {
 	int ok;
-	char secret[MAXSECRETLEN];
+	unsigned char secret[MAXSECRETLEN];
 	int secret_len;
 
 	/* Get the secret that the peer is supposed to know */
-	if (!get_secret(0, name, ourname, secret, &secret_len, 1)) {
+	if (!get_secret(0, name, ourname, (char *)secret, &secret_len, 1)) {
 		error("No CHAP secret found for authenticating %q", name);
 		return 0;
 	}
@@ -500,6 +515,7 @@ chap_handle_status(struct chap_client_state *cs, int code, int id,
 		auth_withpeer_success(0, PPP_CHAP, cs->digest->code);
 	else {
 		cs->flags |= AUTH_FAILED;
+		error("CHAP authentication failed");
 		auth_withpeer_fail(0, PPP_CHAP);
 	}
 }
@@ -551,6 +567,7 @@ chap_protrej(int unit)
 	}
 	if ((cs->flags & (AUTH_STARTED|AUTH_DONE)) == AUTH_STARTED) {
 		cs->flags &= ~AUTH_STARTED;
+		error("CHAP authentication failed due to protocol-reject");
 		auth_withpeer_fail(0, PPP_CHAP);
 	}
 }

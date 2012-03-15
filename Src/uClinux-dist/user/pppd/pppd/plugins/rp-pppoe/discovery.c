@@ -9,7 +9,7 @@
 ***********************************************************************/
 
 static char const RCSID[] =
-"$Id: discovery.c,v 1.2 2004/01/13 04:03:58 paulus Exp $";
+"$Id: discovery.c,v 1.4 2005/03/22 10:22:32 paulus Exp $";
 
 #include "pppoe.h"
 
@@ -365,8 +365,8 @@ waitForPADO(PPPoEConnection *conn, int timeout)
 	if (!packetIsForMe(conn, &packet)) continue;
 
 	if (packet.code == CODE_PADO) {
-	    if (NOT_UNICAST(packet.ethHdr.h_source)) {
-		printErr("Ignoring PADO packet from non-unicast MAC address");
+	    if (BROADCAST(packet.ethHdr.h_source)) {
+		printErr("Ignoring PADO packet from broadcast MAC address");
 		continue;
 	    }
 	    parsePacket(&packet, parsePADOTags, &pc);
@@ -592,10 +592,6 @@ discovery(PPPoEConnection *conn)
     /* Skip discovery? */
     if (conn->skipDiscovery) {
 	conn->discoveryState = STATE_SESSION;
-	if (conn->killSession) {
-	    sendPADT(conn, "RP-PPPoE: Session killed manually");
-	    exit(0);
-	}
 	return;
     }
 
@@ -603,6 +599,8 @@ discovery(PPPoEConnection *conn)
 	padiAttempts++;
 	if (padiAttempts > MAX_PADI_ATTEMPTS) {
 	    warn("Timeout waiting for PADO packets");
+	    close(conn->discoverySocket);
+	    conn->discoverySocket = -1;
 	    return;
 	}
 	sendPADI(conn);
@@ -622,8 +620,7 @@ discovery(PPPoEConnection *conn)
 
     /* If we're only printing access concentrator names, we're done */
     if (conn->printACNames) {
-	printf("--------------------------------------------------\n");
-	exit(0);
+	die(0);
     }
 
     timeout = PADI_TIMEOUT;
@@ -631,6 +628,8 @@ discovery(PPPoEConnection *conn)
 	padrAttempts++;
 	if (padrAttempts > MAX_PADI_ATTEMPTS) {
 	    warn("Timeout waiting for PADS packets");
+	    close(conn->discoverySocket);
+	    conn->discoverySocket = -1;
 	    return;
 	}
 	sendPADR(conn);

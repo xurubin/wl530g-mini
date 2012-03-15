@@ -40,7 +40,7 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define RCSID	"$Id: options.c,v 1.1 2006/01/20 07:20:30 Eric1_Liu Exp $"
+#define RCSID	"$Id: options.c,v 1.22 2008-05-13 04:40:06 gerg Exp $"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -51,13 +51,26 @@
 #include <syslog.h>
 #include <string.h>
 #include <pwd.h>
-#ifdef PLUGIN
+#ifdef PLUGIN_DYNAMIC
 #include <dlfcn.h>
 #endif
+
 #ifdef PPP_FILTER
 #include <pcap.h>
-#include <pcap-int.h>	/* XXX: To get struct pcap */
+/*
+ * There have been 3 or 4 different names for this in libpcap CVS, but
+ * this seems to be what they have settled on...
+ * For older versions of libpcap, use DLT_PPP - but that means
+ * we lose the inbound and outbound qualifiers.
+ */
+#ifndef DLT_PPP_PPPD
+#ifdef DLT_PPP_WITHDIRECTION
+#define DLT_PPP_PPPD	DLT_PPP_WITHDIRECTION
+#else
+#define DLT_PPP_PPPD	DLT_PPP
 #endif
+#endif
+#endif /* PPP_FILTER */
 
 #include "pppd.h"
 #include "pathnames.h"
@@ -65,7 +78,6 @@
 #if defined(ultrix) || defined(NeXT)
 char *strdup __P((char *));
 #endif
-bool tx_only;			/* JYWeng 20031216: idle time counting on tx traffic */
 
 static const char rcsid[] = RCSID;
 
@@ -78,11 +90,8 @@ struct option_value {
 /*
  * Option variables and default values.
  */
-#ifdef PPP_FILTER
-int	dflag = 0;		/* Tell libpcap we want debugging */
-#endif
-int	debug = 1;		/* Debug flag */
-int	kdebugflag = 1;		/* Tell kernel to print debug messages */
+int	debug = 0;		/* Debug flag */
+int	kdebugflag = 0;		/* Tell kernel to print debug messages */
 int	default_device = 1;	/* Using /dev/tty or equivalent */
 char	devnam[MAXPATHLEN];	/* Device name */
 bool	nodetach = 0;		/* Don't detach from controlling tty */
@@ -93,6 +102,8 @@ char	passwd[MAXSECRETLEN];	/* Password for PAP */
 bool	persist = 0;		/* Reopen link after it goes down */
 char	our_name[MAXNAMELEN];	/* Our name for authentication purposes */
 bool	demand = 0;		/* do dial-on-demand */
+char	*ip_up = NULL;		/* user defined ip-up script */
+char	*ip_down = NULL;	/* user defined ip-down script */
 char	*ipparam = NULL;	/* Extra parameter for ip up/down scripts */
 int	idle_time_limit = 0;	/* Disconnect if idle for this many seconds */
 int	holdoff = 30;		/* # seconds to pause before reconnecting */
@@ -109,6 +120,11 @@ char	*bundle_name = NULL;	/* bundle name for multilink */
 bool	dump_options;		/* print out option values */
 bool	dryrun;			/* print out option values and exit */
 char	*domain;		/* domain name set by domain option */
+int	child_wait = 5;		/* # seconds to wait for children at exit */
+
+u_int32_t	metric = 0;	/* the metric to set the host route to */
+u_int32_t	drmetric = 0;	/* the default route metric to set */
+char	pid_file[MAXNAMELEN];	/* name of our pid file */
 
 #ifdef MAXOCTETS
 unsigned int  maxoctets = 0;    /* default - no limit */
@@ -123,7 +139,6 @@ extern struct stat devstat;
 #ifdef PPP_FILTER
 struct	bpf_program pass_filter;/* Filter program for packets to pass */
 struct	bpf_program active_filter; /* Filter program for link-active pkts */
-pcap_t  pc;			/* Fake struct pcap so we can compile expr */
 #endif
 
 char *current_option;		/* the name of the option being parsed */
@@ -177,6 +192,14 @@ static struct option_list *extra_options = NULL;
  * Valid arguments.
  */
 option_t general_options[] = {
+    { "metric", o_uint32, &metric,
+      "Set host route metric.", 1 },
+    { "drmetric", o_uint32, &drmetric,
+      "Set default route metric.", 1 },
+    { "pidfile", o_string, pid_file,
+      "File to write PPPD pid into.",
+      OPT_PRIV | OPT_STATIC, NULL, MAXNAMELEN },
+
     { "debug", o_int, &debug,
       "Increase debugging level", OPT_INC | OPT_NOARG | 1 },
     { "-d", o_int, &debug,
@@ -195,7 +218,8 @@ option_t general_options[] = {
       OPT_PRIOSUB | OPT_A2CLR | 1, &nodetach },
 
     { "holdoff", o_int, &holdoff,
-      "Set time in seconds before retrying connection", OPT_PRIO },
+      "Set time in seconds before retrying connection",
+      OPT_PRIO, &holdoff_specified },
 
     { "idle", o_int, &idle_time_limit,
       "Set time in seconds before disconnecting idle link", OPT_PRIO },
@@ -267,6 +291,10 @@ option_t general_options[] = {
     { "dryrun", o_bool, &dryrun,
       "Stop after parsing, printing, and checking options", 1 },
 
+    { "child-timeout", o_int, &child_wait,
+      "Number of seconds to wait for child processes at exit",
+      OPT_PRIO },
+
 #ifdef HAVE_MULTILINK
     { "multilink", o_bool, &multilink,
       "Enable multilink operation", OPT_PRIO | 1 },
@@ -287,13 +315,10 @@ option_t general_options[] = {
 #endif
 
 #ifdef PPP_FILTER
-    { "pdebug", o_int, &dflag,
-      "libpcap debugging", OPT_PRIO },
-
-    { "pass-filter", 1, setpassfilter,
+    { "pass-filter", o_special, setpassfilter,
       "set filter for packets to pass", OPT_PRIO },
 
-    { "active-filter", 1, setactivefilter,
+    { "active-filter", o_special, setactivefilter,
       "set filter for active pkts", OPT_PRIO },
 #endif
 
@@ -309,10 +334,6 @@ option_t general_options[] = {
     { "mo-timeout", o_int, &maxoctets_timeout,
       "Check for traffic limit every N seconds", OPT_PRIO | OPT_LLIMIT | 1 },
 #endif
-
-/* JYWeng 20031216: add for tx_only option*/
-    { "tx_only", o_bool, &tx_only,
-      "set idle time counting on tx_only or not", 1 },
 
     { NULL }
 };
@@ -392,16 +413,20 @@ options_from_file(filename, must_exist, check_prot, priv)
     option_t *opt;
     int oldpriv, n;
     char *oldsource;
+    uid_t euid;
     char *argv[MAXARGS];
     char args[MAXARGS][MAXWORDLEN];
     char cmd[MAXWORDLEN];
 
-    if (check_prot)
-	seteuid(getuid());
+    euid = geteuid();
+    if (check_prot && seteuid(getuid()) == -1) {
+	option_error("unable to drop privileges to open %s: %m", filename);
+	return 0;
+    }
     f = fopen(filename, "r");
     err = errno;
-    if (check_prot)
-	seteuid(0);
+    if (check_prot && seteuid(euid) == -1)
+	fatal("unable to regain privileges");
     if (f == NULL) {
 	errno = err;
 	if (!must_exist) {
@@ -1444,13 +1469,18 @@ static int
 setpassfilter(argv)
     char **argv;
 {
-    pc.linktype = DLT_PPP;
-    pc.snapshot = PPP_HDRLEN;
- 
-    if (pcap_compile(&pc, &pass_filter, *argv, 1, netmask) == 0)
-	return 1;
-    option_error("error in pass-filter expression: %s\n", pcap_geterr(&pc));
-    return 0;
+    pcap_t *pc;
+    int ret = 1;
+
+    pc = pcap_open_dead(DLT_PPP_PPPD, 65535);
+    if (pcap_compile(pc, &pass_filter, *argv, 1, netmask) == -1) {
+	option_error("error in pass-filter expression: %s\n",
+		     pcap_geterr(pc));
+	ret = 0;
+    }
+    pcap_close(pc);
+
+    return ret;
 }
 
 /*
@@ -1460,13 +1490,18 @@ static int
 setactivefilter(argv)
     char **argv;
 {
-    pc.linktype = DLT_PPP;
-    pc.snapshot = PPP_HDRLEN;
- 
-    if (pcap_compile(&pc, &active_filter, *argv, 1, netmask) == 0)
-	return 1;
-    option_error("error in active-filter expression: %s\n", pcap_geterr(&pc));
-    return 0;
+    pcap_t *pc;
+    int ret = 1;
+
+    pc = pcap_open_dead(DLT_PPP_PPPD, 65535);
+    if (pcap_compile(pc, &active_filter, *argv, 1, netmask) == -1) {
+	option_error("error in active-filter expression: %s\n",
+		     pcap_geterr(pc));
+	ret = 0;
+    }
+    pcap_close(pc);
+
+    return ret;
 }
 #endif
 
@@ -1493,15 +1528,19 @@ setlogfile(argv)
     char **argv;
 {
     int fd, err;
+    uid_t euid;
 
-    if (!privileged_option)
-	seteuid(getuid());
+    euid = geteuid();
+    if (!privileged_option && seteuid(getuid()) == -1) {
+	option_error("unable to drop permissions to open %s: %m", *argv);
+	return 0;
+    }
     fd = open(*argv, O_WRONLY | O_APPEND | O_CREAT | O_EXCL, 0644);
     if (fd < 0 && errno == EEXIST)
 	fd = open(*argv, O_WRONLY | O_APPEND);
     err = errno;
-    if (!privileged_option)
-	seteuid(0);
+    if (!privileged_option && seteuid(euid) == -1)
+	fatal("unable to regain privileges: %m");
     if (fd < 0) {
 	errno = err;
 	option_error("Can't open log file %s: %m", *argv);
@@ -1512,7 +1551,7 @@ setlogfile(argv)
 	close(logfile_fd);
     logfile_fd = fd;
     log_to_fd = fd;
-    //log_default = 0; Chen-I
+    log_default = 0;
     return 1;
 }
 
@@ -1538,68 +1577,58 @@ setmodir(argv)
 
 #ifdef PLUGIN
 
+#ifdef PLUGIN_TACACS
+extern void tacacs_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_RADIUS
+extern void radius_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_PPPOE
+extern void pppoe_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_PPPOA
+extern void pppoa_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_MINCONN
+extern void minconn_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_PASSPROMPT
+extern void passprompt_plugin_init __P((void));
+#endif
+#ifdef PLUGIN_PASSWORDFD
+extern void passwordfd_plugin_init __P((void));
+#endif
+ 
 static int
 loadplugin(argv)
     char **argv;
 {
+#ifdef PLUGIN_DYNAMIC
     char *arg = *argv;
-#ifdef EMBED
-	char *name;
-#else
     void *handle;
     const char *err;
-#endif
     void (*init) __P((void));
+    char *path = arg;
+    const char *vers;
 
-#ifdef EMBED
-    /* Just get the basename of the library since we don't care
-     * about the path for statically linking it. */
-    name = strrchr(arg, '/');
-    if (name != 0) {
-	arg = name+1;
+    if (strchr(arg, '/') == 0) {
+	const char *base = _PATH_PLUGIN;
+	int l = strlen(base) + strlen(arg) + 2;
+	path = malloc(l);
+	if (path == 0)
+	    novm("plugin file path");
+	strlcpy(path, base, l);
+	strlcat(path, "/", l);
+	strlcat(path, arg, l);
     }
-    if (strlen(arg) > 3 && strcmp(arg+strlen(arg)-3, ".so")==0) {
-	arg[strlen(arg)-3] = '\0';
-    }
-#ifdef PLUGIN_TACACS
-    if (strcmp(arg, "tacacs") == 0) {
-	init = tacacs_plugin_init;
-    } else
-#endif
-#ifdef PLUGIN_RADIUS
-    if (strcmp(arg, "radius") == 0) {
-	init = radius_plugin_init;
-    } else
-#endif
-#ifdef PLUGIN_PPPOE
-    if(strstr(arg, "rp-pppoe")) {
-	pppoe_plugin_init();
-    } else
-#endif /*PLUGIN_PPPOE*/
-#ifdef PLUGIN_L2TP
-    if(strstr(arg, "l2tp")) {
-	l2tp_plugin_init();
-    } else
-#endif /*PLUGIN_L2TP*/
-    {
-	option_error("Couldn't load plugin %s", arg);
-	return 0;
-    }
-#else
-    handle = dlopen(arg, RTLD_GLOBAL | RTLD_NOW);
+    handle = dlopen(path, RTLD_GLOBAL | RTLD_NOW);
     if (handle == 0) {
 	err = dlerror();
 	if (err != 0)
 	    option_error("%s", err);
 	option_error("Couldn't load plugin %s", arg);
-	return 0;
+	goto err;
     }
-    init = dlsym(handle, "plugin_init");
-    if (init == 0) {
-	option_error("%s has no initialization entry point", arg);
-	dlclose(handle);
-
-
     init = (void (*)(void))dlsym(handle, "plugin_init");
     if (init == 0) {
 	option_error("%s has no initialization entry point", arg);
@@ -1615,16 +1644,77 @@ loadplugin(argv)
     }
     info("Plugin %s loaded.", arg);
     (*init)();
-#endif
     return 1;
 
  errclose:
-#ifndef EMBED
     dlclose(handle);
  err:
     if (path != arg)
 	free(path);
-#endif
     return 0;
+#else
+    char *arg = *argv;
+    void (*init) __P((void));
+    char *name;
+
+    /* Just get the basename of the library since we don't care
+     * about the path when statically linked. */
+    name = strrchr(arg, '/');
+    if (name != 0) {
+        arg = name+1;
+    }
+    if (strlen(arg) > 3 && strcmp(arg+strlen(arg)-3, ".so")==0) {
+        arg[strlen(arg)-3] = '\0';
+    }
+
+#ifdef PLUGIN_TACACS
+    if (strcmp(arg, "tacacs") == 0) {
+        init = tacacs_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_RADIUS
+    if (strcmp(arg, "radius") == 0) {
+        init = radius_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_PPPOE
+    if(strcmp(arg, "pppoe") == 0) {
+        init = pppoe_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_PPPOA
+    if(strcmp(arg, "pppoa") == 0) {
+        init = pppoa_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_MINCONN
+    if(strcmp(arg, "minconn") == 0) {
+        init = minconn_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_PASSPROMPT
+    if(strcmp(arg, "passprompt") == 0) {
+        init = passprompt_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_PASSWORDFD
+    if(strcmp(arg, "passwordfd") == 0) {
+        init = passwordfd_plugin_init;
+    } else
+#endif
+#ifdef PLUGIN_WINBIND
+    if(strcmp(arg, "winbind") == 0) {
+        init = winbind_plugin_init;
+    } else
+#endif
+    {
+        option_error("Couldn't load plugin %s", arg);
+        return 0;
+    }
+
+    info("Plugin %s loaded.", arg);
+    (*init)();
+    return 1;
+#endif /* PLUGIN_DYNAMIC */
 }
 #endif /* PLUGIN */
