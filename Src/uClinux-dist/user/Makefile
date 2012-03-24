@@ -302,6 +302,7 @@ dir_$(CONFIG_USER_TRACEROUTE_TRACEROUTE)    += traceroute
 dir_$(CONFIG_USER_TRIPWIRE_SIGGEN)          += tripwire
 dir_$(CONFIG_USER_TRIPWIRE_TRIPWIRE)        += tripwire
 dir_$(CONFIG_USER_UCDSNMP_SNMPD)            += ucdsnmp
+dir_$(CONFIG_USER_UHTTPD_UHTTPD)            += uhttpd
 dir_$(CONFIG_USER_USBCBI_USBCBI)            += cbi_client
 dir_$(CONFIG_USER_USBISO_USBISO)            += iso_client
 dir_$(CONFIG_USER_VERSION_VERSION)          += version

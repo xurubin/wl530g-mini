@@ -336,7 +336,7 @@ if [ "$CONFIG_USER_MINI_HTTPD_MINI_HTTPD" = "y" ]; then
 		define_bool	CONFIG_LIB_LIBSSL y
 	fi
 fi
-
+bool 'uhttpd'                   CONFIG_USER_UHTTPD_UHTTPD
 bool 'mini_upnpd'		CONFIG_USER_MINIUPNPD
 bool 'msntp'			CONFIG_USER_MSNTP_MSNTP
 bool 'netstat'			CONFIG_USER_ROUTE_NETSTAT
