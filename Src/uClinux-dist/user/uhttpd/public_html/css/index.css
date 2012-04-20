@@ -1,0 +1,120 @@
+html {
+	margin: 0;
+}
+
+body {
+	margin: 50px auto;
+	width: 800px;
+	background-color: #888888;
+}
+
+button {
+	display:inline;
+	float: left;
+}
+
+h5 {
+	margin: 10px 0 0;
+}
+#web_area {
+	width: 100%;
+	height: 100%;
+	background-color: #DDDDDD;
+}
+
+#config_area {
+	background-color: #FFFFFF;
+	padding: 10px;
+	width: 60%;
+	float: left;
+	display: inline;
+}
+
+#control_area {
+	padding: 10px;
+	width: 35%;
+	height:0;
+	float: left;
+	display: inline;
+}
+
+div.clear{
+	width:100%;
+	height:0px;
+	clear:both;
+}
+
+#control_panel {
+	width: 260px;
+	position: fixed;
+	background-color: #FFFFFF;
+	padding: 5px;
+	border-radius: 15px;
+}
+
+.config_item {
+	padding: 5px 10px 30px;
+	margin: 5px 0px;
+	border: 1px solid #D4D4D4;
+}
+
+/* The order of CSS classes decides which one overwrites another */
+.config_item_highlighted {
+	border-color:#000000;
+}
+
+.config_item_bad {
+	border: 3px solid #FF2222;
+}
+
+.config_item_light {
+	background-color: #FFFFFF;
+}
+
+.config_item_dark {
+	background-color: #DDDDDD;
+}
+
+.config_name {
+	font-weight: bold;
+}
+
+.config_input {
+	background-color: #FFFFDD;
+	border: 1px dotted #404040;
+}
+
+.config_input_changed {
+	background-color: #DDFFDD;
+}
+.config_errmsg {
+	color: #FF0000;
+	width: 100%;
+	font-weight: bold;
+}
+
+.config_tooltip {
+	font-size:14px;
+	display:block;
+}
+
+#ChangedConfigPanel {
+	background-color:#FFFFFF;
+	margin: 0;
+}
+
+.progressbar {
+	height: 16px;
+}
+
+button#UploadTemplate {
+	margin: 0;
+	display:block;
+	float: none;
+	clear: both;
+}
+
+button.btnShellCmd {
+	width: 70%;
+	margin: 5px auto;
+}

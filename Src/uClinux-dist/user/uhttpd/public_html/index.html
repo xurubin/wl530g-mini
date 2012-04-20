@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>
+Router Admin
+</title>
+
+<link rel="stylesheet" href="css/start/jquery-ui-1.8.18.custom.css" type="text/css" media="all" />
+<link rel="stylesheet" href="css/index.css" type="text/css" media="all" />
+<link rel="stylesheet" href="css/fileuploader.css" type="text/css">
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+<script type="text/javascript" src="fileuploader.js" ></script>
+
+<script>
+function mkConfig(default_value, validator, description, value, old_value) {
+	return {default_value	: default_value,
+    		validator		: validator,
+    		description		: description,
+    		value			: value,
+    		old_value		: old_value};
+}
+var configs = { 
+"subnet_ip_prefix" : mkConfig("192.168.222", /^\d*\.\d*\.\d*$/, "Router's subnet address", "", ""),
+"router_ipaddr"    : mkConfig("1", /^\d*$/, "Router's ip address/24 without the subnet prefix", "", ""),
+"admin_username"   : mkConfig("admin", null, "Administrator's username", "", ""), 
+"admin_password"   : mkConfig("wbr204g", null, "Administrator's password", "", ""),
+};
+
+var index = 0;
+function create_config_entry(config_name, config_default, config_validator, config_tooltip) {
+	var widget = $('#config_area_template').clone()
+	
+	widget.find("#config_template_input").each(function() {
+		$(this).attr({ 'name' : config_name });
+	});
+	
+	widget.find("#config_template_name").each(function() {
+		$(this).text(config_name);
+	});
+
+	widget.find("#config_template_tooltip").each(function() {
+		$(this).text(config_tooltip);
+	});
+
+	if (!(index % 2))
+		widget.addClass("config_item_dark");
+	else
+		widget.addClass("config_item_light");
+	widget.show();
+	widget.appendTo('#config_area');
+	
+	index++;
+}
+
+function updateControlPanel() {
+	$('#ChangedConfigs').html('');
+	for (var key in configs) {
+		if (configs[key].value != configs[key].old_value) {
+			$('#ChangedConfigs').html($('#ChangedConfigs').html() + key + '<br />');
+		}
+	}
+}
+
+function dictLen(dict) {
+	var c = 0;
+	for (var key in dict)
+		c++;
+	return c;
+}
+		
+function reloadConfigs() {
+	setConfiguringProgress(0);
+	var count = dictLen(configs);
+	var progress = 0;
+	
+	$(".config_input").each(function() {
+		var cfg_name = $(this).attr('name');
+		var cfg = configs[cfg_name];
+		var cfg_widget = $(this).parent();
+		$.ajax({
+			type: "GET",
+			url: "config/get/" + cfg_name,
+  			success: function (var_result, textStatus) {
+  				progress++;
+  				setConfiguringProgress(100 * progress / count);
+  				var var_input = cfg_widget.children("input");
+  				if (var_result["status"] == "ok")
+  				{
+  					var value = var_result["value"];
+  					cfg.old_value = value;
+  					if (value == null)
+  						value = cfg.default_value;
+  					cfg.value = value;
+
+					if (cfg.value != cfg.old_value)
+						var_input.addClass("config_input_changed");
+					else
+						var_input.removeClass("config_input_changed");
+  					cfg_widget.children("#config_template_stored").text(cfg.old_value);
+  					var_input.val(value);
+  					updateControlPanel();
+  				}
+  				else
+  				{
+  					var_input.val("Invalid configuration variable name.");
+  				}
+  			},
+  			error: function () {
+  				alert("Cannot load variable " + cfg_name);
+  			},
+		});
+	});
+	setTimeout( "reloadSpaces();",1000 );
+}
+
+function applyConfigs() {
+	var count = 0;
+	for (var key in configs) {
+		if (configs[key].value != configs[key].old_value)
+			count++;
+	}		
+	var progress = 0;
+	if (count == 0)
+		setConfiguringProgress(100);
+	else
+		setConfiguringProgress(0);
+		
+	for (var key in configs) {
+		if (configs[key].value != configs[key].old_value) {
+			$.ajax({
+				type: "POST",
+				data: {variable: key, value:configs[key].value },
+				url: "config/set/" + key,
+				key: key, 
+	  			success: function (var_result, textStatus) {
+	  				var cur_key = this.key;
+	  				progress++;
+	  				setConfiguringProgress(progress * 100 / count);
+	  				if (var_result["status"] == "ok")
+	  				{
+	  					var var_input = $('input[name="' + cur_key + '"]');
+	  					var new_value = var_result["value"];
+	  					configs[cur_key].old_value = new_value;
+	  					configs[cur_key].value = new_value;
+						var_input.removeClass("config_input_changed");
+  						var_input.siblings("#config_template_stored").first().text(configs[cur_key].old_value);
+  						var_input.val(configs[cur_key].value);
+  						updateControlPanel();
+	  				}
+	  				else
+	  				{
+	  					alert("Cannot set variable " + cur_key + ", error message: " + var_result["status"]);
+	  				}
+	  			}
+	  		});
+		}
+	}
+}
+
+function setConfiguringProgress(pctg) {
+	$("#ConfigProgressBar").progressbar({ value: pctg });
+}
+
+function showModalDialog(content, title) {
+	$("#ModalDialog").html("<pre>" + content + "</pre>");
+	$("#ModalDialog").dialog({
+			modal: true,
+			title: title,
+			buttons: {
+				Ok: function() {
+					$( this ).dialog( "close" );
+				}
+			}
+	});
+}
+
+function reloadSpaces() {
+	$.ajax({
+		type: "GET",
+		url: "status",
+		success: function (result, textStatus) {
+			$("#ConfigSpaceBar").progressbar({ value: 100 * result['config_cur'] / result['config_max'] });
+			$("#ConfigSpaceText").text(result['config_cur'] + " / " + result['config_max']);
+			$("#TemplateSpaceBar").progressbar({ value: 100 * result['template_cur'] / result['template_max'] });
+			$("#TemplateSpaceText").text(result['template_cur'] + " / " + result['template_max']);
+		},
+		error: function () {
+			alert("Cannot get device status.");
+		},
+	});
+}
+$(document).ready(function(){
+	var template_widget = $("#config_area_template");
+	for (var key in configs) {
+    	create_config_entry(key, configs[key].default_value, configs[key].validator, configs[key].description);
+    }
+    template_widget.remove();
+    
+	$(".config_item").hover(function () {
+		$(this).addClass("config_item_highlighted");
+	}, function () {
+		$(this).removeClass("config_item_highlighted");
+	});
+	
+	$(".config_input").change(function () {
+		var cfg_name = $(this).attr('name');
+		var cfg = configs[cfg_name];
+		var value = $(this).val();
+		if ((cfg.validator != null) && (!value.match(cfg.validator)))
+		{
+			$(this).parent().addClass("config_item_bad");
+			var err_msg = $(this).siblings("#config_template_errmsg").first();
+			err_msg.text("Invalid value for " + cfg_name + ": " + value + " does not match " + cfg.validator);
+			err_msg.slideDown(400);
+		}
+		else
+		{
+			cfg.value = value;
+			$(this).parent().removeClass("config_item_bad");
+			$(this).siblings("#config_template_errmsg").slideUp(400);
+			if (cfg.value != cfg.old_value)
+				$(this).addClass("config_input_changed");
+			else
+				$(this).removeClass("config_input_changed");
+		}
+		updateControlPanel();
+	});
+	
+		
+	$("#SubmitConfig").click(function () {
+		applyConfigs();
+	});
+	$("#ReloadConfig").click(function () {
+		reloadConfigs();
+	});
+
+	$("button.btnShellCmd").click(function () {
+		var cmd = $(this).attr('name');
+		$.ajax({
+			type: "GET",
+			url: "control/" + cmd,
+  			success: function (var_result, textStatus) {
+  				showModalDialog(var_result, cmd);
+  			},
+  			error: function () {
+  				showModalDialog("Cannot execute command:\n" + cmd, "Error");
+  			},
+  		});
+		
+	});
+	var uploader = new qq.FileUploader({
+		element: document.getElementById('template-uploader'),
+		action: 'control/upload_config_template',
+		debug: true
+	});           
+
+	reloadConfigs();	
+});
+</script>
+
+</head>
+
+<body>
+<h1>Router Web Admin Interface</h1>
+<div id="ModalDialog"></div>
+<div id="web_area">
+<div id="config_area">
+	<div id="config_area_template" class="config_item">
+		<label id="config_template_name" class="config_name">Configuration Name:</label>
+		<label id="config_template_stored" class="config_stored"></label>
+		<br />
+		<input id="config_template_input" style="width:100%" class="config_input"/>
+		<label id="config_template_errmsg" style="display:none" class="config_errmsg">Error message</label>
+		<label id="config_template_tooltip" class="config_tooltip">Helper text for this configuration.</label>
+	</div>
+</div>
+<div id="control_area">
+	<div id="control_panel">
+		<div id="ChangedConfigPanel">
+			<h3>Changed Configurations:</h3>
+			<label id="ChangedConfigs"></label>
+			<br />
+			<button id="SubmitConfig">Apply Changes</button>
+			<button id="ReloadConfig">Reload Configs</button>
+			<div class="clear"></div>
+			<div id="ConfigProgressBar" class="progressbar"></div>
+		</div>
+		
+		<div id="FlashSpace">
+		<h3>
+			<label style="float:left">Flash Usage</label><button onclick="javascript:reloadSpaces()">?</button>
+		</h3>
+		<br />
+			<h5>Config Space:</h5>
+			<label id="ConfigSpaceText"></label>
+			<div id="ConfigSpaceBar" class="progressbar"></div>
+			<h5>Template Space:</h5>
+			<label id="TemplateSpaceText"></label>
+			<div id="TemplateSpaceBar" class="progressbar"></div>
+		</div>
+		
+		<div id="Controls">
+			<h3>Device Controls</h3>
+			<div id="template-uploader"></div>
+			<a href="control/get_config_template" >Download Current Template</a>
+			<br />
+			<br />
+			<button id="DisplayDeviceMsg" name="cat_messages" class="btnShellCmd">Display Device Messages</button>
+			<br />
+			<button id="DisplayPS" name="ps" class="btnShellCmd">Display Process List</button>
+			<br />
+			<button id="DisplayFree" name="cat_free" class="btnShellCmd">Display Free Mem</button>
+			<br />
+			<button id="Reboot" name="reboot" class="btnShellCmd">Reboot Device</button>
+		</div>
+	</div>
+</div>
+<div class="clear"></div>
+</div>
+</body>
+</html>

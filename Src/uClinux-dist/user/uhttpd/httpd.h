@@ -22,7 +22,7 @@ struct mime_handler {
 	char *mime_type;
 	char *extra_header;
 	void (*input)(char *path, FILE *stream, int len, char *boundary);
-	void (*output)(char *path, FILE *stream);
+	int  (*output)(char *path, FILE *stream);
 	void (*auth)(char *userid, char *passwd, char *realm);
 };
 extern struct mime_handler mime_handlers[];
@@ -30,9 +30,6 @@ extern struct mime_handler mime_handlers[];
 /* CGI helper functions */
 extern void init_cgi(char *query);
 extern char * get_cgi(char *name);
-
-/* Regular file handler */
-extern void do_file(char *path, FILE *stream);
 
 /* GoAhead 2.1 compatibility */
 typedef FILE * webs_t;
