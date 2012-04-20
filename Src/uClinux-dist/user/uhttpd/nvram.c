@@ -1,11 +1,14 @@
-#define MOCK_NVRAM
+//#define MOCK_NVRAM
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #ifndef MOCK_NVRAM
-#include <mtd.h>
+#include <sys/ioctl.h>
+//#include <sys/types.h>
+//#include <sys/stat.h>
+#include <linux/mtd/mtd.h>
 #endif
 #include "nvram.h"
 
@@ -20,7 +23,7 @@ NVRAM flash[2] =
 #ifdef MOCK_NVRAM
 {{"config.nvram", 128, 1}, {"template.nvram", 0x2000, 1}};
 #else
-{{"/dev/mtdblock4", 0x2000, 1}, {"/dev/mtdblock5", 0x2000, 1}};
+{{"/dev/mtdblock2", 0x2000, 1}, {"/dev/mtdblock3", 0x2000, 1}};
 #endif
 
 int reloadNVRAM(int nvram)
@@ -77,7 +80,7 @@ int getNVRAMSize(int nvram)
 
 int writeNVRAM(int nvram, const char* data, int start, int size)
 {
-	int i;
+        int i, f;
 	if (start + size >= flash[nvram].size)
 		return 0;
 	for(i=0; i<size; i++)
@@ -86,7 +89,7 @@ int writeNVRAM(int nvram, const char* data, int start, int size)
 		if ((char)((~flash[nvram].cache[start + i]) & data[i]))
 			return 0;
 	}
-	int f = open(flash[nvram].devicename, O_WRONLY);
+	f = open(flash[nvram].devicename, O_WRONLY);
 	lseek(f, start,  SEEK_SET);
 	for(i=0; i<size; i++)
 	{
@@ -104,9 +107,13 @@ int writeNVRAM(int nvram, const char* data, int start, int size)
 
 int eraseNVRAM(int nvram)
 {
-	char data;
 	int fd;
 	int i;
+#ifndef MOCK_NVRAM
+	struct mtd_info_user mtdInfo;
+	struct erase_info_user mtdEraseInfo;
+#endif
+
 #ifdef MOCK_NVRAM
 	fd = open(flash[nvram].devicename, O_RDWR | O_CREAT | O_SYNC);
 #else
@@ -118,9 +125,6 @@ int eraseNVRAM(int nvram)
 	}
 
 #ifndef MOCK_NVRAM
-	struct mtd_info_user mtdInfo;
-	struct erase_info_user mtdEraseInfo;
-
 	if(ioctl(fd, MEMGETINFO, &mtdInfo)) {
 		printf(stderr, "Could not get MTD device info from %s\n", flash[nvram].devicename);
 		close(fd);
@@ -129,7 +133,7 @@ int eraseNVRAM(int nvram)
 
 	if (flash[nvram].size != mtdInfo.size)
 	{
-		printf("Flash geometry mismatch: %s %d %d.\n", flash[nvram].devicename, flash[nvram].size, mtdInfo.size)
+                printf("Flash geometry mismatch: %s %d %d.\n", flash[nvram].devicename, flash[nvram].size, mtdInfo.size);
 		exit(1);
 		return 0;
 	}
@@ -257,9 +261,12 @@ int nvram_set_variable(const char* variable_name, const char* content)
 	{
 		int used = getNVRAMUsedBytes(NVRAM_CONFIG);
 		char data[MAX_NVRAM_BLOCK_SIZE];
-		memcpy(data, readNVRAM(NVRAM_CONFIG, 0, 0), used);
 		int var_idx = 0;
 		int seen;
+		int cur_content;
+		int written = 0;
+		const char *cur_content_ptr;
+		memcpy(data, readNVRAM(NVRAM_CONFIG, 0, 0), used);
 
 		while(var_idx < used)
 		{
@@ -280,9 +287,6 @@ int nvram_set_variable(const char* variable_name, const char* content)
 
 		// erase NVRAM and write back existing variables
 		eraseNVRAM(NVRAM_CONFIG);
-		int cur_content;
-		int written = 0;
-		const char *cur_content_ptr;
 		for(i=0; i<var_count; i++)
 		{
 			cur_content = existing_variables[i];

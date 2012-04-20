@@ -4,7 +4,7 @@
 #include "nvram.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define WWWROOT_DIR "./public_html/"
+#define WWWROOT_DIR "/www/"
 void
 do_auth(char *userid, char *passwd, char *realm)
 {

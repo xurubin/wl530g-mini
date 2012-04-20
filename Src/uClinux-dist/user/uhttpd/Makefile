@@ -30,3 +30,6 @@ install: all
 # httpd: httpd.o ej.o cgi.o web_ex.o ../shared/shutils.o common.o nvram_f.o nvmap.o utility.o ../shared/nvram_linux.o ../netconf/netconf_linux.o
 httpd: httpd.o dispatcher.o handlers.o nvram.o
 	$(CC) -o $@ $^ $(LDFLAGS) #../iptables/libiptc/libiptc.a -lnvram -lshared -lnetconf
+romfs:
+	$(ROMFSINST) /bin/httpd
+	$(ROMFSINST) public_html /www
