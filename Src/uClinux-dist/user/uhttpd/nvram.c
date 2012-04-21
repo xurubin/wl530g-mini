@@ -151,9 +151,9 @@ int eraseNVRAM(int nvram)
 		}
 	}
 #else
-	data = 0xFF;
+	fd = 0xFF;
 	for(i=0; i < getNVRAMSize(nvram); i++)
-		write(fd, &data, 1);
+		write(fd, &fd, 1);
 #endif
 	close(fd);
 
