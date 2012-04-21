@@ -240,15 +240,51 @@ int do_control_get(char *path, FILE *stream)
 
 void do_parse_fileupload(char *url, FILE *stream, int len, char *boundary)
 {
-	pbuf_clear();
-	pbuf_ptr = len;
+	char buf[1024];
+	int boundary_len = strlen(boundary);
+
+	/* Look for our part */
+	while (len > 0) {
+		if (!fgets(buf, MIN(len + 1, sizeof(buf)), stream)) {
+			goto err;
+		}
+
+		len -= strlen(buf);
+
+		if (!strncasecmp(buf, "Content-Disposition:", 20)
+				&& strstr(buf, "name=\"file\""))
+			break;
+	}
+
+	/* Skip boundary and headers */
+	while (len > 0) {
+		if (!fgets(buf, MIN(len + 1, sizeof(buf)), stream)) {
+			goto err;
+		}
+		len -= strlen(buf);
+		if (!strcmp(buf, "\n") || !strcmp(buf, "\r\n")) {
+			break;
+		}
+	}
+
+	err:
+
+    pbuf_clear();
 	fread(post_buf, 1, len, stream);
+
+	// Finding trailing boundary and remove it.
+	for(pbuf_ptr = len - boundary_len;pbuf_ptr;pbuf_ptr--)
+		if(!strncmp(boundary, post_buf + pbuf_ptr, boundary_len))
+			break;
+	// Remove the \r\n before boundary
+	if (pbuf_ptr)
+	pbuf_ptr -= 2;
 }
 
 int verify_template_file(char* buf, int len)
 {
 	// Check ZIP file header.
-	return ((int*)buf)[0] == 0x04034b50;
+	return len > 4 && ((int*)buf)[0] == 0x04034b50;
 }
 
 int do_upload_config_template(char *path, FILE *stream)

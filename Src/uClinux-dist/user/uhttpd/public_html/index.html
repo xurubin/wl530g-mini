@@ -12,7 +12,6 @@ Router Admin
 
 <script type="text/javascript" src="jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="jquery-ui.min.js"></script>
-<script type="text/javascript" src="fileuploader.js" ></script>
 
 <script>
 function mkConfig(default_value, validator, description, value, old_value) {
@@ -251,11 +250,6 @@ $(document).ready(function(){
   		});
 		
 	});
-	var uploader = new qq.FileUploader({
-		element: document.getElementById('template-uploader'),
-		action: 'control/upload_config_template',
-		debug: true
-	});           
 
 	reloadConfigs();	
 });
@@ -304,7 +298,10 @@ $(document).ready(function(){
 		
 		<div id="Controls">
 			<h3>Device Controls</h3>
-			<div id="template-uploader"></div>
+			<form method="POST" enctype="multipart/form-data" action="control/upload_config_template">
+			Select template file: <input type="file" name="file"><br>
+			<input type="submit" value="Press"> to upload
+			</form>
 			<a href="control/get_config_template" >Download Current Template</a>
 			<br />
 			<br />

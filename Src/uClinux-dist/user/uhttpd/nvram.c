@@ -112,6 +112,8 @@ int eraseNVRAM(int nvram)
 #ifndef MOCK_NVRAM
 	struct mtd_info_user mtdInfo;
 	struct erase_info_user mtdEraseInfo;
+#else
+	int data;
 #endif
 
 #ifdef MOCK_NVRAM
@@ -151,9 +153,9 @@ int eraseNVRAM(int nvram)
 		}
 	}
 #else
-	fd = 0xFF;
+	data = 0xFF;
 	for(i=0; i < getNVRAMSize(nvram); i++)
-		write(fd, &fd, 1);
+		write(fd, &data, 1);
 #endif
 	close(fd);
 
