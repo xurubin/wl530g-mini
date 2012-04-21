@@ -29,7 +29,7 @@ NVRAM flash[2] =
 int reloadNVRAM(int nvram)
 {
 	int f = open(flash[nvram].devicename, O_RDONLY);
-	if (f)
+	if (f >= 0)
 	{
 		int read_size = read(f, flash[nvram].cache, flash[nvram].size);
 		close(f);
