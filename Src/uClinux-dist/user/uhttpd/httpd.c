@@ -39,6 +39,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 
 #include "httpd.h"
 #include "handlers.h"
@@ -93,13 +94,33 @@ time_t login_timestamp = 0;
 unsigned int login_ip_tmp = 0;
 unsigned int login_try = 0;
 
+uint32_t getNetIf_Addr(const char * interface)
+{
+	int fd;
+	struct ifreq ifr;
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	ifr.ifr_addr.sa_family = AF_INET;
+	strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
+
+	ioctl(fd, SIOCGIFADDR, &ifr);
+
+	close(fd);
+
+	return ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
+}
+
 static int initialize_listen_socket(usockaddr* usaP) {
 	int listen_fd;
 	int i;
 
 	memset(usaP, 0, sizeof(usockaddr));
 	usaP->sa.sa_family = AF_INET;
-	usaP->sa_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (strlen(wan_if))
+		usaP->sa_in.sin_addr.s_addr = getNetIf_Addr(wan_if);
+	else
+		usaP->sa_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	usaP->sa_in.sin_port = htons(http_port);
 
 	listen_fd = socket(usaP->sa.sa_family, SOCK_STREAM, 0);
@@ -563,33 +584,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "can't bind to any address\n");
 		exit(errno);
 	}
-
-#if !defined(DEBUG) && !defined(vxworks)
-	{
-		FILE *pid_fp;
-		/* Daemonize and log PID */
-		//if (http_port==SERVER_PORT)
-		//{
-#ifdef REMOVE
-		if (daemon(1, 1) == -1)
-		{
-			perror("daemon");
-			exit(errno);
-		}
-#endif
-		//}
-		if (http_port==SERVER_PORT)
-		strcpy(pidfile, "/var/run/httpd.pid");
-		else sprintf(pidfile, "/var/run/httpd-%d.pid", http_port);
-
-		if (!(pid_fp = fopen(pidfile, "w"))) {
-			perror(pidfile);
-			return errno;
-		}
-		fprintf(pid_fp, "%d", getpid());
-		fclose(pid_fp);
-	}
-#endif
 
 	/* Loop forever handling requests */
 	for (;;) {
