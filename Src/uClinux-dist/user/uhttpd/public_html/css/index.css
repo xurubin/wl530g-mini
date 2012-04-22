@@ -8,7 +8,7 @@ body {
 	background-color: #888888;
 }
 
-button {
+button.inline {
 	display:inline;
 	float: left;
 }
@@ -46,7 +46,7 @@ div.clear{
 
 #control_panel {
 	width: 260px;
-	position: fixed;
+	/*position: fixed;*/
 	background-color: #FFFFFF;
 	padding: 5px;
 	border-radius: 15px;

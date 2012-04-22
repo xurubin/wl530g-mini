@@ -26,6 +26,8 @@ var configs = {
 "router_ipaddr"    : mkConfig("1", /^\d*$/, "Router's ip address/24 without the subnet prefix", "", ""),
 "admin_username"   : mkConfig("admin", null, "Administrator's username", "", ""), 
 "admin_password"   : mkConfig("wbr204g", null, "Administrator's password", "", ""),
+"wlan_password"    : mkConfig("zzzzzzzz", /^.{8,}$/, "Wireless password (at least 8 characters)", "", ""),
+"wlan_channel"     : mkConfig("6", /^1?\d$/, "Wireless Channel (1-13)", "", ""),
 };
 
 var index = 0;
@@ -285,7 +287,7 @@ $(document).ready(function(){
 		
 		<div id="FlashSpace">
 		<h3>
-			<label style="float:left">Flash Usage</label><button onclick="javascript:reloadSpaces()">?</button>
+			<label style="float:left">Flash Usage</label><button class="inline" onclick="javascript:reloadSpaces()">?</button>
 		</h3>
 		<br />
 			<h5>Config Space:</h5>
