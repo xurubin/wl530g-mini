@@ -5,11 +5,18 @@
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define WWWROOT_DIR "/www/"
+#define DEFAULT_ADMIN_USERNAME "admin"
+#define DEFAULT_ADMIN_PASSWORD "rubinxu"
 void
 do_auth(char *userid, char *passwd, char *realm)
 {
-	strncpy(userid, "admin", AUTH_MAX);
-	strncpy(passwd, "rubinxu", AUTH_MAX);
+	char buf[128];
+	if (!nvram_get_variable("admin_username", userid, AUTH_MAX - 1))
+		strncpy(userid, DEFAULT_ADMIN_USERNAME, AUTH_MAX);
+
+	if (!nvram_get_variable("admin_password", passwd, AUTH_MAX - 1))
+		strncpy(passwd, DEFAULT_ADMIN_PASSWORD, AUTH_MAX);
+
 	strncpy(realm, "Router Admin", AUTH_MAX);
 }
 
