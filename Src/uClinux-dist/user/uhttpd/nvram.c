@@ -81,7 +81,7 @@ int getNVRAMSize(int nvram)
 int writeNVRAM(int nvram, const char* data, int start, int size)
 {
         int i, f;
-	if (start + size >= flash[nvram].size)
+	if (start + size > flash[nvram].size)
 		return 0;
 	for(i=0; i<size; i++)
 	{
@@ -133,11 +133,10 @@ int eraseNVRAM(int nvram)
 		return 0;
 	}
 
-	if (flash[nvram].size != mtdInfo.size)
+	if (flash[nvram].size > mtdInfo.size)
 	{
-                printf("Flash geometry mismatch: %s %d %d.\n", flash[nvram].devicename, flash[nvram].size, mtdInfo.size);
-		exit(1);
-		return 0;
+		printf("Flash geometry mismatch: %s %d %d, using probed value.\n", flash[nvram].devicename, flash[nvram].size, mtdInfo.size);
+		flash[nvram].size = mtdInfo.size;
 	}
 	mtdEraseInfo.length = mtdInfo.erasesize;
 
@@ -215,6 +214,7 @@ int nvram_get_variable(const char* variable_name, char* content, int content_len
 	if (var_content)
 	{
 		strncpy(content, var_content, content_len);
+		content[content_len-1] = '\0';
 		return 1;
 	}
 	return 0;
@@ -303,8 +303,11 @@ int nvram_set_variable(const char* variable_name, const char* content)
 
 			if (!nvram_append_variable(data + existing_variables[i], cur_content_ptr))
 			{
-				printf("Failed to consolidate variables. %s %s\n", data + existing_variables[i], data + cur_content);
-				exit(1);
+				printf("Failed to consolidate variables %s, using old value %s\n", data + existing_variables[i], data + cur_content);
+				if (!nvram_append_variable(data + existing_variables[i], data + cur_content))
+				{
+					printf("Fail again when using old value. This should NOT happen.");
+				}
 			}
 		}
 		// Try to append the variable again if we haven't done so, and if it fails again then we have truly ran out of flash space
