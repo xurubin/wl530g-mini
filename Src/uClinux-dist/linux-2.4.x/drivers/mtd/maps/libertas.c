@@ -87,9 +87,14 @@ static struct mtd_partition libertas_partitions[] = {
 		offset: 0x00070000
 	},
 	{
-		name: "Libertas AP-32 config storage",
-		size:   0x00004000,
+		name: "Libertas AP-32 config values",
+		size:   0x00002000,
 		offset: 0x00004000,
+	},
+	{
+		name: "Libertas AP-32 config template",
+		size:   0x00002000,
+		offset: 0x00006000,
 	},
 	{
 		name: "Libertas AP-32 xz decompressor",
