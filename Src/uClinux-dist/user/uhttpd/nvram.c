@@ -86,7 +86,7 @@ int writeNVRAM(int nvram, const char* data, int start, int size)
 	for(i=0; i<size; i++)
 	{
 		// Need to flip a bit from 0 to 1, which is impossible without an erase
-		if ((char)((~flash[nvram].cache[start + i]) & data[i]))
+	  if ( (~(unsigned char)flash[nvram].cache[start + i]) & (unsigned char)data[i])
 			return 0;
 	}
 	f = open(flash[nvram].devicename, O_WRONLY);

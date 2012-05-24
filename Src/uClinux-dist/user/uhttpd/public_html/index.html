@@ -243,6 +243,7 @@ $(document).ready(function(){
 		$.ajax({
 			type: "GET",
 			url: "control/" + cmd,
+                        dataType: "text",
   			success: function (var_result, textStatus) {
   				showModalDialog(var_result, cmd);
   			},

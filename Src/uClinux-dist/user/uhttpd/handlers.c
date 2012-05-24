@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 #include "httpd.h"
 #include "nvram.h"
 
@@ -204,18 +205,18 @@ int cat_file(const char* file, FILE* stream)
 {
 	char buf[256];
 	int len;
-	FILE* f = fopen(file, "rb");
-	if (!f)
+	int fd = open(file, O_RDONLY | O_NONBLOCK);
+	if (fd < 0)
 		return 0;
-	while(!feof(f))
+	while(1)
 	{
-		len = fread(buf, 1, sizeof(buf), f);
-		if (len)
-			fwrite(buf, 1, sizeof(buf), stream);
+	        len = read(fd, buf, sizeof(buf));
+		if (len > 0)
+			fwrite(buf, 1, len, stream);
 		else
 			break;
 	}
-	fclose(f);
+	close(fd);
 	return 1;
 }
 int do_control_get(char *path, FILE *stream)
@@ -228,7 +229,7 @@ int do_control_get(char *path, FILE *stream)
 
 	if (!strcmp(control_id, "cat_messages"))
 	{
-		return cat_file("/var/log/messages", stream);
+		return cat_file("/proc/kmsg", stream);
 	}
 	else if (!strcmp(control_id, "cat_free"))
 	{
@@ -296,13 +297,19 @@ int verify_template_file(char* buf, int len)
 
 int do_upload_config_template(char *path, FILE *stream)
 {
-	if (verify_template_file(post_buf, pbuf_ptr) &&
-		eraseNVRAM(NVRAM_TEMPLATE) &&
-		writeNVRAM(NVRAM_TEMPLATE, post_buf, 0, pbuf_ptr))
+  if (verify_template_file(post_buf, pbuf_ptr))
+    if (eraseNVRAM(NVRAM_TEMPLATE))
+      if (writeNVRAM(NVRAM_TEMPLATE, post_buf, 0, pbuf_ptr))
+	{
 		fputs("{success:true}", stream);
-	else
-		fputs("{success:false}", stream);
+		return 1;
+	}
+      else
+	printf("writeNVRAM failed.\n");
+    else
+      printf("eraseNVRAM failed.\n");
 
-	return 1;
+  fputs("{success:false}", stream);
+  return 1;
 }
 
