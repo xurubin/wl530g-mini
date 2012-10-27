@@ -5,7 +5,9 @@
 #include "nvram.h"
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
+#ifndef WWWROOT_DIR
 #define WWWROOT_DIR "/www/"
+#endif
 #define DEFAULT_ADMIN_USERNAME "admin"
 #define DEFAULT_ADMIN_PASSWORD "rubinxu"
 void
