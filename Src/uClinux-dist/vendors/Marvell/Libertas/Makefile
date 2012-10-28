@@ -6,7 +6,7 @@ ROMFSIMG = $(IMAGEDIR)/romfs.img
 IMAGE    = $(IMAGEDIR)/image.bin
 ELFIMAGE = $(IMAGEDIR)/image.elf
 
-ROMFS_DIRS = bin dev etc home lib/modules mnt proc usr var etc/config dev/gpio
+ROMFS_DIRS = bin dev etc0 home lib/modules mnt proc usr var etc/config dev/gpio
 
 ifdef CONFIG_128MHZ_CLOCK
 CLOCK=128MHZ

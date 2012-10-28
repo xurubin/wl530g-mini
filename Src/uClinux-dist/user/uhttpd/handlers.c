@@ -56,8 +56,9 @@ do_file(char *path, FILE *stream)
         			// Substitute included files.
         			char* include_file = line + strlen(SSI_PREFIX);
         			char* end = include_file + strlen(include_file) - 1;
+				FILE *fp_include;
         			while(*end == '\r' || *end == '\n') *(end--) = '\0';
-        			FILE *fp_include = fopen(include_file, "r");
+        			fp_include = fopen(include_file, "r");
         			if (fp_include) {
         				while ((c = fgetc(fp_include)) != EOF)
         						fputc(c, stream);

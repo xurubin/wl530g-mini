@@ -121,13 +121,14 @@ void expand_variable(const char* var_name, FILE* dst_file) {
 }
 int expand_template(MEMFILE *src_file, FILE *dst_file, unsigned long long chunksize) {
 	char * buf = src_file->buf + src_file->ptr;
-	if (chunksize > src_file->size - src_file->ptr)
-		chunksize = src_file->size - src_file->ptr;
-		
 	int p = 0;
 	char config_var[32];
 	int config_var_len = 0;
 	int parsing_var = 0;
+
+	if (chunksize > src_file->size - src_file->ptr)
+		chunksize = src_file->size - src_file->ptr;
+		
 	while (p < chunksize) {
 		if (parsing_var) {
 			// found end tag
@@ -194,6 +195,9 @@ char *extract_archive(MEMFILE *src_stream, const tar_entry_t *file_entry, const 
 	char *buffer = NULL;
 	struct utimbuf t;
 	int is_template = 0;
+	struct stat oldfile;
+	int stat_res;
+	int suffix_i;
 	
 	/* prefix doesnt have to be a proper path it may prepend 
 	 * the filename as well */
@@ -215,15 +219,13 @@ char *extract_archive(MEMFILE *src_stream, const tar_entry_t *file_entry, const 
 	}
 
 	/* Check if the file is a template */
-	int suffix_i = strlen(full_name) - strlen(TEMPLATE_SUFFIX);
+	suffix_i = strlen(full_name) - strlen(TEMPLATE_SUFFIX);
 	if (suffix_i && (!strcmp(full_name + suffix_i,
 				TEMPLATE_SUFFIX)) ) {
 		is_template = 1;
 		full_name[suffix_i] = '\0'; // Remove the template suffix.
 	}
 	/* Ignore this for now: The file already exists */
-	struct stat oldfile;
-	int stat_res;
 	stat_res = lstat (full_name, &oldfile);
 	/* Ignore this for now: Create leading directories with default umask */
 	switch(file_entry->mode & S_IFMT) {
@@ -420,31 +422,32 @@ char *unarchive(MEMFILE *src_stream, const char *prefix)
 
 
 void unarchive_config() {
-	int bufsize = 0;
+	int bufsize = 0, kind, len, olen, rc;
+	MEMFILE tarfile;
+	char * tarbuf;
 	const char * databuf = readNVRAM(NVRAM_TEMPLATE, 0, &bufsize);
 	if ((!databuf) || (!bufsize)) {
 		printf("Cannot load config block.");
 		return;
 	}
-	int kind = (databuf[4]<<8) | databuf[5];
-    int len = (databuf[6]<<24) | (databuf[7]<<16) | (databuf[8]<<8) | databuf[9];
-    if(databuf[0]!='L' || databuf[1]!='Z' || databuf[2]!='F' || databuf[3]!='X' ||
+	kind = (databuf[4]<<8) | databuf[5];
+	len = (databuf[6]<<24) | (databuf[7]<<16) | (databuf[8]<<8) | databuf[9];
+	if(databuf[0]!='L' || databuf[1]!='Z' || databuf[2]!='F' || databuf[3]!='X' ||
 	   kind != 1 || len > bufsize){
-        printf("Bad LZFX config file format.\n");
-        return;
-    }
+           printf("Bad LZFX config file format.\n");
+           return;
+	}
 	databuf += 10;
-	int olen = (databuf[0]<<24) | (databuf[1]<<16) | (databuf[2]<<8) | databuf[3];
+	olen = (databuf[0]<<24) | (databuf[1]<<16) | (databuf[2]<<8) | databuf[3];
 	bufsize = len - 4;
 	databuf += 4;
 	
-	char* tarbuf = malloc(olen);
-	int rc = lzfx_decompress(databuf, bufsize, tarbuf, &olen);
+	tarbuf = malloc(olen);
+	rc = lzfx_decompress(databuf, bufsize, tarbuf, &olen);
 	if (rc < 0) {
 		printf("Cannot decompress: %d\n", rc);
 		return;
 	}
-	MEMFILE tarfile;
 	tarfile.buf = tarbuf;
 	tarfile.size = olen;
 	tarfile.ptr = 0;
