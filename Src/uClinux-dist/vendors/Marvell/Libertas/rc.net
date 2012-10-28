@@ -61,7 +61,7 @@ miniupnpd -f /etc/config/miniupnpd.conf -d &
 
 pppd plugin pppoe nic-WAN mru 1458 usepeerdns defaultroute persist maxfail 0 &
 # HTTP server
-/bin/httpd &
+/bin/httpd br0 &
 
 echo 1 > /proc/sys/net/ipv4/ip_dynaddr
 echo 1 > /proc/sys/net/ipv4/ip_forward
