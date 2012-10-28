@@ -1,0 +1,8 @@
+"ppp_user"   : mkConfig("sza777777", null, "PPPoE Username", "", ""), 
+"ppp_pass"   : mkConfig("********", null, "PPPoE Password", "", ""), 
+"dhcp0_mac"   : mkConfig("00:E0:B1:0D:1E:60", null, "Static DHCP 0: MAC", "", ""), 
+"dhcp0_ip"   : mkConfig("3", null, "Static DHCP 0: IP/24", "", ""), 
+"dhcp0_name"   : mkConfig("desktop", null, "Static DHCP 0: Name", "", ""), 
+"dhcp1_mac"   : mkConfig("00:1b:fc:03:43:a9", null, "Static DHCP 1: MAC", "", ""), 
+"dhcp1_ip"   : mkConfig("4", null, "Static DHCP 1: IP/24", "", ""), 
+"dhcp1_name"   : mkConfig("a8js", null, "Static DHCP 1: Name", "", ""), 
