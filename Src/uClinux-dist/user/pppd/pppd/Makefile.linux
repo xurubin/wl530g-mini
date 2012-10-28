@@ -28,7 +28,7 @@ PPPDOBJS = main.o magic.o fsm.o lcp.o ipcp.o upap.o chap-new.o md5.o ccp.o \
 
 LDFLAGS += -Wl,-elf2flt="-s 64000"
 FLTFLAGS += -s 8192
-COPTS = -O2 -pipe -Wall -g
+COPTS = -Os -pipe -Wall -g
 
 #
 # include dependencies if present

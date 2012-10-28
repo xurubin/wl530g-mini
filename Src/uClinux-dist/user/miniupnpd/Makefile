@@ -17,7 +17,7 @@
 # ./configure them and build them then miniupnpd will build using :
 # $ IPTABLESPATH=/path/to/iptables-1.4.1 make -f Makefile.linux
 #
-CFLAGS += -Wall -O -D_GNU_SOURCE -g -DDEBUG -ansi
+CFLAGS += -Wall -Os -D_GNU_SOURCE -g -DDEBUG -ansi
 #CFLAGS ?= -Wall -Os -D_GNU_SOURCE -fno-strict-aliasing -Wstrict-prototypes
 
 

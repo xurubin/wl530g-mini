@@ -1,4 +1,4 @@
-CFLAGS	+= -I.. -I../../include -Itacc/include
+CFLAGS	+= -Os -I.. -I../../include -Itacc/include
 INSTALL	= install
 
 ifeq ($(CONFIG_USER_PPPD_WITH_DYNAMIC_PLUGINS),y)

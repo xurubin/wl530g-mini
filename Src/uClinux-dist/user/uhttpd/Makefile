@@ -12,8 +12,8 @@ LDFLAGS	+= -Wl,-elf2flt="" #-L$(TOP)/nvram
 
 #CFLAGS	+= -I. -I$(TOP)/shared -I$(SRCBASE)/include -Wall -DFLASH_EMULATOR -DLinux -DMIPS -DASUS
 
-CFLAGS	+= -g -DDEBUG
-#CFLAGS	+= -s -O2
+#CFLAGS	+= -g -DDEBUG
+CFLAGS	+= -s -Os
 LDFLAGS	+= #-L$(TOP)/nvram -L$(TOP)/shared -L$(TOP)/netconf
 
 vpath %.c $(TOP)/shared
