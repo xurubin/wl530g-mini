@@ -22,6 +22,7 @@
 #include <grp.h>
 #include <utime.h>
 #include <errno.h>
+#include <dirent.h>
 #ifdef EMBED
 #include <config/autoconf.h>
 #endif
@@ -461,6 +462,25 @@ do_ln(argc, argv)
 	}
 }
 
+char * joinpath(dirname, filename)
+     char*dirname;
+     char*filename;
+{
+  char*cp;
+  static char buf[PATHLEN];
+
+  if ((dirname == NULL) || (*dirname == '\0'))
+    return filename;
+
+  if (filename[0] == '/')
+    filename++;
+
+  strcpy(buf, dirname);
+  strcat(buf, "/");
+  strcat(buf, filename);
+
+  return buf;
+}
 
 void
 do_cp(argc, argv)
@@ -470,7 +490,19 @@ do_cp(argc, argv)
 	char	*srcname;
 	char	*destname;
 	char	*lastarg;
+	BOOL    no_overwrite;
+	struct stat fstat;
+	char    *files[512];
+	int     fcount = 0, i;
+	DIR     *dirp;
+	struct dirent *dp;
+	int     recurse = 0;
 
+	no_overwrite = (argc > 1) && (!strcmp(argv[1], "-se"));
+	if (no_overwrite) {
+	  argc--;
+	  argv++;
+	}
 	lastarg = argv[argc - 1];
 
 	dirflag = isadir(lastarg);
@@ -479,14 +511,42 @@ do_cp(argc, argv)
 		fprintf(stderr, "%s: not a directory\n", lastarg);
 		return;
 	}
-
-	while (argc-- > 2) {
+	for(i=0; i<argc-2; i++) 
+	  files[fcount++] = argv[i+1];
+	while (fcount) {
 		destname = lastarg;
-		srcname = *++argv;
-		if (dirflag)
+		srcname = files[--fcount];
+		if (stat(srcname, &fstat) >= 0) {
+		  if (S_ISDIR(fstat.st_mode)) {
+		    // Recurse into subdirectories
+		    dirp = opendir(srcname);
+		    if (!dirp)
+		      continue;
+		    while((dp = readdir(dirp)) != NULL) {
+		      if ((strcmp(dp->d_name, ".") == 0) ||
+			  (strcmp(dp->d_name, "..") == 0))
+			continue;
+		      files[fcount] = getchunk(strlen(srcname) + strlen(dp->d_name) + 2);
+		      strcpy(files[fcount], srcname);
+		      strcat(files[fcount], "/");
+		      strcat(files[fcount], dp->d_name);
+		      fcount++;
+		      recurse = 1;
+		    }
+		    mkdir(joinpath(destname, srcname), 0777);
+		  } else {
+		    if (dirflag) {
+		      // What a mess! should have defined cp's semantics more carefully.
+		      if (recurse == 0)
 			destname = buildname(destname, srcname);
-
-		(void) copyfile(srcname, destname, FALSE);
+		      else
+			destname = joinpath(destname, srcname);
+		    }
+		    if (!no_overwrite || stat(destname, &fstat) < 0)
+		      (void) copyfile(srcname, destname, FALSE);
+		  }
+		} else
+		  fprintf(stderr, "%s does not exist.\n", srcname);
 	}
 }
 

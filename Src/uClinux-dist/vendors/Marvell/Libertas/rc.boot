@@ -10,6 +10,7 @@ mkdir /var/lock
 mount -t ramfs none /etc
 loadetc
 ## skip existing file when copying
-cp -se /etc0/* /etc/
+cd /etc0/
+cp -se * /etc/
 
 source /etc/rc
