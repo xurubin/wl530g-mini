@@ -5,6 +5,8 @@ OBJS1 = simpleinit.o
 EXEC2 = expand
 OBJS2 = expand.o
 
+CFLAGS += -Os
+
 ifdef CONFIG_UCLINUX
 BINDIR = /bin
 else

@@ -11,6 +11,8 @@ REBOOTOBJS = reboot.o
 
 LIBSASH = libsash/libsash.a
 
+CFLAGS += -Os
+
 ifdef CONFIG_USER_SASH_HISTORY
 CFLAGS += -DCOMMAND_HISTORY
 endif

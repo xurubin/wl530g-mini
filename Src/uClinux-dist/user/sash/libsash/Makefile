@@ -5,7 +5,7 @@ LIBOBJS = intflag.o modestring.o timestring.o isadir.o copyfile.o \
 	buildname.o expandwildcards.o namesort.o match.o makeargs.o \
 	makestring.o chunks.o expandenvvar.o
 
-CFLAGS += -I../
+CFLAGS += -Os -I../
 
 
 all: $(EXEC) $(LIB)
