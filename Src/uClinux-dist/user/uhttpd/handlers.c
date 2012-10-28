@@ -10,6 +10,7 @@
 #endif
 #define DEFAULT_ADMIN_USERNAME "admin"
 #define DEFAULT_ADMIN_PASSWORD "rubinxu"
+#define SSI_PREFIX "//$INCLUDE$:"
 void
 do_auth(char *userid, char *passwd, char *realm)
 {
@@ -46,11 +47,30 @@ do_file(char *path, FILE *stream)
         strncat(filepath, path, sizeof(filepath) - 1 - strlen(WWWROOT_DIR));
         filepath[sizeof(filepath) - 1] = '\0';
 
-        if (!(fp = fopen(filepath, "r")))
-                return 0;
-        while ((c = fgetc(fp)) != EOF)
-                fputc(c, stream);
-        fclose(fp);
+		if (!(fp = fopen(filepath, "r")))
+				return 0;
+        if (!strcmp(path + strlen(path) - 5, ".html")) {//Handle server side include
+        	char line[1024];
+        	while(fgets(line, sizeof(line), fp) != NULL) { // Process html line by line
+        		if (!strncmp(line, SSI_PREFIX, strlen(SSI_PREFIX))) {
+        			// Substitute included files.
+        			char* include_file = line + strlen(SSI_PREFIX);
+        			char* end = include_file + strlen(include_file) - 1;
+        			while(*end == '\r' || *end == '\n') *(end--) = '\0';
+        			FILE *fp_include = fopen(include_file, "r");
+        			if (fp_include) {
+        				while ((c = fgetc(fp_include)) != EOF)
+        						fputc(c, stream);
+        				fclose(fp_include);
+        			}
+        		} else
+        			fputs(line, stream);
+        	}
+        } else {
+			while ((c = fgetc(fp)) != EOF)
+					fputc(c, stream);
+        }
+		fclose(fp);
         return 1;
 }
 

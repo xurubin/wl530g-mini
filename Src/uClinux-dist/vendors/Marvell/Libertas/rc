@@ -1,21 +1,3 @@
-#insmod /lib/modules/unimac.o
-#insmod /lib/modules/mvwlan.o
-#insmod /lib/modules/gpio.o
-
-mount -t proc proc /proc
-mount -t ramfs none /var
-mkdir /var/tmp
-mkdir /var/tmp/ppp
-mkdir /var/log
-mkdir /var/run
-mkdir /var/lock
-
-#Making the /etc directory RW
-
-cp -r /etc /var
-mount -t ramfs none /etc
-cp -r /var/etc /
-
 /bin/rgcfg -i
 
 /bin/mvapd /etc/config/hostapd.conf &

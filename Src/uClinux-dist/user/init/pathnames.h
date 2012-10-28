@@ -32,7 +32,7 @@
 
 #define _PATH_LOGIN	"/bin/login"
 #define _PATH_INITTAB	"/etc/inittab"
-#define _PATH_RC	"/etc/rc"
+#define _PATH_RC	"/etc0/rc.boot"
 #define _PATH_REBOOT	"/bin/reboot"
 #define _PATH_SINGLE	"/etc/singleboot"
 #define _PATH_SECURE	"/etc/securesingle"

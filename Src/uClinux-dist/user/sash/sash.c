@@ -40,6 +40,8 @@ typedef struct {
 	int	maxargs;
 } CMDTAB;
 
+static void do_diag_led(int argc, char **argv);
+static void do_loadetc(int argc, char **argv);
 
 CMDTAB	cmdtab[] = {
 /*
@@ -191,6 +193,9 @@ CMDTAB	cmdtab[] = {
 
 	"date",		"date [MMDDhhmm[YYYY]]",	do_date,
 	1,		2,
+
+	"loadetc",		"",			do_loadetc,
+	1,		1,
 
 	0,		0,			0,
 	0,		0
@@ -1120,5 +1125,12 @@ static void do_diag_led(int argc, char **argv)
 	buf = (on_off[0] == '1');
 	fwrite(&buf, sizeof(buf), 1, fp);
 	fclose(fp);
+}
+
+extern void unarchive_config();
+static void do_loadetc(int argc, char **argv)
+{
+	/* TODO: if (!safemode()) */
+	unarchive_config();
 }
 /* END CODE */

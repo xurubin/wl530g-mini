@@ -83,27 +83,29 @@ romfs:
 	done
 	$(ROMFSINST) -s /var/tmp /tmp
 	$(ROMFSINST) -s /bin /sbin
-	$(ROMFSINST) /etc/passwd
-	$(ROMFSINST) /etc/group
-	$(ROMFSINST) /etc/rc
-	$(ROMFSINST) /etc/rc.net
-	$(ROMFSINST) /etc/mfg_data
-	$(ROMFSINST) /etc/inittab
+	$(ROMFSINST) /etc0/passwd
+	$(ROMFSINST) /etc0/group
+	$(ROMFSINST) /etc0/rc.boot
+	$(ROMFSINST) /etc0/rc
+	$(ROMFSINST) /etc0/rc.net
+	$(ROMFSINST) /etc0/mfg_data
+	$(ROMFSINST) /etc0/inittab
 	case "$(LINUXDIR)" in \
 	*2.4.*) ;; \
-	*) echo "ttyS0:linux:/bin/sh" >> $(ROMFSDIR)/etc/inittab ;; \
+	*) echo "ttyS0:linux:/bin/sh" >> $(ROMFSDIR)/etc0/inittab ;; \
 	esac
-	$(ROMFSINST) /etc/motd
-	$(ROMFSINST) /etc/resolv.conf
-	$(ROMFSINST) /etc/config/pppd-options
-	$(ROMFSINST) /etc/config/dnsmasq.conf
-	$(ROMFSINST) /etc/config/unimac.conf
-	$(ROMFSINST) /etc/config/hostapd.conf
-	$(ROMFSINST) /etc/config/hostapd.accept
-	$(ROMFSINST) /etc/config/hostapd.deny
-	$(ROMFSINST) /etc/config/miniupnpd.conf
-	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc/version
-	$(ROMFSINST) /etc/updateapd
+	$(ROMFSINST) /etc0/motd
+	$(ROMFSINST) /etc0/resolv.conf
+	$(ROMFSINST) /etc0/htmlconfig
+	$(ROMFSINST) /etc0/config/pppd-options
+	$(ROMFSINST) /etc0/config/dnsmasq.conf
+	$(ROMFSINST) /etc0/config/unimac.conf
+	$(ROMFSINST) /etc0/config/hostapd.conf
+	$(ROMFSINST) /etc0/config/hostapd.accept
+	$(ROMFSINST) /etc0/config/hostapd.deny
+	$(ROMFSINST) /etc0/config/miniupnpd.conf
+	echo "$(VERSIONSTR) -- " `date` > $(ROMFSDIR)/etc0/version
+	$(ROMFSINST) /etc0/updateapd
 	$(ROMFSINST) -e CONFIG_USER_MRVL_MVWLAN mvwlan-$(MEMSIZE)-$(CLOCK).o /lib/modules/mvwlan.o
 	$(ROMFSINST) -e CONFIG_USER_MRVL_AP_DAEMON /bin/mvapd
 

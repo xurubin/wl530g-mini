@@ -12,7 +12,6 @@
 #endif
 #include "nvram.h"
 
-#define MAX_NVRAM_BLOCK_SIZE 0x2000
 typedef struct {
 	char * devicename;
 	int size;
@@ -21,9 +20,9 @@ typedef struct {
 } NVRAM;
 NVRAM flash[2] =
 #ifdef MOCK_NVRAM
-{{"config.nvram", 128, 1}, {"template.nvram", 0x2000, 1}};
+{{"config.nvram", 128, 1}, {"template.nvram", MAX_NVRAM_BLOCK_SIZE, 1}};
 #else
-{{"/dev/mtdblock2", 0x2000, 1}, {"/dev/mtdblock3", 0x2000, 1}};
+{{NVRAM_CONFIG_MTD, MAX_NVRAM_BLOCK_SIZE, 1}, {NVRAM_TEMPLATE_MTD, MAX_NVRAM_BLOCK_SIZE, 1}};
 #endif
 
 int reloadNVRAM(int nvram)
@@ -33,7 +32,7 @@ int reloadNVRAM(int nvram)
 	{
 		int read_size = read(f, flash[nvram].cache, flash[nvram].size);
 		close(f);
-		if (read_size == flash[nvram].size)
+		if (read_size)
 		{
 			flash[nvram].need_refresh = 0;
 			return 1;
