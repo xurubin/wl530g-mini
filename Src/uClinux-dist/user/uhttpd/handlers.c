@@ -315,7 +315,7 @@ void do_parse_fileupload(char *url, FILE *stream, int len, char *boundary)
 int verify_template_file(char* buf, int len)
 {
 	// Check ZIP file header.
-	return len > 4 && ((int*)buf)[0] == 0x04034b50;
+	return len > 4 && ((int*)buf)[0] == 0x58465a4c;
 }
 
 int do_upload_config_template(char *path, FILE *stream)

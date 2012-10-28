@@ -1,9 +1,11 @@
 #define MAX_NVRAM_BLOCK_SIZE 0x2000
 
 #define NVRAM_CONFIG 0
-#define NVRAM_CONFIG_MTD "/dev/mtdblock2"
+#define NVRAM_CONFIG_MTD "/dev/mtd2"
+#define NVRAM_CONFIG_MTDBLOCK "/dev/mtdblock2"
 #define NVRAM_TEMPLATE 1
-#define NVRAM_TEMPLATE_MTD "/dev/mtdblock3"
+#define NVRAM_TEMPLATE_MTD "/dev/mtd3"
+#define NVRAM_TEMPLATE_MTDBLOCK "/dev/mtdblock3"
 
 void reloadNVRAMs();
 const char* readNVRAM(int nvram, int start, int* size);

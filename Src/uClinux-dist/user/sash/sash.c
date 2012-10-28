@@ -25,6 +25,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+#include "../uhttpd/nvram.h"
 
 static char version[] = "1.1.1";
 
@@ -183,8 +185,8 @@ CMDTAB	cmdtab[] = {
 	"ps",		"",			do_ps,
 	1,		MAXARGS,
 	
-	"diag_led",		"[1/0]",			do_diag_led,
-	2,		2,
+	"diag_led",		"0/1/2 [devnode]",			do_diag_led,
+	2,		3,
 /*	"reboot",	"",			do_reboot,
 	1,		MAXARGS,
 */
@@ -1108,8 +1110,23 @@ static void do_diag_led(int argc, char **argv)
 {
 	FILE	*fp;
 	char	*on_off;
-	int		buf;
+	int	i,buf;
 
+	if (argv[1][0] == '2') {
+	        fp = fopen(argv[2], "r");
+        	if (fp == NULL) {
+                	printf("Cannot open device %s.\n", argv[2]);
+			return;
+	        }
+		buf = 0;
+		for(i=0; i< 100000; i++) {
+			fread(&buf, sizeof(buf), 1, fp);
+			printf("%.8x\r", buf);
+		}
+		printf("\n%.8x\n", buf);
+	        fclose(fp);
+		return;
+	}
 	on_off = argv[1];
 	if (on_off[0] != '0' && on_off[0] != '1')
 	{
@@ -1128,9 +1145,25 @@ static void do_diag_led(int argc, char **argv)
 }
 
 extern void unarchive_config();
+int resetbtn_down() {
+	int buf;
+	int down = 0;
+	int f = open("/dev/gpio/in", O_RDONLY);
+	if (f >= 0) {
+		if (read(f, &buf, 4) == 4)
+			down = ((buf & 0x10) == 0);
+		close(f);
+	}
+	return down;
+}
 static void do_loadetc(int argc, char **argv)
 {
-	/* TODO: if (!safemode()) */
-	unarchive_config();
+	if (!resetbtn_down())
+		unarchive_config();
+	else {
+		printf("*******Resetting nvram area.******\n");
+		eraseNVRAM(NVRAM_CONFIG);
+		eraseNVRAM(NVRAM_TEMPLATE);
+	}
 }
 /* END CODE */

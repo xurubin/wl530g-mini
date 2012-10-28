@@ -32,7 +32,7 @@ struct mime_handler mime_handlers[] = {
 	{ "status", "application/json", NULL, NULL, do_status_get, do_auth},
 
 	{ "control/upload_config_template", NULL, NULL, do_parse_fileupload, do_upload_config_template, do_auth},
-	{ "control/get_config_template", "application/oct-stream", "Content-Disposition: attachment; filename=template.gz", NULL, do_get_config_template, do_auth},
+	{ "control/get_config_template", "application/oct-stream", "Content-Disposition: attachment; filename=template.tar.lzfx", NULL, do_get_config_template, do_auth},
 	{ "control/*", "application/json", NULL, NULL, do_control_get, do_auth},
 
 	{ NULL, NULL, NULL, NULL, NULL, NULL }

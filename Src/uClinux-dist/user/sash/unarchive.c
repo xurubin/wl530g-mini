@@ -451,6 +451,6 @@ void unarchive_config() {
 	tarfile.buf = tarbuf;
 	tarfile.size = olen;
 	tarfile.ptr = 0;
-	unarchive(&tarfile, "/tmp/");
+	unarchive(&tarfile, "/");
 	free(tarbuf);
 }

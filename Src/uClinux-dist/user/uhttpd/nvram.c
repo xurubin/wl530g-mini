@@ -14,15 +14,16 @@
 
 typedef struct {
 	char * devicename;
+	char * chardevice;
 	int size;
 	int need_refresh;
 	char cache[MAX_NVRAM_BLOCK_SIZE];
 } NVRAM;
 NVRAM flash[2] =
 #ifdef MOCK_NVRAM
-{{"config.nvram", 128, 1}, {"template.nvram", MAX_NVRAM_BLOCK_SIZE, 1}};
+{{"config.nvram", NULL, 128, 1}, {"template.nvram", NULL, MAX_NVRAM_BLOCK_SIZE, 1}};
 #else
-{{NVRAM_CONFIG_MTD, MAX_NVRAM_BLOCK_SIZE, 1}, {NVRAM_TEMPLATE_MTD, MAX_NVRAM_BLOCK_SIZE, 1}};
+{{NVRAM_CONFIG_MTDBLOCK, NVRAM_CONFIG_MTD, MAX_NVRAM_BLOCK_SIZE, 1}, {NVRAM_TEMPLATE_MTDBLOCK, NVRAM_TEMPLATE_MTD, MAX_NVRAM_BLOCK_SIZE, 1}};
 #endif
 
 int reloadNVRAM(int nvram)
@@ -118,7 +119,7 @@ int eraseNVRAM(int nvram)
 #ifdef MOCK_NVRAM
 	fd = open(flash[nvram].devicename, O_RDWR | O_CREAT | O_SYNC);
 #else
-	fd = open(flash[nvram].devicename, O_RDWR | O_SYNC);
+	fd = open(flash[nvram].chardevice, O_RDWR | O_SYNC);
 #endif
 	if(fd < 0) {
 		printf("Could not erase flash: %s\n", flash[nvram].devicename);
