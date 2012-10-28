@@ -129,6 +129,32 @@ struct {
 	char* field_name;
 	char *field_value;
 } formdata[20];
+
+int fromhex(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >='A' && c <= 'F') 
+        return c - 'A' + 10;
+    else if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    else
+        return 0;
+}
+char* urldecode(char* str) {
+    char* buf = malloc(strlen(str) + 1);
+    int i=0, j=0; 
+    while (i < strlen(str) ) {
+        if (str[i] == '%') {
+            buf[j++] = (fromhex(str[i+1]) << 4) | fromhex(str[i+2]);
+            i += 3;
+        } else
+            buf[j++] = str[i++];
+    }
+    buf[j] = '\0';
+    strcpy(str, buf);
+    free(buf);
+    return str;
+}
 void
 do_parse_postform(char *url, FILE *stream, int len, char *boundary)
 {
@@ -146,7 +172,7 @@ do_parse_postform(char *url, FILE *stream, int len, char *boundary)
 			if (c == '=')
 			{
 				state = VAR_VALUE;
-				formdata[formdata_cnt].field_name = pbuf_mkstr();
+				formdata[formdata_cnt].field_name = urldecode(pbuf_mkstr());
 			}
 			else
 				pbuf_insert_char(c);
@@ -158,7 +184,7 @@ do_parse_postform(char *url, FILE *stream, int len, char *boundary)
 					pbuf_insert_char(c);
 
 				state = VAR_NAME;
-				formdata[formdata_cnt++].field_value = pbuf_mkstr();
+				formdata[formdata_cnt++].field_value = urldecode(pbuf_mkstr());
 			}
 			else
 				pbuf_insert_char(c);
