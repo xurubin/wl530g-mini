@@ -185,8 +185,8 @@ CMDTAB	cmdtab[] = {
 	"ps",		"",			do_ps,
 	1,		MAXARGS,
 	
-	"diag_led",		"0/1/2 [devnode]",			do_diag_led,
-	2,		3,
+	"diag_led",		"0/1",			do_diag_led,
+	2,		2,
 /*	"reboot",	"",			do_reboot,
 	1,		MAXARGS,
 */
@@ -1112,21 +1112,6 @@ static void do_diag_led(int argc, char **argv)
 	char	*on_off;
 	int	i,buf;
 
-	if (argv[1][0] == '2') {
-	        fp = fopen(argv[2], "r");
-        	if (fp == NULL) {
-                	printf("Cannot open device %s.\n", argv[2]);
-			return;
-	        }
-		buf = 0;
-		for(i=0; i< 100000; i++) {
-			fread(&buf, sizeof(buf), 1, fp);
-			printf("%.8x\r", buf);
-		}
-		printf("\n%.8x\n", buf);
-	        fclose(fp);
-		return;
-	}
 	on_off = argv[1];
 	if (on_off[0] != '0' && on_off[0] != '1')
 	{
